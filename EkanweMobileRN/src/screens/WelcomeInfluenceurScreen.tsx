@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Text } from 'react-native-paper';
+import { View, StyleSheet, Image, Dimensions, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import { Button } from '../components/Button';
 
 type WelcomeInfluenceurScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'WelcomeInfluenceur'>;
 
@@ -38,12 +38,12 @@ export const WelcomeInfluenceurScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <TouchableOpacity
-            style={styles.nextButton}
+          <Button
+            title="→"
             onPress={() => navigation.navigate('CreatorInfluenceur')}
-          >
-            <Text style={styles.nextButtonText}>→</Text>
-          </TouchableOpacity>
+            style={styles.nextButton}
+            textStyle={styles.nextButtonText}
+          />
         </View>
       </View>
     </View>
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     marginBottom: 44,
+    lineHeight: 20,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -115,13 +116,12 @@ const styles = StyleSheet.create({
   nextButton: {
     width: 40,
     height: 40,
-    backgroundColor: '#FF6B2E',
+    backgroundColor: '#007AFF',
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 0,
+    minWidth: 40,
   },
   nextButtonText: {
-    color: 'white',
     fontSize: 20,
   },
 }); 

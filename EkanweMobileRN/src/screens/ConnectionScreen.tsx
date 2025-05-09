@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Text } from 'react-native-paper';
+import { View, StyleSheet, Image, Dimensions, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useUserData } from '../context/UserContext';
+import { Button } from '../components/Button';
 
 type ConnectionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Connection'>;
 
@@ -26,32 +26,52 @@ export const ConnectionScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.imageContainer}>
+      <View style={styles.header}>
         <Image
-          source={require('../assets/commercant.png')}
-          style={styles.image}
-          resizeMode="cover"
+          source={require('../assets/ekanwe-logo.png')}
+          style={styles.logo}
         />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={onCommercantClick}
-        >
-          <Text style={styles.buttonText}>COMMERCANT</Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>Choisissez votre profil</Text>
       </View>
 
-      <View style={styles.imageContainer}>
-        <Image
-          source={require('../assets/influenceur.png')}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={onInfluenceurClick}
-        >
-          <Text style={styles.buttonText}>INFLUENCEUR</Text>
-        </TouchableOpacity>
+      <View style={styles.content}>
+        <View style={styles.card}>
+          <Image
+            source={require('../assets/commercant.png')}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Commerçant</Text>
+            <Text style={styles.cardDescription}>
+              Gérez vos campagnes et trouvez des influenceurs pour promouvoir vos produits
+            </Text>
+            <Button
+              title="CONTINUER"
+              onPress={onCommercantClick}
+              style={styles.button}
+            />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Image
+            source={require('../assets/influenceur.png')}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Influenceur</Text>
+            <Text style={styles.cardDescription}>
+              Créez du contenu et collaborez avec des marques pour monétiser votre influence
+            </Text>
+            <Button
+              title="CONTINUER"
+              onPress={onInfluenceurClick}
+              style={styles.button}
+            />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -61,45 +81,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A2C24',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 32,
+    padding: 20,
   },
-  imageContainer: {
-    width: '100%',
+  header: {
     alignItems: 'center',
-    marginBottom: 24,
-    position: 'relative',
+    marginTop: 40,
+    marginBottom: 32,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 16,
+  },
+  title: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  content: {
+    flex: 1,
+    gap: 24,
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   image: {
-    width: width * 0.8,
-    maxWidth: 400,
-    height: 200,
-    borderRadius: 12,
+    width: '100%',
+    height: 160,
+  },
+  cardContent: {
+    padding: 16,
+  },
+  cardTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  cardDescription: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
   },
   button: {
-    position: 'absolute',
-    bottom: '50%',
-    left: '50%',
-    transform: [{ translateX: -80 }, { translateY: 20 }],
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 44,
-    paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
+    backgroundColor: '#007AFF',
   },
 }); 

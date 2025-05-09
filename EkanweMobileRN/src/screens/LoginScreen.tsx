@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, ImageBackground, TouchableOpacity } from 'react-native';
-import { Text, TextInput, Button } from 'react-native-paper';
+import { View, StyleSheet, Image, ImageBackground, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RootStackParamList } from '../types/navigation';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -22,87 +20,11 @@ export const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      const userCredential = await auth().signInWithEmailAndPassword(
-        loginData.mail,
-        loginData.motdepasse
-      );
-
-      const user = userCredential.user;
-      const userDoc = await firestore().collection('users').doc(user.uid).get();
-
-      if (userDoc.exists) {
-        const data = userDoc.data();
-        const role = data?.role;
-        const inscription = data?.inscription;
-
-        switch (inscription) {
-          case "1":
-            navigation.navigate('RegistrationStepOne');
-            break;
-          case "2":
-            navigation.navigate('InterestStep');
-            break;
-          case "3":
-            navigation.navigate('SocialConnectStep');
-            break;
-          case "4":
-            navigation.navigate('PortfolioStep');
-            break;
-          case "terminé":
-            if (role === "commerçant") {
-              navigation.navigate('DealsCommercant');
-            } else if (role === "influenceur") {
-              navigation.navigate('DealsInfluenceur');
-            } else {
-              setError("Rôle inconnu. Veuillez contacter l'administrateur.");
-            }
-            break;
-          default:
-            navigation.navigate('LoginOrSignup');
-        }
-      } else {
-        setError("Compte introuvable dans la base de données.");
-      }
+      // La logique d'authentification sera gérée par le backend
+      navigation.navigate('WelcomeInfluenceur');
     } catch (err) {
       console.error(err);
       setError("Email ou mot de passe invalide.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      const userCredential = await auth().signInWithCredential(googleCredential);
-      
-      const userDoc = await firestore().collection('users').doc(userCredential.user.uid).get();
-
-      if (userDoc.exists) {
-        const data = userDoc.data();
-        const { role, inscription } = data;
-
-        if (inscription === "Non Terminé") {
-          setError("Inscription non terminée.");
-          return;
-        }
-
-        if (role === "commerçant") {
-          navigation.navigate('DealsCommercant');
-        } else if (role === "influenceur") {
-          navigation.navigate('DealsInfluenceur');
-        } else {
-          setError("Rôle inconnu. Veuillez contacter l'administrateur.");
-        }
-      } else {
-        setError("Compte inexistant. Veuillez vous inscrire d'abord.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Erreur de connexion avec Google.");
     } finally {
       setLoading(false);
     }
@@ -125,22 +47,20 @@ export const LoginScreen = () => {
           </View>
 
           <View style={styles.form}>
-            <TextInput
-              mode="outlined"
-              label="Mail"
+            <Input
+              label="Email"
               value={loginData.mail}
               onChangeText={(text) => setLoginData({ ...loginData, mail: text })}
-              style={styles.input}
-              theme={{ colors: { primary: 'white' } }}
+              placeholder="Entrez votre email"
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
-            <TextInput
-              mode="outlined"
+            <Input
               label="Mot de passe"
               value={loginData.motdepasse}
               onChangeText={(text) => setLoginData({ ...loginData, motdepasse: text })}
+              placeholder="Entrez votre mot de passe"
               secureTextEntry
-              style={styles.input}
-              theme={{ colors: { primary: 'white' } }}
             />
           </View>
 
@@ -155,22 +75,17 @@ export const LoginScreen = () => {
 
           <View style={styles.buttonContainer}>
             <Button
-              mode="outlined"
+              title="RETOUR"
               onPress={() => navigation.goBack()}
               style={styles.backButton}
-              textColor="white"
-            >
-              RETOUR
-            </Button>
+              textStyle={styles.backButtonText}
+            />
             <Button
-              mode="contained"
+              title={loading ? "Connexion..." : "CONNEXION"}
               onPress={handleLogin}
-              loading={loading}
               disabled={loading}
               style={styles.loginButton}
-            >
-              {loading ? "Connexion..." : "CONNEXION"}
-            </Button>
+            />
           </View>
 
           <View style={styles.divider}>
@@ -180,15 +95,11 @@ export const LoginScreen = () => {
           </View>
 
           <Button
-            mode="contained"
-            onPress={handleGoogleLogin}
-            loading={loading}
-            disabled={loading}
+            title="Continuer avec Google"
+            onPress={() => {}}
             style={styles.googleButton}
-            icon="google"
-          >
-            Continuer avec Google
-          </Button>
+            textStyle={styles.googleButtonText}
+          />
         </View>
       </View>
     </ImageBackground>
@@ -236,9 +147,6 @@ const styles = StyleSheet.create({
   form: {
     gap: 16,
   },
-  input: {
-    backgroundColor: 'transparent',
-  },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginTop: 16,
@@ -248,26 +156,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   error: {
-    color: '#F87171',
+    color: '#ff3b30',
+    fontSize: 14,
+    marginTop: 8,
     textAlign: 'center',
-    marginTop: 16,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 24,
+    gap: 12,
   },
   backButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
     borderColor: 'white',
   },
+  backButtonText: {
+    color: 'white',
+  },
   loginButton: {
-    backgroundColor: '#FF6B2E',
+    flex: 2,
+    backgroundColor: '#007AFF',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 16,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -276,10 +192,13 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: '#9CA3AF',
-    marginHorizontal: 8,
-    fontSize: 12,
+    marginHorizontal: 12,
+    fontSize: 14,
   },
   googleButton: {
     backgroundColor: 'white',
+  },
+  googleButtonText: {
+    color: '#1A2C24',
   },
 }); 

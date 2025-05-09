@@ -1,69 +1,58 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Text, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Splash'>;
 
 export const SplashScreen = () => {
   const navigation = useNavigation<SplashScreenNavigationProp>();
+  const fadeAnim = new Animated.Value(0);
+  const scaleAnim = new Animated.Value(0.8);
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(async (user) => {
-      if (user) {
-        const userDoc = await firestore().collection('users').doc(user.uid).get();
+    // Animation d'entrée
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-        if (userDoc.exists) {
-          const data = userDoc.data();
-          const role = data?.role;
-          const inscription = data?.inscription;
-
-          switch (inscription) {
-            case "1":
-              navigation.replace('RegistrationStepOne');
-              break;
-            case "2":
-              navigation.replace('InterestStep');
-              break;
-            case "3":
-              navigation.replace('SocialConnectStep');
-              break;
-            case "4":
-              navigation.replace('PortfolioStep');
-              break;
-            case "Terminé":
-              if (role === "commerçant") {
-                navigation.replace('DealsCommercant');
-              } else if (role === "influenceur") {
-                navigation.replace('DealsInfluenceur');
-              }
-              break;
-            default:
-              navigation.replace('Connection');
-          }
-        }
-      } else {
-        navigation.replace('Connection');
-      }
-    });
-
+    // Navigation après 2 secondes
     const timer = setTimeout(() => {
-      unsubscribe();
+      navigation.replace('Connection');
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, fadeAnim, scaleAnim]);
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../assets/ekanwe-logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
+        <Image
+          source={require('../assets/ekanwe-logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>EKANWE</Text>
+        <Text style={styles.subtitle}>Le pouvoir du bouche-à-oreille numérique</Text>
+      </Animated.View>
     </View>
   );
 };
@@ -75,8 +64,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  content: {
+    alignItems: 'center',
+  },
   logo: {
-    width: 128,
-    height: 128,
+    width: 160,
+    height: 160,
+    marginBottom: 16,
+  },
+  title: {
+    color: 'white',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    textAlign: 'center',
   },
 }); 
