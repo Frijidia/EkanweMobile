@@ -25,5 +25,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     }
-  }
+  },
+  "name": "EkanweMobileRN",
+  "displayName": "Ekanwe Mobile"
 }
