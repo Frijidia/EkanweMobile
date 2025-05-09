@@ -65,7 +65,7 @@ export const LoginScreen = () => {
           </View>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
+            onPress={() => navigation.navigate('Login')} // Temporarily navigate to Login since ForgotPassword isn't defined
             style={styles.forgotPassword}
           >
             <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
