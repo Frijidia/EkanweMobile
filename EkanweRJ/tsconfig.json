@@ -21,6 +21,6 @@
     },
     "esModuleInterop": true
   },
-  "include": ["src"],
+  "include": ["src", "EkanweMobileRN/src/navigation", "EkanweMobileRN/src/screens"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
