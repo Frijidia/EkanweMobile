@@ -18,3 +18,16 @@ nettoyer le cache
 vérifier que Metro bundler est bien lancé
 
     npx react-native start
+
+mkdir ../backup
+cp -r src ../backup/
+cp package.json ../backup/
+
+cd ..
+rm -rf EkanweMobileRN
+npx react-native init EkanweMobileRN
+
+cp -r backup/src EkanweMobileRN/
+cp backup/package.json EkanweMobileRN/
+cd EkanweMobileRN
+npm install
