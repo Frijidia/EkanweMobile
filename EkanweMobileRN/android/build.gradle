@@ -10,12 +10,25 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url 'https://www.jitpack.io'
+        }
     }
     dependencies {
         classpath("com.android.tools.build:gradle:7.4.2")
-        classpath("com.facebook.react:react-native-gradle-plugin:0.72.7")
+        classpath("com.facebook.react:react-native-gradle-plugin:0.73.4")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url 'https://www.jitpack.io'
+        }
+    }
+}
