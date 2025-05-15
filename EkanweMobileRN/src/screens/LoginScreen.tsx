@@ -25,7 +25,7 @@ export const LoginScreen = () => {
     } catch (err) {
       console.error(err);
       setError("Email ou mot de passe invalide.");
-    } finally 
+    } finally {
       setLoading(false);
     }
   };
