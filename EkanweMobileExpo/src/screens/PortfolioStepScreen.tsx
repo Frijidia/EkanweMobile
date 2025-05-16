@@ -1,13 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export const WelcomeInfluenceurScreen = () => {
+export const PortfolioStepScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const [loading, setLoading] = useState(false);
+
+  const handleNext = async () => {
+    setLoading(true);
+    try {
+      // TODO: Sauvegarder le portfolio
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      navigation.navigate('DealsInfluenceur');
+    } catch (err) {
+      // Gérer l'erreur
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -18,48 +32,34 @@ export const WelcomeInfluenceurScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Bienvenue Influenceur</Text>
-          <Text style={styles.subtitle}>
-            Rejoignez la communauté Ekanwe et commencez à collaborer avec des marques
-          </Text>
+          <Text style={styles.title}>Étape 4</Text>
+          <Text style={styles.subtitle}>Créez votre portfolio</Text>
         </View>
 
-        <View style={styles.featuresContainer}>
-          <View style={styles.feature}>
-            <Text style={styles.featureTitle}>Créez votre profil</Text>
-            <Text style={styles.featureDescription}>
-              Mettez en avant votre style et vos compétences pour attirer les bonnes opportunités
-            </Text>
-          </View>
-
-          <View style={styles.feature}>
-            <Text style={styles.featureTitle}>Trouvez des deals</Text>
-            <Text style={styles.featureDescription}>
-              Découvrez des collaborations qui correspondent à votre univers
-            </Text>
-          </View>
-
-          <View style={styles.feature}>
-            <Text style={styles.featureTitle}>Gagnez en visibilité</Text>
-            <Text style={styles.featureDescription}>
-              Développez votre communauté et votre influence sur les réseaux sociaux
-            </Text>
-          </View>
+        <View style={styles.portfolioContainer}>
+          <TouchableOpacity style={styles.uploadButton}>
+            <Text style={styles.uploadButtonText}>+ Ajouter une photo</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation.navigate('Connection')}
+            onPress={() => navigation.navigate('SocialConnect')}
           >
             <Text style={styles.backButtonText}>RETOUR</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.nextButton}
-            onPress={() => navigation.navigate('Register')}
+            onPress={handleNext}
+            disabled={loading}
           >
-            <Text style={styles.nextButtonText}>COMMENCER</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.nextButtonText}>TERMINER</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logo: {
     width: 144,
@@ -89,33 +89,26 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
-    textAlign: 'center',
   },
   subtitle: {
     color: '#9CA3AF',
     fontSize: 14,
     textAlign: 'center',
-    lineHeight: 20,
   },
-  featuresContainer: {
-    gap: 24,
-    marginBottom: 32,
+  portfolioContainer: {
+    marginBottom: 24,
   },
-  feature: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  uploadButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#fff',
     borderRadius: 8,
     padding: 16,
+    alignItems: 'center',
   },
-  featureTitle: {
+  uploadButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  featureDescription: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
   },
   buttonContainer: {
     flexDirection: 'row',

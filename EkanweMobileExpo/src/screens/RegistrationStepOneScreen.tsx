@@ -6,41 +6,30 @@ import { RootStackParamList } from '../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export const LoginScreen = () => {
+export const RegistrationStepOneScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [loginData, setLoginData] = useState({
-    mail: '',
-    motdepasse: '',
+  const [stepData, setStepData] = useState({
+    pseudo: '',
+    telephone: '',
+    dateNaissance: '',
+    adresse: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!loginData.mail || !loginData.motdepasse) {
+  const handleNext = async () => {
+    if (!stepData.pseudo || !stepData.telephone || !stepData.dateNaissance || !stepData.adresse) {
       setError('Veuillez remplir tous les champs');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Implémenter la logique de connexion
+      // TODO: Sauvegarder les données
       await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('DealsInfluenceur');
+      navigation.navigate('InterestStep');
     } catch (err) {
-      setError('Email ou mot de passe invalide.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      // TODO: Implémenter la connexion Google
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('DealsInfluenceur');
-    } catch (err) {
-      setError('Erreur de connexion avec Google.');
+      setError('Une erreur est survenue.');
     } finally {
       setLoading(false);
     }
@@ -55,79 +44,66 @@ export const LoginScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.welcome}>Bienvenue</Text>
-          <Text style={styles.title}>Connexion</Text>
+          <Text style={styles.title}>Étape 1</Text>
+          <Text style={styles.subtitle}>Complétez votre profil</Text>
         </View>
 
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Mail"
+            placeholder="Pseudo"
             placeholderTextColor="#9CA3AF"
-            value={loginData.mail}
-            onChangeText={(text) => setLoginData({ ...loginData, mail: text })}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={stepData.pseudo}
+            onChangeText={(text) => setStepData({ ...stepData, pseudo: text })}
           />
           <TextInput
             style={styles.input}
-            placeholder="Mot de passe"
+            placeholder="Téléphone"
             placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            value={loginData.motdepasse}
-            onChangeText={(text) => setLoginData({ ...loginData, motdepasse: text })}
+            value={stepData.telephone}
+            onChangeText={(text) => setStepData({ ...stepData, telephone: text })}
+            keyboardType="phone-pad"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Date de naissance (JJ/MM/AAAA)"
+            placeholderTextColor="#9CA3AF"
+            value={stepData.dateNaissance}
+            onChangeText={(text) => setStepData({ ...stepData, dateNaissance: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Adresse"
+            placeholderTextColor="#9CA3AF"
+            value={stepData.adresse}
+            onChangeText={(text) => setStepData({ ...stepData, adresse: text })}
+            multiline
+            numberOfLines={3}
           />
         </View>
-
-        <TouchableOpacity 
-          style={styles.forgotPassword}
-          onPress={() => navigation.navigate('ForgotPassword')}
-        >
-          <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
-        </TouchableOpacity>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation.navigate('Connection')}
+            onPress={() => navigation.navigate('Register')}
           >
             <Text style={styles.backButtonText}>RETOUR</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.loginButton}
-            onPress={handleLogin}
+            style={styles.nextButton}
+            onPress={handleNext}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.loginButtonText}>CONNEXION</Text>
+              <Text style={styles.nextButtonText}>SUIVANT</Text>
             )}
           </TouchableOpacity>
         </View>
-
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Ou continuer avec</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <TouchableOpacity 
-          style={styles.googleButton}
-          onPress={handleGoogleLogin}
-          disabled={loading}
-        >
-          <Image 
-            source={{ uri: 'https://www.google.com/favicon.ico' }} 
-            style={styles.googleIcon}
-          />
-          <Text style={styles.googleButtonText}>
-            {loading ? 'Connexion...' : 'Continuer avec Google'}
-          </Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -165,16 +141,15 @@ const styles = StyleSheet.create({
     height: 144,
     marginBottom: 24,
   },
-  welcome: {
-    color: '#D1D5DB',
-    fontSize: 14,
-    letterSpacing: 2,
-    marginBottom: 24,
-  },
   title: {
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#9CA3AF',
+    fontSize: 14,
   },
   form: {
     gap: 16,
@@ -188,14 +163,6 @@ const styles = StyleSheet.create({
     padding: 10,
     color: '#fff',
     fontSize: 14,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 16,
-  },
-  forgotPasswordText: {
-    color: '#9CA3AF',
-    fontSize: 12,
   },
   error: {
     color: '#EF4444',
@@ -220,7 +187,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
-  loginButton: {
+  nextButton: {
     backgroundColor: '#FF6B2E',
     paddingVertical: 8,
     paddingHorizontal: 24,
@@ -229,41 +196,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loginButtonText: {
+  nextButtonText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#4B5563',
-  },
-  dividerText: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    marginHorizontal: 8,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-  },
-  googleButtonText: {
-    color: '#1F2937',
     fontSize: 14,
     fontWeight: '600',
   },

@@ -20,7 +20,7 @@ export const ConnectionScreen = () => {
           />
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => navigation.navigate('Login')}
+            //onPress={() => navigation.navigate('Login')}
           >
             <Text style={styles.buttonText}>COMMERCANT</Text>
           </TouchableOpacity>
@@ -34,7 +34,7 @@ export const ConnectionScreen = () => {
           />
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => navigation.navigate('Login')}
+            //onPress={() => navigation.navigate('Login')}
           >
             <Text style={styles.buttonText}>INFLUENCEUR</Text>
           </TouchableOpacity>

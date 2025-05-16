@@ -6,41 +6,36 @@ import { RootStackParamList } from '../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export const LoginScreen = () => {
+export const RegisterScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [loginData, setLoginData] = useState({
+  const [registerData, setRegisterData] = useState({
+    nom: '',
+    prenom: '',
     mail: '',
     motdepasse: '',
+    confirmMotdepasse: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!loginData.mail || !loginData.motdepasse) {
+  const handleRegister = async () => {
+    if (!registerData.nom || !registerData.prenom || !registerData.mail || !registerData.motdepasse || !registerData.confirmMotdepasse) {
       setError('Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (registerData.motdepasse !== registerData.confirmMotdepasse) {
+      setError('Les mots de passe ne correspondent pas');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Implémenter la logique de connexion
+      // TODO: Implémenter la logique d'inscription
       await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('DealsInfluenceur');
+      navigation.navigate('RegistrationStepOne');
     } catch (err) {
-      setError('Email ou mot de passe invalide.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      // TODO: Implémenter la connexion Google
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('DealsInfluenceur');
-    } catch (err) {
-      setError('Erreur de connexion avec Google.');
+      setError('Une erreur est survenue lors de l\'inscription.');
     } finally {
       setLoading(false);
     }
@@ -56,16 +51,30 @@ export const LoginScreen = () => {
             resizeMode="contain"
           />
           <Text style={styles.welcome}>Bienvenue</Text>
-          <Text style={styles.title}>Connexion</Text>
+          <Text style={styles.title}>Inscription</Text>
         </View>
 
         <View style={styles.form}>
           <TextInput
             style={styles.input}
+            placeholder="Nom"
+            placeholderTextColor="#9CA3AF"
+            value={registerData.nom}
+            onChangeText={(text) => setRegisterData({ ...registerData, nom: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Prénom"
+            placeholderTextColor="#9CA3AF"
+            value={registerData.prenom}
+            onChangeText={(text) => setRegisterData({ ...registerData, prenom: text })}
+          />
+          <TextInput
+            style={styles.input}
             placeholder="Mail"
             placeholderTextColor="#9CA3AF"
-            value={loginData.mail}
-            onChangeText={(text) => setLoginData({ ...loginData, mail: text })}
+            value={registerData.mail}
+            onChangeText={(text) => setRegisterData({ ...registerData, mail: text })}
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -74,17 +83,18 @@ export const LoginScreen = () => {
             placeholder="Mot de passe"
             placeholderTextColor="#9CA3AF"
             secureTextEntry
-            value={loginData.motdepasse}
-            onChangeText={(text) => setLoginData({ ...loginData, motdepasse: text })}
+            value={registerData.motdepasse}
+            onChangeText={(text) => setRegisterData({ ...registerData, motdepasse: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirmer le mot de passe"
+            placeholderTextColor="#9CA3AF"
+            secureTextEntry
+            value={registerData.confirmMotdepasse}
+            onChangeText={(text) => setRegisterData({ ...registerData, confirmMotdepasse: text })}
           />
         </View>
-
-        <TouchableOpacity 
-          style={styles.forgotPassword}
-          onPress={() => navigation.navigate('ForgotPassword')}
-        >
-          <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
-        </TouchableOpacity>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -97,14 +107,14 @@ export const LoginScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.loginButton}
-            onPress={handleLogin}
+            style={styles.registerButton}
+            onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.loginButtonText}>CONNEXION</Text>
+              <Text style={styles.registerButtonText}>S'INSCRIRE</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -117,7 +127,7 @@ export const LoginScreen = () => {
 
         <TouchableOpacity 
           style={styles.googleButton}
-          onPress={handleGoogleLogin}
+          onPress={() => {/* TODO: Implémenter l'inscription avec Google */}}
           disabled={loading}
         >
           <Image 
@@ -125,7 +135,7 @@ export const LoginScreen = () => {
             style={styles.googleIcon}
           />
           <Text style={styles.googleButtonText}>
-            {loading ? 'Connexion...' : 'Continuer avec Google'}
+            {loading ? 'Inscription...' : 'Continuer avec Google'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -189,14 +199,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 16,
-  },
-  forgotPasswordText: {
-    color: '#9CA3AF',
-    fontSize: 12,
-  },
   error: {
     color: '#EF4444',
     fontSize: 14,
@@ -220,7 +222,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
-  loginButton: {
+  registerButton: {
     backgroundColor: '#FF6B2E',
     paddingVertical: 8,
     paddingHorizontal: 24,
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loginButtonText: {
+  registerButtonText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
