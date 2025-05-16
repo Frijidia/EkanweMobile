@@ -9,4 +9,9 @@ export type RootStackParamList = {
   LoginOrConnect: undefined;
   Login: undefined;
   Register: undefined;
+  ValidateInscription: undefined;
+  RegistrationStepOne: undefined;
+  InterestStep: undefined;
+  SocialConnect: undefined;
+  PortfolioStep: undefined;
 }; 

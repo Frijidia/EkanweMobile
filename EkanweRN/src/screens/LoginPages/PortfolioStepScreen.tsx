@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -28,7 +28,7 @@ export const PortfolioStepScreen = () => {
       <View style={styles.content}>
         <View style={styles.header}>
           <Image 
-            source={require('../assets/ekanwe-logo.png')} 
+            source={require('../../assets/ekanwe-logo.png')} 
             style={styles.logo}
             resizeMode="contain"
           />

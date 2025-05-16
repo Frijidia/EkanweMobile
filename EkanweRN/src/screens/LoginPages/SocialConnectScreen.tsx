@@ -2,35 +2,20 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const socialNetworks = [
   {
     name: 'Instagram',
-    icon: require('../assets/instagram.png'),
+    icon: { uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/132px-Instagram_logo_2016.svg.png' },
     color: '#E1306C',
   },
   {
-    name: 'TikTok',
-    icon: require('../assets/tiktok.png'),
+    name: 'TikTok', 
+    icon: { uri: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/138px-TikTok_logo.svg.png' },
     color: '#000000',
-  },
-  {
-    name: 'YouTube',
-    icon: require('../assets/youtube.png'),
-    color: '#FF0000',
-  },
-  {
-    name: 'Facebook',
-    icon: require('../assets/facebook.png'),
-    color: '#1877F2',
-  },
-  {
-    name: 'Twitter',
-    icon: require('../assets/twitter.png'),
-    color: '#1DA1F2',
   },
 ];
 
@@ -69,7 +54,7 @@ export const SocialConnectScreen = () => {
       <View style={styles.content}>
         <View style={styles.header}>
           <Image 
-            source={require('../assets/ekanwe-logo.png')} 
+            source={require('../../assets/ekanwe-logo.png')} 
             style={styles.logo}
             resizeMode="contain"
           />
@@ -103,7 +88,7 @@ export const SocialConnectScreen = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation.navigate('InterestStep')}
+              onPress={() => navigation.navigate('InterestStep')}
           >
             <Text style={styles.backButtonText}>RETOUR</Text>
           </TouchableOpacity>

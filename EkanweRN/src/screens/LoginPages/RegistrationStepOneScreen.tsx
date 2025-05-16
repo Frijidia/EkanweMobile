@@ -1,107 +1,92 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const RegistrationStepOneScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [stepData, setStepData] = useState({
-    pseudo: '',
+  const [formData, setFormData] = useState({
+    nom: '',
+    prenoms: '',
+    naissance: '',
     telephone: '',
-    dateNaissance: '',
-    adresse: '',
+    pseudo: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleNext = async () => {
-    if (!stepData.pseudo || !stepData.telephone || !stepData.dateNaissance || !stepData.adresse) {
-      setError('Veuillez remplir tous les champs');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // TODO: Sauvegarder les données
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('InterestStep');
-    } catch (err) {
-      setError('Une erreur est survenue.');
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = () => {
+    navigation.navigate('InterestStep');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
+        <Text style={styles.stepIndicator}>1/4</Text>
+
         <View style={styles.header}>
           <Image 
-            source={require('../assets/ekanwe-logo.png')} 
+            source={require('../../assets/ekanwe-logo.png')} 
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Étape 1</Text>
-          <Text style={styles.subtitle}>Complétez votre profil</Text>
+          <Text style={styles.subtitle}>Inscription</Text>
+          <Text style={styles.title}>Informations</Text>
         </View>
 
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Pseudo"
+            placeholder="Nom"
             placeholderTextColor="#9CA3AF"
-            value={stepData.pseudo}
-            onChangeText={(text) => setStepData({ ...stepData, pseudo: text })}
+            value={formData.nom}
+            onChangeText={(text) => setFormData({ ...formData, nom: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Prénoms"
+            placeholderTextColor="#9CA3AF"
+            value={formData.prenoms}
+            onChangeText={(text) => setFormData({ ...formData, prenoms: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Pseudonyme"
+            placeholderTextColor="#9CA3AF"
+            value={formData.pseudo}
+            onChangeText={(text) => setFormData({ ...formData, pseudo: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Date de naissance"
+            placeholderTextColor="#9CA3AF"
+            value={formData.naissance}
+            onChangeText={(text) => setFormData({ ...formData, naissance: text })}
           />
           <TextInput
             style={styles.input}
             placeholder="Téléphone"
             placeholderTextColor="#9CA3AF"
-            value={stepData.telephone}
-            onChangeText={(text) => setStepData({ ...stepData, telephone: text })}
+            value={formData.telephone}
+            onChangeText={(text) => setFormData({ ...formData, telephone: text })}
             keyboardType="phone-pad"
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Date de naissance (JJ/MM/AAAA)"
-            placeholderTextColor="#9CA3AF"
-            value={stepData.dateNaissance}
-            onChangeText={(text) => setStepData({ ...stepData, dateNaissance: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Adresse"
-            placeholderTextColor="#9CA3AF"
-            value={stepData.adresse}
-            onChangeText={(text) => setStepData({ ...stepData, adresse: text })}
-            multiline
-            numberOfLines={3}
-          />
         </View>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => navigation.navigate('Register')}
+            onPress={() => navigation.navigate('LoginOrConnect')}
           >
             <Text style={styles.backButtonText}>RETOUR</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.nextButton}
-            onPress={handleNext}
-            disabled={loading}
+            onPress={handleSubmit}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.nextButtonText}>SUIVANT</Text>
-            )}
+            <Text style={styles.nextButtonText}>SUIVANT</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -123,14 +108,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A2C24',
     borderRadius: 8,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  },
+  stepIndicator: {
+    color: '#fff',
+    fontSize: 12,
+    textAlign: 'right',
+    marginBottom: 16,
   },
   header: {
     alignItems: 'center',
@@ -141,19 +124,20 @@ const styles = StyleSheet.create({
     height: 144,
     marginBottom: 24,
   },
+  subtitle: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    letterSpacing: 2,
+    marginBottom: 24,
+  },
   title: {
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: '#9CA3AF',
-    fontSize: 14,
   },
   form: {
-    gap: 16,
-    marginBottom: 16,
+    gap: 32,
+    marginBottom: 24,
   },
   input: {
     backgroundColor: 'transparent',
@@ -164,16 +148,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
-  error: {
-    color: '#EF4444',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginTop: 24,
   },
   backButton: {
     backgroundColor: 'transparent',
@@ -192,9 +170,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 24,
     borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   nextButtonText: {
     color: '#fff',

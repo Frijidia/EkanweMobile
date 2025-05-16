@@ -13,6 +13,11 @@ import { ConceptInfluenceurScreen } from '../screens/EkanwePages/ConceptInfluenc
 import { LoginOrConnect } from '../screens/LoginPages/LoginOrConnect';
 import { LoginScreen } from '../screens/LoginPages/LoginScreen';
 import { RegisterScreen } from '../screens/LoginPages/RegisterScreen';
+import { ValidateInscription } from '../screens/LoginPages/ValidateInscriptionScreen';
+import { RegistrationStepOneScreen } from '../screens/LoginPages/RegistrationStepOneScreen';
+import { InterestStepScreen } from '../screens/LoginPages/InterestStepScreen';
+import { SocialConnectScreen } from '../screens/LoginPages/SocialConnectScreen';
+import { PortfolioStepScreen } from '../screens/LoginPages/PortfolioStepScreen';
 // Navigation principale de l'application
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,6 +38,11 @@ export const AppNavigator = () => {
       <Stack.Screen name="LoginOrConnect" component={LoginOrConnect} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ValidateInscription" component={ValidateInscription} />
+      <Stack.Screen name="RegistrationStepOne" component={RegistrationStepOneScreen} />
+      <Stack.Screen name="InterestStep" component={InterestStepScreen} />
+      <Stack.Screen name="SocialConnect" component={SocialConnectScreen} />
+      <Stack.Screen name="PortfolioStep" component={PortfolioStepScreen} />
     </Stack.Navigator>
   );
 }; 

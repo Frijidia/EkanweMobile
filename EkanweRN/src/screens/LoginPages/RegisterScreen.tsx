@@ -32,8 +32,9 @@ export const RegisterScreen = () => {
     setLoading(true);
     try {
       // TODO: Implémenter la logique d'inscription
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
-      //navigation.navigate('RegistrationStepOne');
+      navigation.navigate('ValidateInscription');
     } catch (err) {
       setError('Une erreur est survenue lors de l\'inscription.');
     } finally {
@@ -108,7 +109,8 @@ export const RegisterScreen = () => {
 
           <TouchableOpacity 
             style={styles.registerButton}
-            onPress={handleRegister}
+            onPress={() => navigation.navigate('RegistrationStepOne')}
+            //onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
@@ -127,7 +129,7 @@ export const RegisterScreen = () => {
 
         <TouchableOpacity 
           style={styles.googleButton}
-          onPress={() => {/* TODO: Implémenter l'inscription avec Google */}}
+          onPress={() => navigation.navigate('ValidateInscription')}
           disabled={loading}
         >
           <Image 
