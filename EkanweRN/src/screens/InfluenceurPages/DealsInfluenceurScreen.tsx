@@ -16,21 +16,21 @@ export const DealsInfluenceurScreen = () => {
       id: '1',
       title: 'Promotion Restaurant',
       description: 'Offre spéciale pour les influenceurs culinaires',
-      imageUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470',
+      imageUrl: require('../../assets/photo.jpg'),
       interest: 'Restaurant'
     },
     {
       id: '2', 
-      title: 'Collection Mode',
+      title: 'Collection Mode', 
       description: 'Découvrez notre nouvelle collection',
-      //imageUrl: require('https://picsum.photos/200/300'),
+      imageUrl: require('../../assets/photo.jpg'),
       interest: 'Mode'
     },
     {
       id: '3',
       title: 'Beauté & Cosmétiques',
       description: 'Nouvelle gamme de produits bio',
-      //imageUrl: require('https://picsum.photos/200/300'),
+      imageUrl: require('../../assets/photo.jpg'),
       interest: 'Beauté'
     }
   ];
