@@ -2,79 +2,102 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomNavbar } from '../components/BottomNavbar';
+import { RootStackParamList } from '../../types/navigation';
+import { BottomNavbar } from './BottomNavbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DealsInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('All');
 
   const deals = [
     {
       id: '1',
       title: 'Promotion Restaurant',
       description: 'Offre spéciale pour les influenceurs culinaires',
-      image: require('../assets/deal1.png'),
-      merchant: 'Le Petit Bistrot',
-      category: 'Restaurant',
-      reward: '50€',
+      imageUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470',
+      interest: 'Restaurant'
     },
     {
-      id: '2',
+      id: '2', 
       title: 'Collection Mode',
       description: 'Découvrez notre nouvelle collection',
-      image: require('../assets/deal2.png'),
-      merchant: 'Fashion Store',
-      category: 'Mode',
-      reward: '100€',
+      //imageUrl: require('https://picsum.photos/200/300'),
+      interest: 'Mode'
     },
-    // Ajoutez plus de deals ici
+    {
+      id: '3',
+      title: 'Beauté & Cosmétiques',
+      description: 'Nouvelle gamme de produits bio',
+      //imageUrl: require('https://picsum.photos/200/300'),
+      interest: 'Beauté'
+    }
   ];
+
+  const filters = ['All', ...Array.from(new Set(deals.map(d => d.interest)))];
+  const filteredDeals = selectedFilter === 'All' ? deals : deals.filter(d => d.interest === selectedFilter);
+  const popularDeals = filteredDeals.slice(0, 2);
+  const otherDeals = filteredDeals.slice(2);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Deals</Text>
-        <TouchableOpacity 
-          style={styles.notificationButton}
-          onPress={() => navigation.navigate('NotificationInfluenceur')}
-        >
-          <Icon name="bell" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationInfluenceur')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
-        <Icon name="magnify" size={20} color="#9CA3AF" style={styles.searchIcon} />
-        <TextInput
+        <Image source={require('../../assets/loupe.png')} style={styles.searchIcon} />
+        <TextInput 
           style={styles.searchInput}
-          placeholder="Rechercher un deal..."
+          placeholder="Recherche"
           placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
         />
+        <Image source={require('../../assets/menu.png')} style={styles.menuIcon} />
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {filters.map(filter => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterButton,
+                selectedFilter === filter && styles.filterButtonActive
+              ]}
+              onPress={() => setSelectedFilter(filter)}
+            >
+              <Text style={[
+                styles.filterText,
+                selectedFilter === filter && styles.filterTextActive
+              ]}>
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       <ScrollView style={styles.content}>
-        {deals.map((deal) => (
-          <TouchableOpacity
-            key={deal.id}
-            style={styles.dealCard}
-            onPress={() => navigation.navigate('DealDetailsInfluenceur', { dealId: deal.id })}
-          >
-            <Image source={deal.image} style={styles.dealImage} />
-            <View style={styles.dealInfo}>
-              <Text style={styles.dealTitle}>{deal.title}</Text>
-              <Text style={styles.dealDescription}>{deal.description}</Text>
-              <View style={styles.dealFooter}>
-                <Text style={styles.merchantName}>{deal.merchant}</Text>
-                <Text style={styles.reward}>{deal.reward}</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Populaire</Text>
+          {popularDeals.map(deal => (
+            <DealCard key={deal.id} deal={deal} />
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Autres deals</Text>
+          {otherDeals.map(deal => (
+            <DealCard key={deal.id} deal={deal} />
+          ))}
+        </View>
       </ScrollView>
 
       <BottomNavbar />
@@ -82,83 +105,192 @@ export const DealsInfluenceurScreen = () => {
   );
 };
 
+const DealCard = ({ deal }) => {
+  const [saved, setSaved] = useState(false);
+  
+  return (
+    <View style={styles.dealCard}>
+      <View style={styles.imageContainer}>
+        <Image source={deal.imageUrl} style={styles.dealImage} />
+        <TouchableOpacity 
+          style={styles.saveButton}
+          onPress={() => setSaved(!saved)}
+        >
+          <Image 
+            source={saved ? require('../../assets/fullsave.png') : require('../../assets/save.png')} 
+            style={styles.saveIcon}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.dealInfo}>
+        <Text style={styles.dealTitle}>{deal.title}</Text>
+        <Text style={styles.dealDescription}>{deal.description}</Text>
+        <View style={styles.dealButtons}>
+          <TouchableOpacity style={styles.seeMoreButton}>
+            <Text style={styles.seeMoreText}>Voir plus</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dealButton}>
+            <Text style={styles.dealButtonText}>Dealer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#F5F5E7',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    paddingTop: 48,
+    padding: 20,
+    paddingTop: 40,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
   },
   title: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#14210F',
   },
-  notificationButton: {
-    padding: 8,
+  icon: {
+    width: 24,
+    height: 24,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     margin: 16,
-    paddingHorizontal: 16,
+    padding: 10,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#14210F',
   },
   searchIcon: {
-    marginRight: 8,
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  menuIcon: {
+    width: 24,
+    height: 24,
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
-    paddingVertical: 12,
+    color: '#14210F',
+  },
+  filtersContainer: {
+    height: 40, // Fixed height container
+    paddingHorizontal: 16,
+    marginBottom: 5,
+  },
+  filterButton: {
+    paddingHorizontal: 40,
+    paddingVertical: 6,
+    height: 32,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: '#14210F',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: '#1A2C24',
+  },
+  filterText: {
+    color: '#14210F',
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#14210F',
   },
   dealCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#1A2C24',
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
+  },
+  imageContainer: {
+    position: 'relative',
   },
   dealImage: {
     width: '100%',
     height: 200,
     resizeMode: 'cover',
   },
+  saveButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+  },
+  saveIcon: {
+    width: 24,
+    height: 24,
+  },
   dealInfo: {
     padding: 16,
   },
   dealTitle: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   dealDescription: {
-    color: '#9CA3AF',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 16,
   },
-  dealFooter: {
+  dealButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 16,
+  },
+  seeMoreButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
     alignItems: 'center',
   },
-  merchantName: {
-    color: '#fff',
-    fontSize: 14,
+  seeMoreText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
-  reward: {
-    color: '#FF6B2E',
-    fontSize: 16,
+  dealButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#FF6B2E',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  dealButtonText: {
+    color: '#FFFFFF',
     fontWeight: '600',
   },
-}); 
+});

@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomNavbar } from '../components/BottomNavbar';
+import { BottomNavbar } from './BottomNavbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export const ProfilInfluenceurScreen = () => {
+export const ProfileInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -29,19 +29,19 @@ export const ProfilInfluenceurScreen = () => {
     recentPosts: [
       {
         id: '1',
-        image: require('../assets/post1.png'),
+        //image: require('../../assets/post1.png'),
         likes: 2450,
         comments: 156,
       },
       {
         id: '2',
-        image: require('../assets/post2.png'),
+        //image: require('../../assets/post2.png'),
         likes: 1890,
         comments: 98,
       },
       {
         id: '3',
-        image: require('../assets/post3.png'),
+        //image: require('../../assets/post3.png'),
         likes: 3200,
         comments: 245,
       },
@@ -69,7 +69,7 @@ export const ProfilInfluenceurScreen = () => {
 
         <View style={styles.profileHeader}>
           <Image 
-            source={require('../assets/influencer1.png')} 
+            //source={require('https://picsum.photos/200/300')} 
             style={styles.profileImage} 
           />
           <View style={styles.profileInfo}>

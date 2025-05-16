@@ -18,7 +18,14 @@ import { RegistrationStepOneScreen } from '../screens/LoginPages/RegistrationSte
 import { InterestStepScreen } from '../screens/LoginPages/InterestStepScreen';
 import { SocialConnectScreen } from '../screens/LoginPages/SocialConnectScreen';
 import { PortfolioStepScreen } from '../screens/LoginPages/PortfolioStepScreen';
+import { RegistrationCompleteScreen } from '../screens/LoginPages/RegistrationCompleteScreen';
+import { DealsInfluenceurScreen } from '../screens/InfluenceurPages/DealsInfluenceurScreen';
+import { SuivisDealsInfluenceurScreen } from '../screens/InfluenceurPages/SuivisDealsInfluenceurScreen';
+import { DiscussionInfluenceurScreen } from '../screens/InfluenceurPages/DiscussionInfluenceurScreen';
+import { SaveDealsInfluenceurScreen } from '../screens/InfluenceurPages/SaveDealsInfluenceurScreen';
+import { ProfileInfluenceurScreen } from '../screens/InfluenceurPages/ProfileInfluenceurScreen';
 // Navigation principale de l'application
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const AppNavigator = () => {
@@ -43,6 +50,12 @@ export const AppNavigator = () => {
       <Stack.Screen name="InterestStep" component={InterestStepScreen} />
       <Stack.Screen name="SocialConnect" component={SocialConnectScreen} />
       <Stack.Screen name="PortfolioStep" component={PortfolioStepScreen} />
+      <Stack.Screen name="RegistrationComplete" component={RegistrationCompleteScreen} />
+      <Stack.Screen name="DealsInfluenceur" component={DealsInfluenceurScreen} />
+      <Stack.Screen name="SuivisDealsInfluenceur" component={SuivisDealsInfluenceurScreen} />
+      <Stack.Screen name="DiscussionInfluenceur" component={DiscussionInfluenceurScreen} />
+      <Stack.Screen name="SaveDealsInfluenceur" component={SaveDealsInfluenceurScreen} />
+      <Stack.Screen name="ProfileInfluenceur" component={ProfileInfluenceurScreen} />
     </Stack.Navigator>
   );
 }; 

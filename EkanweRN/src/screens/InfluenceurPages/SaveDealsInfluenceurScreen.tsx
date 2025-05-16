@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomNavbar } from '../components/BottomNavbar';
+import { BottomNavbar } from './BottomNavbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -16,7 +16,7 @@ export const SaveDealsInfluenceurScreen = () => {
       id: '1',
       title: 'Promotion Restaurant',
       description: 'Offre spéciale pour les influenceurs culinaires',
-      image: require('../assets/deal1.png'),
+      //image: require('../assets/deal1.png'),
       merchant: 'Le Petit Bistrot',
       category: 'Restaurant',
       reward: '50€',
@@ -26,7 +26,7 @@ export const SaveDealsInfluenceurScreen = () => {
       id: '2',
       title: 'Collection Mode',
       description: 'Découvrez notre nouvelle collection',
-      image: require('../assets/deal2.png'),
+      //image: require('../assets/deal2.png'),
       merchant: 'Fashion Store',
       category: 'Mode',
       reward: '100€',

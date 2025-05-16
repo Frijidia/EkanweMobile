@@ -1,111 +1,79 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const socialNetworks = [
-  {
-    name: 'Instagram',
-    icon: { uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/132px-Instagram_logo_2016.svg.png' },
-    color: '#E1306C',
-  },
-  {
-    name: 'TikTok', 
-    icon: { uri: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/138px-TikTok_logo.svg.png' },
-    color: '#000000',
-  },
-];
-
 export const SocialConnectScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [connectedNetworks, setConnectedNetworks] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    instagram: '',
+    tiktok: ''
+  });
 
-  const toggleNetwork = (network: string) => {
-    if (connectedNetworks.includes(network)) {
-      setConnectedNetworks(connectedNetworks.filter(n => n !== network));
-    } else {
-      setConnectedNetworks([...connectedNetworks, network]);
-    }
-  };
-
-  const handleNext = async () => {
-    if (connectedNetworks.length === 0) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // TODO: Sauvegarder les réseaux sociaux connectés
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('PortfolioStep');
-    } catch (err) {
-      // Gérer l'erreur
-    } finally {
-      setLoading(false);
-    }
+  const handleChange = (name: string, value: string) => {
+    setFormData(prev => ({...prev, [name]: value}));
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
+          <Text style={styles.stepText}>3/4</Text>
           <Image 
             source={require('../../assets/ekanwe-logo.png')} 
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Étape 3</Text>
-          <Text style={styles.subtitle}>Connectez vos réseaux sociaux</Text>
+          <Text style={styles.inscriptionText}>Inscription</Text>
+          <Text style={styles.title}>Connexion réseaux</Text>
         </View>
 
         <View style={styles.networksContainer}>
-          {socialNetworks.map((network) => (
-            <TouchableOpacity
-              key={network.name}
-              style={[
-                styles.networkButton,
-                connectedNetworks.includes(network.name) && { backgroundColor: network.color },
-              ]}
-              onPress={() => toggleNetwork(network.name)}
-            >
-              <Image source={network.icon} style={styles.networkIcon} />
-              <Text
-                style={[
-                  styles.networkText,
-                  connectedNetworks.includes(network.name) && styles.connectedNetworkText,
-                ]}
-              >
-                {network.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          <View style={styles.networkInput}>
+            <Image 
+              source={require('../../assets/instagramlogo.png')}
+              style={styles.networkIcon} 
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Lien ou pseudo Instagram"
+              placeholderTextColor="#9CA3AF"
+              value={formData.instagram}
+              onChangeText={(value) => handleChange('instagram', value)}
+            />
+          </View>
+
+          <View style={styles.networkInput}>
+            <Image 
+              source={require('../../assets/tiktoklogo.png')}
+              style={styles.networkIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Lien ou pseudo TikTok"
+              placeholderTextColor="#9CA3AF" 
+              value={formData.tiktok}
+              onChangeText={(value) => handleChange('tiktok', value)}
+            />
+          </View>
         </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.backButton}
-              onPress={() => navigation.navigate('InterestStep')}
+            onPress={() => navigation.navigate('InterestStep')}
           >
             <Text style={styles.backButtonText}>RETOUR</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[
-              styles.nextButton,
-              connectedNetworks.length === 0 && styles.disabledButton,
-            ]}
-            onPress={handleNext}
-            disabled={loading || connectedNetworks.length === 0}
+            style={styles.nextButton}
+            onPress={() => navigation.navigate('PortfolioStep')}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.nextButtonText}>SUIVANT</Text>
-            )}
+            <Text style={styles.nextButtonText}>SUIVANT</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -125,55 +93,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  stepText: {
+    color: '#fff',
+    fontSize: 14,
+    alignSelf: 'flex-end',
+    marginBottom: 16
+  },
   logo: {
     width: 144,
     height: 144,
     marginBottom: 24,
   },
-  title: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
+  inscriptionText: {
     color: '#9CA3AF',
     fontSize: 14,
-    textAlign: 'center',
+    marginBottom: 24,
+    letterSpacing: 2
+  },
+  title: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
   },
   networksContainer: {
-    gap: 16,
-    marginBottom: 24,
+    gap: 24,
+    marginVertical: 24,
   },
-  networkButton: {
+  networkInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     padding: 16,
     gap: 16,
   },
   networkIcon: {
-    width: 24,
-    height: 24,
+    width: 40,
+    height: 40,
   },
-  networkText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  connectedNetworkText: {
-    color: '#fff',
-    fontWeight: '600',
+  input: {
+    flex: 1,
+    color: '#000',
+    fontSize: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#9CA3AF',
+    paddingVertical: 4,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginTop: 32,
   },
   backButton: {
-    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#fff',
     paddingVertical: 8,
@@ -189,16 +160,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 24,
     borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
   nextButtonText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
-}); 
+});

@@ -17,6 +17,13 @@ import { RegistrationStepOneScreen } from './src/screens/LoginPages/Registration
 import { InterestStepScreen } from './src/screens/LoginPages/InterestStepScreen';
 import { SocialConnectScreen } from './src/screens/LoginPages/SocialConnectScreen';
 import { PortfolioStepScreen } from './src/screens/LoginPages/PortfolioStepScreen';
+import { RegistrationCompleteScreen } from './src/screens/LoginPages/RegistrationCompleteScreen';
+import { DealsInfluenceurScreen } from './src/screens/InfluenceurPages/DealsInfluenceurScreen';
+import { SuivisDealsInfluenceurScreen } from './src/screens/InfluenceurPages/SuivisDealsInfluenceurScreen';
+import { DiscussionInfluenceurScreen } from './src/screens/InfluenceurPages/DiscussionInfluenceurScreen';
+import { SaveDealsInfluenceurScreen } from './src/screens/InfluenceurPages/SaveDealsInfluenceurScreen';
+import { ProfileInfluenceurScreen } from './src/screens/InfluenceurPages/ProfileInfluenceurScreen';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -42,6 +49,12 @@ export default function App() {
         <Stack.Screen name='InterestStep' component={InterestStepScreen} />
         <Stack.Screen name='SocialConnect' component={SocialConnectScreen} />
         <Stack.Screen name='PortfolioStep' component={PortfolioStepScreen} />
+        <Stack.Screen name='RegistrationComplete' component={RegistrationCompleteScreen} />
+        <Stack.Screen name='DealsInfluenceur' component={DealsInfluenceurScreen} />
+        <Stack.Screen name='SuivisDealsInfluenceur' component={SuivisDealsInfluenceurScreen} />
+        <Stack.Screen name='DiscussionInfluenceur' component={DiscussionInfluenceurScreen} />
+        <Stack.Screen name='SaveDealsInfluenceur' component={SaveDealsInfluenceurScreen} />
+        <Stack.Screen name='ProfileInfluenceur' component={ProfileInfluenceurScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

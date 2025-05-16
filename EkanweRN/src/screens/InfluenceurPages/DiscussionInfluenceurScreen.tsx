@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomNavbar } from '../components/BottomNavbar';
+import { BottomNavbar } from './BottomNavbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -17,7 +17,7 @@ export const DiscussionInfluenceurScreen = () => {
       id: '1',
       merchant: {
         name: 'Le Petit Bistrot',
-        image: require('../assets/merchant1.png'),
+        //image: require('https://picsum.photos/200/300'),
       },
       lastMessage: 'Bonjour, nous sommes intéressés par votre profil...',
       timestamp: '10:30',
@@ -27,7 +27,7 @@ export const DiscussionInfluenceurScreen = () => {
       id: '2',
       merchant: {
         name: 'Fashion Store',
-        image: require('../assets/merchant2.png'),
+        //image: require('https://picsum.photos/200/300'),
       },
       lastMessage: 'Merci pour votre candidature !',
       timestamp: 'Hier',

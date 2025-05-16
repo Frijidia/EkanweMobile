@@ -1,54 +1,76 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const interests = [
-  'Mode',
-  'Beauté',
-  'Gastronomie',
-  'Sport',
-  'Voyage',
-  'Technologie',
-  'Art',
-  'Musique',
-  'Cinéma',
-  'Littérature',
-  'Jeux vidéo',
-  'Fitness',
-  'Bien-être',
-  'Photographie',
-  'Design',
+const baseTags = [
+  "Mode", "Cuisine", "Voyage", "Beauté", "Sport", "Technologie", "Gaming",
+  "Musique", "Cinéma", "Fitness", "Développement personnel", "Finance",
+  "Photographie", "Lecture", "Art", "Éducation", "Animaux", "Nature", "Business"
 ];
+
+const suggestions: Record<string, string[]> = {
+  "Mode": ["Vintage", "Haute couture", "Streetwear", "Accessoires", "Shoes", "Fashion Week"],
+  "Cuisine": ["Street food", "Vegan", "Desserts", "Plats africains", "Recettes rapides", "Cuisine du monde", "Healthy"],
+  "Voyage": ["Afrique", "Europe", "Asie", "Roadtrip", "Aventures", "Destinations insolites", "Travel vlog"],
+  "Gaming": ["Esport", "Indie Games", "Streaming", "Jeux mobile", "MMORPG", "Jeux de stratégie", "Rétrogaming"],
+  "Sport": ["Football", "Basketball", "Yoga", "Boxe", "Danse", "Cyclisme", "Musculation", "Arts martiaux"],
+  "Beauté": ["Soins du visage", "Make-up", "Routine", "Produits naturels", "Coiffure", "Parfums"],
+  "Musique": ["Afrobeats", "Rap", "Jazz", "DJing", "Production musicale", "Gospel", "Pop", "Rock"],
+  "Cinéma": ["Films africains", "Netflix", "Séries", "Critique ciné", "Documentaires", "Acteurs", "Animation"],
+  "Fitness": ["HIIT", "Cardio", "Entraînement maison", "Plan nutrition", "Transformation physique", "Fitness challenges"],
+  "Développement personnel": ["Motivation", "Gestion du temps", "Productivité", "Mindset", "Lecture utile", "Spiritualité"],
+  "Finance": ["Crypto", "Investissement", "Épargne", "Comptabilité", "Finance perso", "Bourse", "Budgeting"],
+  "Photographie": ["Portrait", "Paysage", "Édition photo", "Matériel", "Mobile photography", "Inspiration visuelle"],
+  "Lecture": ["Romans", "Mangas", "Livres business", "Développement perso", "Fantasy", "Policiers", "Poésie"],
+  "Art": ["Dessin", "Peinture", "Graffiti", "Sculpture", "Art numérique", "Expositions", "Art africain"],
+  "Éducation": ["Astuce d'étude", "Méthodes d'apprentissage", "Préparation d'examens", "Orientation", "Cours en ligne", "Tutoring"],
+  "Animaux": ["Chiens", "Chats", "Animaux exotiques", "Adoption", "Dressage", "Soins vétérinaires"],
+  "Nature": ["Randonnée", "Écologie", "Plantes", "Forêts", "Paysages", "Nature urbaine", "Camping"],
+  "Business": ["Entrepreneuriat", "Marketing digital", "E-commerce", "Branding", "Stratégie", "Startups", "Networking"],
+  "Technologie": ["IA", "Startups tech", "Applications", "Innovation", "Mobile", "Web", "Gadgets"]
+};
 
 export const InterestStepScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [customInput, setCustomInput] = useState("");
+  const [availableTags, setAvailableTags] = useState<string[]>([...baseTags]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const toggleInterest = (interest: string) => {
-    if (selectedInterests.includes(interest)) {
-      setSelectedInterests(selectedInterests.filter(i => i !== interest));
+  const toggleTag = (tag: string) => {
+    const isSelected = selectedTags.includes(tag);
+
+    if (isSelected) {
+      setSelectedTags(prev => prev.filter(t => t !== tag));
+
+      if (suggestions[tag]) {
+        setAvailableTags(prev =>
+          prev.filter(t => !suggestions[tag].includes(t))
+        );
+      }
     } else {
-      setSelectedInterests([...selectedInterests, interest]);
+      setSelectedTags(prev => [...prev, tag]);
+
+      if (suggestions[tag]) {
+        setAvailableTags(prev => {
+          const newTags = suggestions[tag].filter(s => !prev.includes(s));
+          return [...prev, ...newTags];
+        });
+      }
     }
   };
 
   const handleNext = async () => {
-    if (selectedInterests.length === 0) {
-      return;
-    }
-
     setLoading(true);
     try {
-      // TODO: Sauvegarder les intérêts sélectionnés
       await new Promise(resolve => setTimeout(resolve, 1000));
       navigation.navigate('SocialConnect');
     } catch (err) {
-      // Gérer l'erreur
+      // Handle error
     } finally {
       setLoading(false);
     }
@@ -57,33 +79,62 @@ export const InterestStepScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
+        <Text style={styles.stepIndicator}>2/4</Text>
+
         <View style={styles.header}>
           <Image 
             source={require('../../assets/ekanwe-logo.png')} 
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Étape 2</Text>
-          <Text style={styles.subtitle}>Sélectionnez vos centres d'intérêt</Text>
+          <Text style={styles.inscriptionText}>Inscription</Text>
+          <Text style={styles.title}>Centre d'intérêt</Text>
+          <Text style={styles.subtitle}>
+            Tu ne vois pas ce que tu cherches ?{' '}
+            <Text style={styles.subtitleBold}>
+              Ajoute ton propre centre d'intérêt
+            </Text>
+          </Text>
         </View>
 
-        <View style={styles.interestsContainer}>
-          {interests.map((interest) => (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            value={customInput}
+            onChangeText={setCustomInput}
+            placeholder="Rechercher ou ajouter un centre d'intérêt"
+            placeholderTextColor="#9CA3AF"
+          />
+          {customInput && !availableTags.includes(customInput) && (
             <TouchableOpacity
-              key={interest}
-              style={[
-                styles.interestButton,
-                selectedInterests.includes(interest) && styles.selectedInterest,
-              ]}
-              onPress={() => toggleInterest(interest)}
+              onPress={() => {
+                setAvailableTags(prev => [...prev, customInput]);
+                setSelectedTags(prev => [...prev, customInput]);
+                setCustomInput("");
+              }}
             >
-              <Text
-                style={[
-                  styles.interestText,
-                  selectedInterests.includes(interest) && styles.selectedInterestText,
-                ]}
-              >
-                {interest}
+              <Text style={styles.addCustomText}>
+                Ajouter "{customInput}" comme centre d'intérêt
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.tagsContainer}>
+          {availableTags.map((tag, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.tagButton,
+                selectedTags.includes(tag) && styles.selectedTag
+              ]}
+              onPress={() => toggleTag(tag)}
+            >
+              <Text style={[
+                styles.tagText,
+                selectedTags.includes(tag) && styles.selectedTagText
+              ]}>
+                {tag}
               </Text>
             </TouchableOpacity>
           ))}
@@ -98,12 +149,9 @@ export const InterestStepScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[
-              styles.nextButton,
-              selectedInterests.length === 0 && styles.disabledButton,
-            ]}
+            style={styles.nextButton}
             onPress={handleNext}
-            disabled={loading || selectedInterests.length === 0}
+            disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
@@ -125,6 +173,12 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  stepIndicator: {
+    color: '#fff',
+    fontSize: 12,
+    textAlign: 'right',
+    marginBottom: 16,
+  },
   header: {
     alignItems: 'center',
     marginBottom: 24,
@@ -134,54 +188,82 @@ const styles = StyleSheet.create({
     height: 144,
     marginBottom: 24,
   },
+  inscriptionText: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    letterSpacing: 2,
+    marginBottom: 24,
+  },
   title: {
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   subtitle: {
     color: '#9CA3AF',
     fontSize: 14,
     textAlign: 'center',
   },
-  interestsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  subtitleBold: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  searchContainer: {
     marginBottom: 24,
   },
-  interestButton: {
+  searchInput: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    borderRadius: 8,
+    color: '#fff',
+    padding: 12,
+    fontSize: 14,
   },
-  selectedInterest: {
+  addCustomText: {
+    color: '#FFA500',
+    fontSize: 12,
+    textDecorationLine: 'underline',
+    marginTop: 8,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  tagButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  selectedTag: {
     backgroundColor: '#FF6B2E',
     borderColor: '#FF6B2E',
   },
-  interestText: {
+  tagText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
   },
-  selectedInterestText: {
-    color: '#fff',
+  selectedTagText: {
+    color: '#1A2C24',
     fontWeight: '600',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginTop: 80,
   },
   backButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
     borderRadius: 8,
   },
   backButtonText: {
@@ -190,19 +272,15 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     backgroundColor: '#FF6B2E',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
     borderRadius: 8,
-    minWidth: 120,
+    minWidth: 140,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
   nextButtonText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
-}); 
+});

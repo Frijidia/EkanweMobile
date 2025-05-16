@@ -14,4 +14,10 @@ export type RootStackParamList = {
   InterestStep: undefined;
   SocialConnect: undefined;
   PortfolioStep: undefined;
+  RegistrationComplete: undefined;
+  DealsInfluenceur: undefined;
+  SuivisDealsInfluenceur: undefined;
+  DiscussionInfluenceur: undefined;
+  SaveDealsInfluenceur: undefined;
+  ProfileInfluenceur: undefined;
 }; 
