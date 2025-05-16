@@ -56,7 +56,7 @@ export const SuivisDealsInfluenceurScreen = () => {
             <Icon name="bell" size={24} color="#1A2C24" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Icon name="home" size={24} color="#1A2C24" />
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -102,6 +102,7 @@ export const SuivisDealsInfluenceurScreen = () => {
               <TouchableOpacity
                 key={index}
                 style={styles.dealCard}
+                onPress={() => navigation.navigate('DealDetailsInfluenceur', { deal })}
               >
                 <Image 
                   source={deal.imageUrl}
@@ -186,6 +187,10 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginRight: 8,
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
   searchInput: {
     flex: 1,

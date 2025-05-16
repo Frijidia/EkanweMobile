@@ -24,6 +24,9 @@ import { SuivisDealsInfluenceurScreen } from '../screens/InfluenceurPages/Suivis
 import { DiscussionInfluenceurScreen } from '../screens/InfluenceurPages/DiscussionInfluenceurScreen';
 import { SaveDealsInfluenceurScreen } from '../screens/InfluenceurPages/SaveDealsInfluenceurScreen';
 import { ProfileInfluenceurScreen } from '../screens/InfluenceurPages/ProfileInfluenceurScreen';
+import { ChatInfluenceurScreen } from '../screens/InfluenceurPages/ChatInfluenceurScreen'; 
+import { DealDetailsInfluenceurScreen } from '../screens/InfluenceurPages/DealDetailsInfluenceurScreen';
+import { DealsSeeMoreInfluenceurScreen } from '../screens/InfluenceurPages/DealsSeeMoreInfluenceurScreen';
 // Navigation principale de l'application
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,6 +59,9 @@ export const AppNavigator = () => {
       <Stack.Screen name="DiscussionInfluenceur" component={DiscussionInfluenceurScreen} />
       <Stack.Screen name="SaveDealsInfluenceur" component={SaveDealsInfluenceurScreen} />
       <Stack.Screen name="ProfileInfluenceur" component={ProfileInfluenceurScreen} />
+      <Stack.Screen name="ChatInfluenceur" component={ChatInfluenceurScreen} />
+      <Stack.Screen name="DealDetailsInfluenceur" component={DealDetailsInfluenceurScreen} />
+      <Stack.Screen name="DealsSeeMoreInfluenceur" component={DealsSeeMoreInfluenceurScreen} />
     </Stack.Navigator>
   );
 }; 

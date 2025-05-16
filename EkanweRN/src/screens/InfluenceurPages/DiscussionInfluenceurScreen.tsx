@@ -17,7 +17,7 @@ export const DiscussionInfluenceurScreen = () => {
       id: '1',
       merchant: {
         name: 'Le Petit Bistrot',
-        //image: require('https://picsum.photos/200/300'),
+        image: require('../../assets/profile.png'),
       },
       lastMessage: 'Bonjour, nous sommes intéressés par votre profil...',
       timestamp: '10:30',
@@ -27,13 +27,12 @@ export const DiscussionInfluenceurScreen = () => {
       id: '2',
       merchant: {
         name: 'Fashion Store',
-        //image: require('https://picsum.photos/200/300'),
+        image: require('../../assets/profile.png'),
       },
       lastMessage: 'Merci pour votre candidature !',
       timestamp: 'Hier',
       unread: false,
     },
-    // Ajoutez plus de conversations ici
   ];
 
   return (
@@ -43,11 +42,11 @@ export const DiscussionInfluenceurScreen = () => {
       </View>
 
       <View style={styles.searchContainer}>
-        <Icon name="magnify" size={20} color="#9CA3AF" style={styles.searchIcon} />
+        <Icon name="magnify" size={20} color="#1A2C24" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Rechercher une conversation..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="#1A2C24"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -84,7 +83,7 @@ export const DiscussionInfluenceurScreen = () => {
           ))
         ) : (
           <View style={styles.emptyState}>
-            <Icon name="message-outline" size={64} color="#9CA3AF" />
+            <Icon name="message-outline" size={64} color="#1A2C24" />
             <Text style={styles.emptyStateText}>
               Vous n'avez pas encore de messages
             </Text>
@@ -106,31 +105,36 @@ export const DiscussionInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#EBEBDF',
   },
   header: {
     padding: 16,
     paddingTop: 48,
   },
   title: {
-    color: '#fff',
+    color: '#1A2C24',
     fontSize: 24,
     fontWeight: 'bold',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#FFFFFF',
     margin: 16,
     paddingHorizontal: 16,
     borderRadius: 8,
+    shadowColor: '#1A2C24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
+    color: '#1A2C24',
     paddingVertical: 12,
   },
   content: {
@@ -140,16 +144,22 @@ const styles = StyleSheet.create({
   conversationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#1A2C24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   merchantImage: {
     width: 48,
     height: 48,
     borderRadius: 24,
     marginRight: 12,
+    backgroundColor: '#E0E0E0',
   },
   conversationInfo: {
     flex: 1,
@@ -161,20 +171,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   merchantName: {
-    color: '#fff',
+    color: '#1A2C24',
     fontSize: 16,
     fontWeight: '600',
   },
   timestamp: {
-    color: '#9CA3AF',
+    color: '#666666',
     fontSize: 12,
   },
   lastMessage: {
-    color: '#9CA3AF',
+    color: '#666666',
     fontSize: 14,
   },
   unreadMessage: {
-    color: '#fff',
+    color: '#1A2C24',
     fontWeight: '500',
   },
   unreadDot: {
@@ -191,7 +201,7 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   emptyStateText: {
-    color: '#9CA3AF',
+    color: '#1A2C24',
     fontSize: 16,
     textAlign: 'center',
     marginTop: 16,
@@ -202,9 +212,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+    shadowColor: '#1A2C24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   exploreButtonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

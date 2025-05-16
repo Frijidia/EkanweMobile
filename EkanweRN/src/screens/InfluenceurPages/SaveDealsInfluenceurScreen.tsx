@@ -62,7 +62,7 @@ export const SaveDealsInfluenceurScreen = () => {
             <Icon name="bell" size={24} color="#1A2C24" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Icon name="home" size={24} color="#1A2C24" />
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -160,6 +160,10 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginRight: 8,
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
   searchInput: {
     flex: 1,

@@ -20,4 +20,7 @@ export type RootStackParamList = {
   DiscussionInfluenceur: undefined;
   SaveDealsInfluenceur: undefined;
   ProfileInfluenceur: undefined;
+  ChatInfluenceur: undefined;
+  DealDetailsInfluenceur: undefined; // { deal: Deal };
+  DealsSeeMoreInfluenceur: undefined;
 }; 

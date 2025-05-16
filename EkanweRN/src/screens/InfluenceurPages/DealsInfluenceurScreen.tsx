@@ -126,7 +126,10 @@ const DealCard = ({ deal }) => {
         <Text style={styles.dealTitle}>{deal.title}</Text>
         <Text style={styles.dealDescription}>{deal.description}</Text>
         <View style={styles.dealButtons}>
-          <TouchableOpacity style={styles.seeMoreButton}>
+          <TouchableOpacity 
+          style={styles.seeMoreButton}
+          onPress={() => navigation.navigate('DealSeeMoreInfluenceur', { deal })}
+          >
             <Text style={styles.seeMoreText}>Voir plus</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.dealButton}>

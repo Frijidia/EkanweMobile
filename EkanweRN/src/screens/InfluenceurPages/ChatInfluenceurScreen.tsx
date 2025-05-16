@@ -18,7 +18,7 @@ export const ChatInfluenceurScreen = () => {
     id: route.params.conversationId,
     merchant: {
       name: 'Le Petit Bistrot',
-      image: require('../assets/merchant1.png'),
+      image: require('../../assets/profile.png'),
     },
     messages: [
       {
@@ -60,9 +60,13 @@ export const ChatInfluenceurScreen = () => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-left" size={24} color="#fff" />
+          <Icon name="arrow-left" size={24} color="#1A2C24" />
         </TouchableOpacity>
-        <Image source={conversation.merchant.image} style={styles.merchantImage} />
+        <Image 
+          source={conversation.merchant.image} 
+          style={styles.merchantImage}
+          defaultSource={require('../../assets/profile.png')}
+        />
         <View style={styles.headerInfo}>
           <Text style={styles.merchantName}>{conversation.merchant.name}</Text>
           <Text style={styles.status}>En ligne</Text>
@@ -79,10 +83,20 @@ export const ChatInfluenceurScreen = () => {
             ]}
           >
             {msg.isMerchant && (
-              <Image source={conversation.merchant.image} style={styles.messageAvatar} />
+              <Image 
+                source={conversation.merchant.image} 
+                style={styles.messageAvatar}
+                defaultSource={require('../../assets/profile.png')}
+              />
             )}
-            <View style={styles.messageContent}>
-              <Text style={styles.messageText}>{msg.text}</Text>
+            <View style={[
+              styles.messageContent,
+              msg.isMerchant ? styles.merchantMessageContent : styles.userMessageContent
+            ]}>
+              <Text style={[
+                styles.messageText,
+                msg.isMerchant ? styles.merchantMessageText : styles.userMessageText
+              ]}>{msg.text}</Text>
               <Text style={styles.messageTimestamp}>{msg.timestamp}</Text>
             </View>
           </View>
@@ -98,11 +112,14 @@ export const ChatInfluenceurScreen = () => {
           onChangeText={setMessage}
           multiline
         />
+        <TouchableOpacity style={styles.emojiButton}>
+          <Icon name="emoticon-outline" size={24} color="#1A2C24" />
+        </TouchableOpacity>
         <TouchableOpacity 
           style={styles.sendButton}
           onPress={sendMessage}
         >
-          <Icon name="send" size={24} color="#FF6B2E" />
+          <Icon name="send" size={24} color="#1A2C24" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -112,7 +129,7 @@ export const ChatInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#EBEBDF',
   },
   header: {
     flexDirection: 'row',
@@ -120,7 +137,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 48,
     borderBottomWidth: 1,
-    borderBottomColor: '#2A3C34',
+    borderBottomColor: '#1A2C24',
   },
   backButton: {
     marginRight: 16,
@@ -130,12 +147,13 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 12,
+    backgroundColor: '#fff',
   },
   headerInfo: {
     flex: 1,
   },
   merchantName: {
-    color: '#fff',
+    color: '#1A2C24',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -163,17 +181,28 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: 8,
+    marginHorizontal: 8,
+    backgroundColor: '#fff',
   },
   messageContent: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: 12,
     borderRadius: 16,
   },
+  merchantMessageContent: {
+    backgroundColor: '#fff',
+  },
+  userMessageContent: {
+    backgroundColor: '#1A2C24',
+  },
   messageText: {
-    color: '#fff',
     fontSize: 14,
     marginBottom: 4,
+  },
+  merchantMessageText: {
+    color: '#1A2C24',
+  },
+  userMessageText: {
+    color: '#EBEBDF',
   },
   messageTimestamp: {
     color: '#9CA3AF',
@@ -185,17 +214,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#2A3C34',
+    borderTopColor: '#1A2C24',
   },
   input: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#fff',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    color: '#fff',
+    color: '#1A2C24',
     marginRight: 8,
     maxHeight: 100,
+  },
+  emojiButton: {
+    padding: 8,
+    marginRight: 8,
   },
   sendButton: {
     padding: 8,

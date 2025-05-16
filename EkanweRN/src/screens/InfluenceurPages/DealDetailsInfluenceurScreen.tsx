@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomNavbar } from '../components/BottomNavbar';
+import { BottomNavbar } from './BottomNavbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DealDetailsRouteProp = RouteProp<RootStackParamList, 'DealDetailsInfluenceur'>;
@@ -20,10 +20,10 @@ export const DealDetailsInfluenceurScreen = () => {
     id: route.params.dealId,
     title: 'Promotion Restaurant',
     description: 'Offre spéciale pour les influenceurs culinaires. Venez découvrir notre nouvelle carte et partagez votre expérience avec vos followers.',
-    image: require('../assets/deal1.png'),
+    image: require('../../assets/photo.jpg'),
     merchant: {
       name: 'Le Petit Bistrot',
-      image: require('../assets/merchant1.png'),
+      image: require('../../assets/photo.jpg'),
       rating: 4.5,
       reviews: 128,
     },
