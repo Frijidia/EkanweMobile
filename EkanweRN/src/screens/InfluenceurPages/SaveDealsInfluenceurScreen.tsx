@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
@@ -10,76 +11,101 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const SaveDealsInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const [loading, setLoading] = useState(false);
 
   const savedDeals = [
     {
       id: '1',
       title: 'Promotion Restaurant',
       description: 'Offre spéciale pour les influenceurs culinaires',
-      image: require('../../assets/photo.jpg'),
-      merchant: 'Le Petit Bistrot',
-      category: 'Restaurant',
-      reward: '50€',
-      savedDate: '2024-03-15',
+      imageUrl: require('../../assets/photo.jpg'),
+      status: 'Envoyé',
+      merchantId: 'merchant1'
     },
     {
-      id: '2',
+      id: '2', 
       title: 'Collection Mode',
       description: 'Découvrez notre nouvelle collection',
-      image: require('../../assets/photo.jpg'),
-      merchant: 'Fashion Store',
-      category: 'Mode',
-      reward: '100€',
-      savedDate: '2024-03-14',
-    },
-    // Ajoutez plus de deals sauvegardés ici
+      imageUrl: require('../../assets/photo.jpg'),
+      status: 'Accepté',
+      merchantId: 'merchant2'
+    }
   ];
+
+  const renderStatusButton = (status: string) => {
+    const common = [styles.statusButton];
+    if (status === "Envoyé") return <TouchableOpacity disabled style={[...common, styles.statusGray]}><Text style={styles.buttonText}>Candidature envoyée</Text></TouchableOpacity>;
+    if (status === "Accepté") return <TouchableOpacity disabled style={[...common, styles.statusBlue]}><Text style={styles.buttonText}>Accepté</Text></TouchableOpacity>;
+    if (status === "Approbation") return <TouchableOpacity disabled style={[...common, styles.statusYellow]}><Text style={styles.buttonText}>En attente validation</Text></TouchableOpacity>;
+    if (status === "Terminé") return <TouchableOpacity disabled style={[...common, styles.statusGreen]}><Text style={styles.buttonText}>Mission terminée</Text></TouchableOpacity>;
+    return (
+      <TouchableOpacity style={[...common, styles.statusOrange]}>
+        <Text style={styles.buttonText}>Dealer</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Chargement en cours...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Deals sauvegardés</Text>
+        <Text style={styles.title}>Enregistrés</Text>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity>
+            <Icon name="bell" size={24} color="#1A2C24" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Icon name="home" size={24} color="#1A2C24" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Icon name="magnify" size={24} color="#1A2C24" style={styles.searchIcon} />
+          <TextInput 
+            placeholder="Recherche"
+            style={styles.searchInput}
+          />
+          <Icon name="menu" size={24} color="#1A2C24" />
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
-        {savedDeals.length > 0 ? (
-          savedDeals.map((deal) => (
-            <TouchableOpacity
-              key={deal.id}
-              style={styles.dealCard}
-              onPress={() => navigation.navigate('DealDetailsInfluenceur', { dealId: deal.id })}
-            >
-              <Image source={deal.image} style={styles.dealImage} />
-              <View style={styles.dealInfo}>
-                <View style={styles.dealHeader}>
-                  <Text style={styles.dealTitle}>{deal.title}</Text>
-                  <TouchableOpacity style={styles.unsaveButton}>
-                    <Icon name="bookmark" size={24} color="#FF6B2E" />
+        {savedDeals.length === 0 ? (
+          <Text style={styles.emptyText}>Aucun deal enregistré.</Text>
+        ) : (
+          <View style={styles.dealsContainer}>
+            {savedDeals.map((deal, index) => (
+              <View key={index} style={styles.dealCard}>
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={deal.imageUrl}
+                    style={styles.dealImage}
+                  />
+                  <TouchableOpacity style={styles.saveButton}>
+                    <Icon name="bookmark" size={20} color="#FF6B2E" />
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.dealDescription}>{deal.description}</Text>
-                <View style={styles.dealFooter}>
-                  <View style={styles.merchantInfo}>
-                    <Text style={styles.merchantName}>{deal.merchant}</Text>
-                    <Text style={styles.savedDate}>Sauvegardé le {deal.savedDate}</Text>
+                <View style={styles.dealInfo}>
+                  <Text style={styles.dealTitle}>{deal.title}</Text>
+                  <Text style={styles.dealDescription}>{deal.description}</Text>
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity style={styles.seeMoreButton}>
+                      <Text style={styles.seeMoreText}>Voir plus</Text>
+                    </TouchableOpacity>
+                    {renderStatusButton(deal.status)}
                   </View>
-                  <Text style={styles.reward}>{deal.reward}</Text>
                 </View>
               </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <Icon name="bookmark-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyStateText}>
-              Vous n'avez pas encore sauvegardé de deals
-            </Text>
-            <TouchableOpacity
-              style={styles.exploreButton}
-              onPress={() => navigation.navigate('DealsInfluenceur')}
-            >
-              <Text style={styles.exploreButtonText}>Explorer les deals</Text>
-            </TouchableOpacity>
+            ))}
           </View>
         )}
       </ScrollView>
@@ -92,100 +118,142 @@ export const SaveDealsInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingText: {
+    color: '#14210F',
+    fontSize: 16,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
-    paddingTop: 48,
+    paddingTop: 20,
   },
   title: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#14210F',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  searchContainer: {
+    padding: 16,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: '#14210F',
+    borderRadius: 8,
+    padding: 8,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#14210F',
   },
   content: {
     flex: 1,
+  },
+  dealsContainer: {
     padding: 16,
+    gap: 24,
   },
   dealCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#1A2C24',
     borderRadius: 12,
-    marginBottom: 16,
     overflow: 'hidden',
+    marginBottom: 24,
+  },
+  imageContainer: {
+    position: 'relative',
+    aspectRatio: 16/9,
   },
   dealImage: {
     width: '100%',
-    height: 200,
-    resizeMode: 'cover',
+    height: '100%',
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 8,
+    borderRadius: 20,
   },
   dealInfo: {
     padding: 16,
   },
-  dealHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  dealTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
-  dealTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    flex: 1,
-    marginRight: 8,
-  },
-  unsaveButton: {
-    padding: 4,
-  },
   dealDescription: {
-    color: '#9CA3AF',
     fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
     marginBottom: 16,
   },
-  dealFooter: {
+  buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
-  merchantInfo: {
-    flex: 1,
-  },
-  merchantName: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  savedDate: {
-    color: '#9CA3AF',
-    fontSize: 12,
-  },
-  reward: {
-    color: '#FF6B2E',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  },
-  emptyStateText: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  exploreButton: {
-    backgroundColor: '#FF6B2E',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+  seeMoreButton: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 8,
+    padding: 8,
   },
-  exploreButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  seeMoreText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  statusButton: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '600',
   },
-}); 
+  statusGray: {
+    backgroundColor: '#6B7280',
+  },
+  statusBlue: {
+    backgroundColor: '#008000',
+  },
+  statusYellow: {
+    backgroundColor: '#F59E0B',
+  },
+  statusGreen: {
+    backgroundColor: '#047857',
+  },
+  statusOrange: {
+    backgroundColor: '#FF6B2E',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    color: '#6B7280',
+  }
+});
