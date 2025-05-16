@@ -5,8 +5,14 @@ import { RootStackParamList } from '../types/navigation';
 
 // Pages de connexion
 import { SplashScreen } from '../screens/SplashScreen';
-import { ConnectionScreen } from '../screens/ConnectionScreen';
-
+import { ConnectionScreen } from '../screens/LoginPages/ConnectionScreen';
+import { WelcomeInfluenceurScreen } from '../screens/EkanwePages/WelcomeInfluenceurScreen';
+import { WelcomeCommercantScreen } from '../screens/EkanwePages/WelcomeCommercantScreen';
+import { CreatorTypeInfluenceurScreen } from '../screens/EkanwePages/CreatorTypeInfluenceurScreen';
+import { ConceptInfluenceurScreen } from '../screens/EkanwePages/ConceptInfluenceurScreen';
+import { LoginOrConnect } from '../screens/LoginPages/LoginOrConnect';
+import { LoginScreen } from '../screens/LoginPages/LoginScreen';
+import { RegisterScreen } from '../screens/LoginPages/RegisterScreen';
 // Navigation principale de l'application
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -20,6 +26,13 @@ export const AppNavigator = () => {
       {/* Pages de connexion */}
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Connection" component={ConnectionScreen} />
+      <Stack.Screen name="WelcomeInfluenceur" component={WelcomeInfluenceurScreen} />
+      <Stack.Screen name="WelcomeCommercant" component={WelcomeCommercantScreen} />
+      <Stack.Screen name="CreatorTypeInfluenceur" component={CreatorTypeInfluenceurScreen} />
+      <Stack.Screen name="ConceptInfluenceur" component={ConceptInfluenceurScreen} />
+      <Stack.Screen name="LoginOrConnect" component={LoginOrConnect} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }; 

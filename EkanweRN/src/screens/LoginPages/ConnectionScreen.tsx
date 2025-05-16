@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -14,13 +14,13 @@ export const ConnectionScreen = () => {
       <View style={styles.content}>
         <View style={styles.imageContainer}>
           <Image 
-            source={require('../assets/commercant.png')} 
+            source={require('../../assets/commercant.png')} 
             style={styles.image}
             resizeMode="cover"
           />
           <TouchableOpacity 
             style={styles.button}
-            //onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('WelcomeCommercant')}
           >
             <Text style={styles.buttonText}>COMMERCANT</Text>
           </TouchableOpacity>
@@ -28,13 +28,13 @@ export const ConnectionScreen = () => {
 
         <View style={styles.imageContainer}>
           <Image 
-            source={require('../assets/influenceur.png')} 
+            source={require('../../assets/influenceur.png')} 
             style={styles.image}
             resizeMode="cover"
           />
           <TouchableOpacity 
             style={styles.button}
-            //onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('WelcomeInfluenceur')}
           >
             <Text style={styles.buttonText}>INFLUENCEUR</Text>
           </TouchableOpacity>
