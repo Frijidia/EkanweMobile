@@ -26,4 +26,5 @@ export type RootStackParamList = {
   ConceptCommercant: undefined;
   CreatorCommercant: undefined;
   DealsCommercant: undefined;
+  ForgotPassword: undefined;
 }; 

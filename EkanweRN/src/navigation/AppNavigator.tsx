@@ -10,10 +10,10 @@ import { WelcomeInfluenceurScreen } from '../screens/EkanwePages/WelcomeInfluenc
 import { WelcomeCommercantScreen } from '../screens/EkanwePages/WelcomeCommercantScreen';
 import { CreatorTypeInfluenceurScreen } from '../screens/EkanwePages/CreatorTypeInfluenceurScreen';
 import { ConceptInfluenceurScreen } from '../screens/EkanwePages/ConceptInfluenceurScreen';
-import { LoginOrConnect } from '../screens/LoginPages/LoginOrConnect';
+import { LoginOrConnectScreen } from '../screens/LoginPages/LoginOrConnectScreen';
 import { LoginScreen } from '../screens/LoginPages/LoginScreen';
 import { RegisterScreen } from '../screens/LoginPages/RegisterScreen';
-import { ValidateInscription } from '../screens/LoginPages/ValidateInscriptionScreen';
+import { ValidateInscriptionScreen } from '../screens/LoginPages/ValidateInscriptionScreen';
 import { RegistrationStepOneScreen } from '../screens/LoginPages/RegistrationStepOneScreen';
 import { InterestStepScreen } from '../screens/LoginPages/InterestStepScreen';
 import { SocialConnectScreen } from '../screens/LoginPages/SocialConnectScreen';
@@ -30,6 +30,7 @@ import { DealsSeeMoreInfluenceurScreen } from '../screens/InfluenceurPages/Deals
 import { ConceptCommercantScreen } from '../screens/EkanwePages/ConceptCommercantScreen';
 import { CreatorCommercantScreen } from '../screens/EkanwePages/CreatorCommercantScreen';
 import { DealsPageCommercantScreen } from '../screens/CommercantPages/DealsCommercantScreen';
+import { ForgotPasswordScreen } from '../screens/LoginPages/ForgotPasswordScreen';
 // Navigation principale de l'application
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,10 +49,10 @@ export const AppNavigator = () => {
       <Stack.Screen name="WelcomeCommercant" component={WelcomeCommercantScreen} />
       <Stack.Screen name="CreatorTypeInfluenceur" component={CreatorTypeInfluenceurScreen} />
       <Stack.Screen name="ConceptInfluenceur" component={ConceptInfluenceurScreen} />
-      <Stack.Screen name="LoginOrConnect" component={LoginOrConnect} />
+      <Stack.Screen name="LoginOrConnect" component={LoginOrConnectScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="ValidateInscription" component={ValidateInscription} />
+      <Stack.Screen name="ValidateInscription" component={ValidateInscriptionScreen} />
       <Stack.Screen name="RegistrationStepOne" component={RegistrationStepOneScreen} />
       <Stack.Screen name="InterestStep" component={InterestStepScreen} />
       <Stack.Screen name="SocialConnect" component={SocialConnectScreen} />
@@ -68,6 +69,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="ConceptCommercant" component={ConceptCommercantScreen} />
       <Stack.Screen name="CreatorCommercant" component={CreatorCommercantScreen} />
       <Stack.Screen name="DealsCommercant" component={DealsPageCommercantScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 }; 

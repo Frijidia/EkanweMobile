@@ -1,58 +1,70 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
-import { CheckCircle } from 'lucide-react-native';
+import { auth, db } from '../../firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons'; // Pour icône check
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'RegistrationComplete'>;
 
 export const RegistrationCompleteScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
-  React.useEffect(() => {
-    // Auto redirect after 5 seconds
-    const timer = setTimeout(() => {
-      navigation.navigate('DealsInfluenceur');
-    }, 5000);
+  useEffect(() => {
+    const redirectUser = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
 
-    return () => clearTimeout(timer);
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          const role = snap.data().role;
+
+          setTimeout(() => {
+            if (role === "influenceur") {
+              navigation.replace('DealsInfluenceur');
+            } else {
+              navigation.replace('DealsCommercant');
+            }
+          }, 5000);
+        }
+      } catch (error) {
+        console.error("Erreur de redirection :", error);
+        Alert.alert("Erreur", "Impossible de charger vos données.");
+      }
+    };
+
+    redirectUser();
   }, [navigation]);
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <View style={styles.content}>
-          <Image 
-            source={require('../../assets/ekanwe-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+        <Image source={require('../../assets/ekanwe-logo.png')} style={styles.logo} />
 
-          <View style={styles.checkCircleContainer}>
-            <CheckCircle size={64} color="#fff" />
-          </View>
+        <View style={styles.iconWrapper}>
+          <Ionicons name="checkmark-circle" size={64} color="white" />
+        </View>
 
-          <Text style={styles.title}>INSCRIPTION COMPLÉTÉE</Text>
+        <Text style={styles.title}>INSCRIPTION COMPLÉTÉE</Text>
+        <View style={styles.separator} />
 
-          <View style={styles.divider} />
+        <Text style={styles.message}>
+          Félicitations ! Votre compte a été créé avec succès. Vous allez être redirigé vers votre espace personnel dans quelques secondes.
+        </Text>
 
-          <Text style={styles.description}>
-            Félicitations ! Votre compte a été vérifié avec succès. Vous allez être redirigé vers votre espace personnel dans quelques secondes.
-          </Text>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.replace('Splash')}>
+          <Text style={styles.buttonText}>CONTINUER</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('DealsInfluenceur')}
-          >
-            <Text style={styles.buttonText}>CONTINUER</Text>
-          </TouchableOpacity>
-
-          <View style={styles.dotsContainer}>
-            <View style={[styles.dot, styles.activeDot]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-          </View>
+        <View style={styles.pagination}>
+          <View style={[styles.dot, { backgroundColor: '#FF6B2E' }]} />
+          <View style={[styles.dot, { opacity: 0.5 }]} />
+          <View style={[styles.dot, { opacity: 0.5 }]} />
         </View>
       </View>
     </View>
@@ -61,28 +73,27 @@ export const RegistrationCompleteScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#1A2C24',
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
   },
   card: {
-    backgroundColor: 'rgba(26, 44, 36, 0.9)',
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: 8,
+    backgroundColor: '#1A2C24',
+    borderRadius: 16,
     padding: 24,
-  },
-  content: {
+    width: '90%',
+    borderWidth: 2,
+    borderColor: '#AEC9B6',
     alignItems: 'center',
   },
   logo: {
-    width: 144,
+    width: 140,
     height: 40,
-    marginBottom: 40,
+    resizeMode: 'contain',
+    marginBottom: 24,
   },
-  checkCircleContainer: {
+  iconWrapper: {
     backgroundColor: '#FF6B2E',
     borderRadius: 50,
     padding: 12,
@@ -91,44 +102,41 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 24,
+    color: 'white',
+    marginBottom: 12,
   },
-  divider: {
-    width: 64,
+  separator: {
     height: 4,
+    width: 64,
     backgroundColor: '#FF6B2E',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  description: {
-    color: '#9CA3AF',
+  message: {
+    color: '#cccccc',
+    fontSize: 14,
     textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 20,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#FF6B2E',
     paddingVertical: 12,
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
     borderRadius: 8,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   buttonText: {
-    color: '#fff',
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 14,
-    fontWeight: '600',
   },
-  dotsContainer: {
+  pagination: {
     flexDirection: 'row',
     gap: 8,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  activeDot: {
-    backgroundColor: '#FF6B2E',
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+    backgroundColor: 'white',
   },
 });

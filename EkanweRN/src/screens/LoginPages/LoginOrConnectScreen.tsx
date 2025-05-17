@@ -9,14 +9,14 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'LoginOrSignup'>;
-type RouteProps = RouteProp<RootStackParamList, 'LoginOrSignup'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'LoginOrConnect'>;
+type RouteProps = RouteProp<RootStackParamList, 'LoginOrConnect'>;
 
 const { width } = Dimensions.get('window');
 
-export const LoginOrSignupScreen = () => {
+export const LoginOrConnectScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
   const [error, setError] = useState('');
@@ -42,7 +42,7 @@ export const LoginOrSignupScreen = () => {
 
       <View style={styles.card}>
         <Image
-          source={require('../assets/ekanwe-logo.png')}
+          source={require('../../assets/ekanwe-logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -69,7 +69,7 @@ export const LoginOrSignupScreen = () => {
       </View>
 
       <Image
-        source={require('../assets/characterWorkingOnLaptop.png')}
+        source={require('../../assets/characterWorkingOnLaptop.png')}
         style={styles.character}
         resizeMode="contain"
       />

@@ -1,34 +1,67 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth, db } from '../../firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export const LoginScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [loginData, setLoginData] = useState({
-    mail: '',
-    motdepasse: '',
-  });
+
+  const [mail, setMail] = useState('');
+  const [motdepasse, setMotdepasse] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    navigation.navigate('DealsCommercant');
-    //navigation.navigate('DealsInfluenceur');
-   // if (!loginData.mail || !loginData.motdepasse) {
-   //   setError('Veuillez remplir tous les champs');
-   //   return;
-   // }
-
-    setLoading(true);
     try {
-      // TODO: Implémenter la logique de connexion
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      //navigation.navigate('DealsInfluenceur');
+      setLoading(true);
+      const cred = await signInWithEmailAndPassword(auth, mail, motdepasse);
+      const userRef = doc(db, 'users', cred.user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const { role, inscription } = userSnap.data();
+
+        switch (inscription) {
+          case '1':
+            navigation.replace('RegistrationStepOne');
+            break;
+          case '2':
+            navigation.replace('InterestStep');
+            break;
+          case '3':
+            navigation.replace('SocialConnect');
+            break;
+          case '4':
+            navigation.replace('PortfolioStep');
+            break;
+          case 'Terminé':
+            if (role === 'commerçant') navigation.replace('DealsCommercant');
+            else if (role === 'influenceur') navigation.replace('DealsInfluenceur');
+            else setError('Rôle inconnu. Veuillez contacter l\'administrateur.');
+            break;
+          default:
+            navigation.replace('LoginOrConnect');
+        }
+      } else {
+        setError('Compte introuvable dans la base de données.');
+      }
     } catch (err) {
+      console.error(err);
       setError('Email ou mot de passe invalide.');
     } finally {
       setLoading(false);
@@ -36,101 +69,61 @@ export const LoginScreen = () => {
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      // TODO: Implémenter la connexion Google
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      //navigation.navigate('DealsInfluenceur');
-    } catch (err) {
-      setError('Erreur de connexion avec Google.');
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert('Non disponible', 'La connexion avec Google sera disponible prochainement.');
+    // Tu pourras lier @react-native-google-signin ou firebase/auth si tu configures bien le projet natif
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <Image 
-            source={require('../../assets/ekanwe-logo.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.welcome}>Bienvenue</Text>
-          <Text style={styles.title}>Connexion</Text>
-        </View>
+      <Image source={require('../../assets/ekanwe-logo.png')} style={styles.logo} />
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Mail"
-            placeholderTextColor="#9CA3AF"
-            value={loginData.mail}
-            onChangeText={(text) => setLoginData({ ...loginData, mail: text })}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Mot de passe"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            value={loginData.motdepasse}
-            onChangeText={(text) => setLoginData({ ...loginData, motdepasse: text })}
-          />
-        </View>
+      <Text style={styles.title}>Connexion</Text>
 
-        <TouchableOpacity 
-          style={styles.forgotPassword}
-          onPress={() => navigation.navigate('ForgotPassword')}
-        >
-          <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
-        </TouchableOpacity>
+      <TextInput
+        placeholder="Mail"
+        placeholderTextColor="#ccc"
+        style={styles.input}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        onChangeText={setMail}
+        value={mail}
+      />
+      <TextInput
+        placeholder="Mot de passe"
+        placeholderTextColor="#ccc"
+        style={styles.input}
+        secureTextEntry
+        onChangeText={setMotdepasse}
+        value={motdepasse}
+      />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+        <Text style={styles.forgot}>Mot de passe oublié ?</Text>
+      </TouchableOpacity>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.navigate('Connection')}
-          >
-            <Text style={styles.backButtonText}>RETOUR</Text>
-          </TouchableOpacity>
+      {error !== '' && <Text style={styles.error}>{error}</Text>}
 
-          <TouchableOpacity 
-            style={styles.loginButton}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.loginButtonText}>CONNEXION</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginText}>CONNEXION</Text>}
+      </TouchableOpacity>
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Ou continuer avec</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <TouchableOpacity 
-          style={styles.googleButton}
-          onPress={handleGoogleLogin}
-          disabled={loading}
-        >
-          <Image 
-            source={{ uri: 'https://www.google.com/favicon.ico' }} 
-            style={styles.googleIcon}
-          />
-          <Text style={styles.googleButtonText}>
-            {loading ? 'Connexion...' : 'Continuer avec Google'}
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.separatorContainer}>
+        <View style={styles.separatorLine} />
+        <Text style={styles.separatorText}>Ou continuer avec</Text>
+        <View style={styles.separatorLine} />
       </View>
+
+      <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleLogin}>
+        <Image
+          source={{ uri: 'https://www.google.com/favicon.ico' }}
+          style={styles.googleIcon}
+        />
+        <Text style={styles.googleText}>Continuer avec Google</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.retour}>
+        <Text style={{ color: '#ccc' }}>← Retour</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -139,134 +132,89 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A2C24',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#1A2C24',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 20,
   },
   logo: {
-    width: 144,
-    height: 144,
-    marginBottom: 24,
-  },
-  welcome: {
-    color: '#D1D5DB',
-    fontSize: 14,
-    letterSpacing: 2,
-    marginBottom: 24,
+    width: 140,
+    height: 50,
+    marginBottom: 16,
+    resizeMode: 'contain',
   },
   title: {
-    color: '#fff',
-    fontSize: 24,
+    color: 'white',
+    fontSize: 28,
     fontWeight: 'bold',
-  },
-  form: {
-    gap: 16,
-    marginBottom: 16,
-  },
-  input: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 6,
-    padding: 10,
-    color: '#fff',
-    fontSize: 14,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 16,
-  },
-  forgotPasswordText: {
-    color: '#9CA3AF',
-    fontSize: 12,
-  },
-  error: {
-    color: '#EF4444',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 32,
   },
-  backButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
+  input: {
+    width: '100%',
     borderColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    borderWidth: 1,
     borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    color: 'white',
   },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 14,
+  forgot: {
+    alignSelf: 'flex-end',
+    fontSize: 12,
+    color: '#ccc',
+    marginBottom: 12,
   },
-  loginButton: {
+  error: {
+    color: '#F87171',
+    fontSize: 13,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  loginBtn: {
+    width: '100%',
     backgroundColor: '#FF6B2E',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    padding: 14,
     borderRadius: 8,
-    minWidth: 120,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 24,
   },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+  loginText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
-  divider: {
+  separatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
-  dividerLine: {
+  separatorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#4B5563',
+    backgroundColor: '#666',
   },
-  dividerText: {
-    color: '#9CA3AF',
+  separatorText: {
+    marginHorizontal: 10,
+    color: '#ccc',
     fontSize: 12,
-    marginHorizontal: 8,
   },
-  googleButton: {
+  googleBtn: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#fff',
-    padding: 12,
+    padding: 14,
     borderRadius: 8,
-    gap: 8,
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
   },
   googleIcon: {
     width: 20,
     height: 20,
+    marginRight: 10,
   },
-  googleButtonText: {
-    color: '#1F2937',
-    fontSize: 14,
-    fontWeight: '600',
+  googleText: {
+    color: '#333',
+    fontWeight: 'bold',
   },
-}); 
+  retour: {
+    marginTop: 24,
+  },
+});

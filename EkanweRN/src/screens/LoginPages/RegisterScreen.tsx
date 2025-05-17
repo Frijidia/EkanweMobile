@@ -1,42 +1,102 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signInWithCredential,
+  GoogleAuthProvider,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase/firebase';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Register'>;
 
 export const RegisterScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [registerData, setRegisterData] = useState({
-    nom: '',
-    prenom: '',
-    mail: '',
-    motdepasse: '',
-    confirmMotdepasse: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '', confirmation: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
-    if (!registerData.nom || !registerData.prenom || !registerData.mail || !registerData.motdepasse || !registerData.confirmMotdepasse) {
-      setError('Veuillez remplir tous les champs');
-      return;
-    }
+  const handleInputChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+  };
 
-    if (registerData.motdepasse !== registerData.confirmMotdepasse) {
-      setError('Les mots de passe ne correspondent pas');
-      return;
-    }
-
-    setLoading(true);
+  const handleGoogleSignUp = async () => {
     try {
-      // TODO: Implémenter la logique d'inscription
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigation.navigate('ValidateInscription');
+      setLoading(true);
+      const googleUser = await GoogleAuth.signIn();
+      const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+      const result = await signInWithCredential(auth, credential);
+      const user = result.user;
+
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        const fullName = user.displayName || '';
+        const [firstName, ...rest] = fullName.split(' ');
+        const lastName = rest.join(' ');
+
+        await setDoc(userRef, {
+          email: user.email,
+          nom: lastName || null,
+          prenoms: firstName || null,
+          photoURL: user.photoURL || null,
+          role: null, // À modifier selon ton contexte
+          dateCreation: new Date(),
+          inscription: '1',
+        });
+      }
+
+      navigation.replace('RegistrationStepOne');
     } catch (err) {
-      setError('Une erreur est survenue lors de l\'inscription.');
+      console.error('Erreur Google Sign In :', err);
+      setError('Erreur lors de la connexion avec Google.');
+      Alert.alert('Erreur', 'Échec de la connexion Google');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    const { email, password, confirmation } = formData;
+    if (!email || !password || !confirmation) {
+      return setError('Tous les champs sont requis !');
+    }
+    if (password !== confirmation) {
+      return setError('Les mots de passe ne correspondent pas.');
+    }
+
+    try {
+      setLoading(true);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(cred.user);
+
+      const userRef = doc(db, 'users', cred.user.uid);
+      await setDoc(userRef, {
+        email,
+        role: null, // À modifier selon ton contexte
+        dateCreation: new Date(),
+        inscription: '1',
+      });
+
+      navigation.replace('ValidateInscription');
+    } catch (err: any) {
+      console.error('Erreur d\'inscription :', err);
+      setError('Une erreur est survenue : ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -44,103 +104,66 @@ export const RegisterScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <Image 
-            source={require('../../assets/ekanwe-logo.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.welcome}>Bienvenue</Text>
-          <Text style={styles.title}>Inscription</Text>
-        </View>
+      <Image source={require('../../assets/ekanwe-logo.png')} style={styles.logo} />
+      <Text style={styles.title}>Créer un compte</Text>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Nom"
-            placeholderTextColor="#9CA3AF"
-            value={registerData.nom}
-            onChangeText={(text) => setRegisterData({ ...registerData, nom: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Prénom"
-            placeholderTextColor="#9CA3AF"
-            value={registerData.prenom}
-            onChangeText={(text) => setRegisterData({ ...registerData, prenom: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Mail"
-            placeholderTextColor="#9CA3AF"
-            value={registerData.mail}
-            onChangeText={(text) => setRegisterData({ ...registerData, mail: text })}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Mot de passe"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            value={registerData.motdepasse}
-            onChangeText={(text) => setRegisterData({ ...registerData, motdepasse: text })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirmer le mot de passe"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            value={registerData.confirmMotdepasse}
-            onChangeText={(text) => setRegisterData({ ...registerData, confirmMotdepasse: text })}
-          />
-        </View>
+      <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleSignUp} disabled={loading}>
+        <Image
+          source={{ uri: 'https://www.google.com/favicon.ico' }}
+          style={styles.googleIcon}
+        />
+        <Text style={styles.googleText}>
+          {loading ? 'Connexion...' : 'Continuer avec Google'}
+        </Text>
+      </TouchableOpacity>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.navigate('LoginOrConnect')}
-          >
-            <Text style={styles.backButtonText}>RETOUR</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.registerButton}
-            onPress={() => navigation.navigate('RegistrationStepOne')}
-            //onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.registerButtonText}>S'INSCRIRE</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Ou continuer avec</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <TouchableOpacity 
-          style={styles.googleButton}
-          onPress={() => navigation.navigate('ValidateInscription')}
-          disabled={loading}
-        >
-          <Image 
-            source={{ uri: 'https://www.google.com/favicon.ico' }} 
-            style={styles.googleIcon}
-          />
-          <Text style={styles.googleButtonText}>
-            {loading ? 'Inscription...' : 'Continuer avec Google'}
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.separatorContainer}>
+        <View style={styles.separatorLine} />
+        <Text style={styles.separatorText}>ou</Text>
+        <View style={styles.separatorLine} />
       </View>
+
+      <TextInput
+        placeholder="Email"
+        style={styles.input}
+        placeholderTextColor="#ccc"
+        value={formData.email}
+        onChangeText={(text) => handleInputChange('email', text)}
+      />
+      <TextInput
+        placeholder="Créer un mot de passe"
+        style={styles.input}
+        placeholderTextColor="#ccc"
+        secureTextEntry
+        value={formData.password}
+        onChangeText={(text) => handleInputChange('password', text)}
+      />
+      <TextInput
+        placeholder="Confirmer le mot de passe"
+        style={styles.input}
+        placeholderTextColor="#ccc"
+        secureTextEntry
+        value={formData.confirmation}
+        onChangeText={(text) => handleInputChange('confirmation', text)}
+      />
+
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <TouchableOpacity
+        style={[styles.registerBtn, loading && { backgroundColor: '#888' }]}
+        onPress={handleRegister}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.registerText}>S'INSCRIRE</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.retour}>
+        <Text style={{ color: '#ccc' }}>← Retour</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -149,126 +172,84 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A2C24',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#1A2C24',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 20,
   },
   logo: {
-    width: 144,
-    height: 144,
-    marginBottom: 24,
-  },
-  welcome: {
-    color: '#D1D5DB',
-    fontSize: 14,
-    letterSpacing: 2,
-    marginBottom: 24,
+    width: 140,
+    height: 50,
+    marginBottom: 16,
+    resizeMode: 'contain',
   },
   title: {
-    color: '#fff',
-    fontSize: 24,
+    color: 'white',
+    fontSize: 28,
     fontWeight: 'bold',
-  },
-  form: {
-    gap: 16,
-    marginBottom: 16,
-  },
-  input: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 6,
-    padding: 10,
-    color: '#fff',
-    fontSize: 14,
-  },
-  error: {
-    color: '#EF4444',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 32,
   },
-  backButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
+  input: {
+    width: '100%',
     borderColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    borderWidth: 1,
     borderRadius: 8,
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  registerButton: {
-    backgroundColor: '#FF6B2E',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  registerButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#4B5563',
-  },
-  dividerText: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    marginHorizontal: 8,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
     padding: 12,
+    marginBottom: 16,
+    color: 'white',
+  },
+  googleBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: 14,
     borderRadius: 8,
-    gap: 8,
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   googleIcon: {
     width: 20,
     height: 20,
+    marginRight: 10,
   },
-  googleButtonText: {
-    color: '#1F2937',
-    fontSize: 14,
-    fontWeight: '600',
+  googleText: {
+    color: '#333',
+    fontWeight: 'bold',
   },
-}); 
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#666',
+  },
+  separatorText: {
+    marginHorizontal: 10,
+    color: '#ccc',
+    fontSize: 12,
+  },
+  registerBtn: {
+    width: '100%',
+    backgroundColor: '#FF6B2E',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  registerText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  error: {
+    color: '#F87171',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  retour: {
+    marginTop: 24,
+  },
+});

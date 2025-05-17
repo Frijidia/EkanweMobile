@@ -1,81 +1,122 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import { auth, db } from '../../firebase/firebase';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SocialConnectStep'>;
 
 export const SocialConnectScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [formData, setFormData] = useState({
     instagram: '',
-    tiktok: ''
+    tiktok: '',
   });
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setFormData({
+            instagram: data.instagram || '',
+            tiktok: data.tiktok || '',
+          });
+        }
+      } catch (error) {
+        console.error('Erreur chargement réseaux :', error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
   const handleChange = (name: string, value: string) => {
-    setFormData(prev => ({...prev, [name]: value}));
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    const user = auth.currentUser;
+    if (!user) return Alert.alert('Erreur', 'Utilisateur non connecté.');
+
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        instagram: formData.instagram,
+        tiktok: formData.tiktok,
+        inscription: '4',
+      });
+      navigation.navigate('PortfolioStep');
+    } catch (err) {
+      console.error('Erreur enregistrement réseaux :', err);
+      Alert.alert('Erreur', 'Une erreur est survenue.');
+    }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.stepText}>3/4</Text>
-          <Image 
-            source={require('../../assets/ekanwe-logo.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.inscriptionText}>Inscription</Text>
-          <Text style={styles.title}>Connexion réseaux</Text>
-        </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.step}>Étape 3/4</Text>
 
-        <View style={styles.networksContainer}>
-          <View style={styles.networkInput}>
-            <Image 
-              source={require('../../assets/instagramlogo.png')}
-              style={styles.networkIcon} 
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Lien ou pseudo Instagram"
-              placeholderTextColor="#9CA3AF"
-              value={formData.instagram}
-              onChangeText={(value) => handleChange('instagram', value)}
-            />
-          </View>
+      <Image
+        source={require('../../assets/ekanwe-logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-          <View style={styles.networkInput}>
-            <Image 
-              source={require('../../assets/tiktoklogo.png')}
-              style={styles.networkIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Lien ou pseudo TikTok"
-              placeholderTextColor="#9CA3AF" 
-              value={formData.tiktok}
-              onChangeText={(value) => handleChange('tiktok', value)}
-            />
-          </View>
-        </View>
+      <Text style={styles.heading}>Connexion réseaux</Text>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.navigate('InterestStep')}
-          >
-            <Text style={styles.backButtonText}>RETOUR</Text>
-          </TouchableOpacity>
+      <View style={styles.inputGroup}>
+        <Image
+          source={require('../../assets/instagramlogo.png')}
+          style={styles.icon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Lien ou pseudo Instagram"
+          placeholderTextColor="#888"
+          value={formData.instagram}
+          onChangeText={(text) => handleChange('instagram', text)}
+        />
+      </View>
 
-          <TouchableOpacity 
-            style={styles.nextButton}
-            onPress={() => navigation.navigate('PortfolioStep')}
-          >
-            <Text style={styles.nextButtonText}>SUIVANT</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.inputGroup}>
+        <Image
+          source={require('../../assets/tiktoklogo.png')}
+          style={styles.icon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Lien ou pseudo TikTok"
+          placeholderTextColor="#888"
+          value={formData.tiktok}
+          onChangeText={(text) => handleChange('tiktok', text)}
+        />
+      </View>
+
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.btnText}>RETOUR</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.nextBtn} onPress={handleSubmit}>
+          <Text style={styles.btnText}>SUIVANT</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -83,87 +124,71 @@ export const SocialConnectScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#1A2C24',
+    padding: 20,
+    justifyContent: 'center',
   },
-  content: {
-    padding: 16,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  stepText: {
-    color: '#fff',
-    fontSize: 14,
-    alignSelf: 'flex-end',
-    marginBottom: 16
+  step: {
+    color: '#ccc',
+    textAlign: 'right',
+    fontSize: 12,
+    marginBottom: 10,
   },
   logo: {
-    width: 144,
-    height: 144,
-    marginBottom: 24,
+    width: 140,
+    alignSelf: 'center',
+    marginBottom: 10,
   },
-  inscriptionText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 24,
-    letterSpacing: 2
-  },
-  title: {
-    color: '#fff',
-    fontSize: 28,
+  heading: {
+    color: 'white',
+    fontSize: 26,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
   },
-  networksContainer: {
-    gap: 24,
-    marginVertical: 24,
-  },
-  networkInput: {
+  inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
-    gap: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 20,
   },
-  networkIcon: {
-    width: 40,
-    height: 40,
+  icon: {
+    width: 28,
+    height: 28,
+    marginRight: 10,
   },
   input: {
     flex: 1,
-    color: '#000',
     fontSize: 14,
+    color: 'black',
     borderBottomWidth: 1,
-    borderBottomColor: '#9CA3AF',
-    paddingVertical: 4,
+    borderBottomColor: '#ccc',
+    paddingBottom: 4,
   },
-  buttonContainer: {
+  buttons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 32,
+    marginTop: 30,
   },
-  backButton: {
+  backBtn: {
+    borderColor: 'white',
     borderWidth: 1,
-    borderColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
   },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  nextButton: {
+  nextBtn: {
     backgroundColor: '#FF6B2E',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
   },
-  nextButtonText: {
-    color: '#fff',
-    fontSize: 14,
+  btnText: {
+    color: 'white',
     fontWeight: '600',
   },
 });
