@@ -15,7 +15,7 @@ import { RootStackParamList } from '../../types/navigation';
 import { auth, db } from '../../firebase/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SocialConnectStep'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SocialConnect'>;
 
 export const SocialConnectScreen = () => {
   const navigation = useNavigation<NavigationProp>();

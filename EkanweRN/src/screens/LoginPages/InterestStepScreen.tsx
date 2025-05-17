@@ -87,17 +87,17 @@ export const InterestStepScreen = () => {
         interets: selectedTags,
         inscription: '3',
       });
-      navigation.navigate('SocialConnectStep');
+      navigation.navigate('SocialConnect');
     } catch (err) {
       console.error(err);
-      Alert.alert('Erreur', 'Impossible d’enregistrer vos centres d’intérêt.');
+      Alert.alert('Erreur', 'Impossible d\'enregistrer vos centres d\'intérêt.');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.step}>Étape 2/4</Text>
-      <Text style={styles.title}>Centres d’intérêt</Text>
+      <Text style={styles.title}>Centres d'intérêt</Text>
 
       <Text style={styles.sub}>
         Tu ne vois pas ce que tu cherches ?{' '}
@@ -105,7 +105,7 @@ export const InterestStepScreen = () => {
       </Text>
 
       <TextInput
-        placeholder="Ajouter un centre d’intérêt"
+        placeholder="Ajouter un centre d'intérêt"
         placeholderTextColor="#aaa"
         style={styles.input}
         value={customInput}

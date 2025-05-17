@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SplashScreen } from './src/screens/SplashScreen';
@@ -30,10 +30,12 @@ import { ConceptCommercantScreen } from './src/screens/EkanwePages/ConceptCommer
 import { CreatorCommercantScreen } from './src/screens/EkanwePages/CreatorCommercantScreen';
 import { DealsPageCommercantScreen } from './src/screens/CommercantPages/DealsCommercantScreen';
 import { ForgotPasswordScreen } from './src/screens/LoginPages/ForgotPasswordScreen';
+import { configureStatusBar } from './src/utils/capacitorUtils';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+
   return (
     <NavigationContainer>
       <Stack.Navigator

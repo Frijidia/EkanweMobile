@@ -13,13 +13,13 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { useUserData } from '../../context/UserContext';
 
-type ConnectionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Connection'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const { width } = Dimensions.get('window');
 
 export const ConnectionScreen = () => {
-  const navigation = useNavigation<ConnectionScreenNavigationProp>();
-  const { setRole } = useUserData();
+  const navigation = useNavigation<NavigationProp>();
+  const {setRole} = useUserData();
 
   const handleCommercant = () => {
     setRole('commerçant');
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    backdropFilter: 'blur(10px)',
+    //backdropFilter: 'blur(10px)',
   },
   buttonText: {
     color: 'white',
