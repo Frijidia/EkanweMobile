@@ -26,6 +26,9 @@ import { ProfileInfluenceurScreen } from './src/screens/InfluenceurPages/Profile
 import { ChatInfluenceurScreen } from './src/screens/InfluenceurPages/ChatInfluenceurScreen';
 import { DealDetailsInfluenceurScreen } from './src/screens/InfluenceurPages/DealDetailsInfluenceurScreen';
 import { DealsSeeMoreInfluenceurScreen } from './src/screens/InfluenceurPages/DealsSeeMoreInfluenceurScreen';
+import { ConceptCommercantScreen } from './src/screens/EkanwePages/ConceptCommercantScreen';
+import { CreatorCommercantScreen } from './src/screens/EkanwePages/CreatorCommercantScreen';
+import { DealsPageCommercantScreen } from './src/screens/CommercantPages/DealsCommercantScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -61,6 +64,9 @@ export default function App() {
         <Stack.Screen name='ChatInfluenceur' component={ChatInfluenceurScreen} />
         <Stack.Screen name='DealDetailsInfluenceur' component={DealDetailsInfluenceurScreen} />
         <Stack.Screen name='DealsSeeMoreInfluenceur' component={DealsSeeMoreInfluenceurScreen} />
+        <Stack.Screen name='ConceptCommercant' component={ConceptCommercantScreen} />
+        <Stack.Screen name='CreatorCommercant' component={CreatorCommercantScreen} />
+        <Stack.Screen name='DealsCommercant' component={DealsPageCommercantScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

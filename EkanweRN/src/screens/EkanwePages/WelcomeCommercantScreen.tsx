@@ -1,45 +1,54 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+const { width } = Dimensions.get('window');
+
 export const WelcomeCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
   return (
     <View style={styles.container}>
-      <Image 
-        source={require('../../assets/character.png')} 
+      <Image
+        source={require('../../assets/feminine_caracter.png')}
         style={styles.character}
         resizeMode="contain"
       />
 
       <View style={styles.card}>
         <Text style={styles.title}>Bienvenue !</Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.description}>
           EKANWE, c'est le pouvoir du bouche-à-oreille numérique, au service des commerces de chez nous.
         </Text>
 
-        <View style={styles.dots}>
-          <View style={[styles.dot, styles.activeDot]} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+        <View style={styles.progressBar}>
+          <View style={[styles.progressDot, { backgroundColor: 'white' }]} />
+          <View style={[styles.progressDot, { backgroundColor: '#6B7280' }]} />
+          <View style={[styles.progressDot, { backgroundColor: '#6B7280' }]} />
         </View>
 
         <View style={styles.footer}>
-          <Image 
-            source={require('../../assets/ekanwe-logo.png')} 
+          <Image
+            source={require('../../assets/ekanwe-logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.nextButton}
-            //onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('CreatorCommercant')}
           >
-            <Text style={styles.nextButtonText}>→</Text>
+            <Text style={styles.nextArrow}>→</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -53,70 +62,67 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A2C24',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingBottom: 24,
   },
   character: {
-    width: 160,
-    height: 300,
     position: 'absolute',
-    bottom: 300,
+    width: 160,
+    height: 160,
+    bottom: 290,
     right: 30,
     zIndex: 0,
   },
   card: {
-    width: '95%',
+    width: width * 0.95,
     backgroundColor: '#1A2C24',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: '#aec9b6',
-    padding: 32,
-    paddingBottom: 32,
-    marginBottom: 32,
-    zIndex: 1,
+    padding: 24,
+    zIndex: 10,
   },
   title: {
-    color: '#fff',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 36,
+    color: 'white',
+    marginBottom: 24,
   },
-  subtitle: {
-    color: '#fff',
+  description: {
     fontSize: 14,
-    marginBottom: 44,
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: 8,
+    color: 'white',
     marginBottom: 36,
   },
-  dot: {
+  progressBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  progressDot: {
     flex: 1,
     height: 4,
-    backgroundColor: '#666',
+    marginHorizontal: 4,
     borderRadius: 2,
-  },
-  activeDot: {
-    backgroundColor: '#fff',
   },
   footer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   logo: {
-    width: 96,
-    height: 96,
+    width: 100,
+    height: 40,
   },
   nextButton: {
     width: 40,
     height: 40,
-    backgroundColor: '#FF6B2E',
     borderRadius: 20,
+    backgroundColor: '#FF6B2E',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextButtonText: {
-    color: '#fff',
+  nextArrow: {
+    color: 'white',
     fontSize: 20,
+    fontWeight: 'bold',
   },
-}); 
+});

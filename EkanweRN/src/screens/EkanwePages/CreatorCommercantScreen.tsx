@@ -9,22 +9,19 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
-type CreatorCommercantNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'CreatorCommercant'
->;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const { width } = Dimensions.get('window');
 
 export const CreatorCommercantScreen = () => {
-  const navigation = useNavigation<CreatorCommercantNavigationProp>();
+  const navigation = useNavigation<NavigationProp>();
 
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/characterinfluenceur.png')}
+        source={require('../../assets/feminine_caracter.png')}
         style={styles.character}
         resizeMode="contain"
       />
@@ -43,7 +40,7 @@ export const CreatorCommercantScreen = () => {
 
         <View style={styles.footer}>
           <Image
-            source={require('../assets/ekanwe-logo.png')}
+            source={require('../../assets/ekanwe-logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />

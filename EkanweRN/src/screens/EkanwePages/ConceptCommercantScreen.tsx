@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ConceptCommercant'>;
 
@@ -21,7 +21,7 @@ export const ConceptCommercantScreen = () => {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/feminine_caracter.png')}
+        source={require('../../assets/feminine_caracter.png')}
         style={styles.character}
         resizeMode="contain"
       />
@@ -43,12 +43,12 @@ export const ConceptCommercantScreen = () => {
 
         <View style={styles.footer}>
           <Image
-            source={require('../assets/ekanwe-logo.png')}
+            source={require('../../assets/ekanwe-logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
           <TouchableOpacity
-            onPress={() => navigation.navigate('LoginOrSignup')}
+            onPress={() => navigation.navigate('LoginOrConnect')}
             style={styles.nextButton}
           >
             <Text style={styles.nextArrow}>→</Text>

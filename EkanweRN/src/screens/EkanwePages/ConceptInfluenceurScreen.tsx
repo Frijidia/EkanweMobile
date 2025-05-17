@@ -24,9 +24,9 @@ export const ConceptInfluenceurScreen = () => {
         </Text>
 
         <View style={styles.dots}>
-          <View style={[styles.dot, styles.activeDot]} />
           <View style={styles.dot} />
           <View style={styles.dot} />
+          <View style={[styles.dot,  styles.activeDot]} />
         </View>
 
         <View style={styles.footer}>
