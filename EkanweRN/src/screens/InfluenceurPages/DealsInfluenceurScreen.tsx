@@ -106,6 +106,7 @@ export const DealsInfluenceurScreen = () => {
 };
 
 const DealCard = ({ deal }) => {
+  const navigation = useNavigation<NavigationProp>();
   const [saved, setSaved] = useState(false);
   
   return (
@@ -128,7 +129,7 @@ const DealCard = ({ deal }) => {
         <View style={styles.dealButtons}>
           <TouchableOpacity 
           style={styles.seeMoreButton}
-          onPress={() => navigation.navigate('DealSeeMoreInfluenceur', { deal })}
+          onPress={() => navigation.navigate('DealsSeeMoreInfluenceur', { deal })}
           >
             <Text style={styles.seeMoreText}>Voir plus</Text>
           </TouchableOpacity>

@@ -16,10 +16,11 @@ export const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!loginData.mail || !loginData.motdepasse) {
-      setError('Veuillez remplir tous les champs');
-      return;
-    }
+    navigation.navigate('DealsInfluenceur');
+   // if (!loginData.mail || !loginData.motdepasse) {
+   //   setError('Veuillez remplir tous les champs');
+   //   return;
+   // }
 
     setLoading(true);
     try {

@@ -1,29 +1,31 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomNavbar } from './BottomNavbar';
+import { RootStackParamList } from '../../types/navigation';
 
-type Props = {
-  navigation: NavigationProp<ParamListBase>;
-};
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export const DealsSeeMoreInfluenceurScreen: React.FC<Props> = ({ navigation }) => {
-  const [saved, setSaved] = useState(false);
+export const DealsSeeMoreInfluenceurScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
+    const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState('Envoyé');
+  const [uploads, setUploads] = useState<{ image: string; likes: number; shares: number; isValidated: boolean }[]>([]);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
 
   const deal = {
     id: '1',
     title: 'Promotion Restaurant',
     description: 'Offre spéciale pour les influenceurs culinaires. Venez découvrir notre nouvelle carte et partagez votre expérience avec vos followers.',
-    image: require('../../assets/photo.jpg'),
+    imageUrl: require('../../assets/photo.jpg'),
     locationName: 'Paris, France',
+    locationCoords: { lat: 48.8566, lng: 2.3522 },
     interests: ['Restaurant', 'Food', 'Lifestyle'],
     typeOfContent: 'Photos et Stories Instagram',
     validUntil: '31/12/2023',
     conditions: 'Minimum 10k followers',
-    alreadyApplied: false
   };
 
   const handleToggleSave = () => {
@@ -31,7 +33,17 @@ export const DealsSeeMoreInfluenceurScreen: React.FC<Props> = ({ navigation }) =
   };
 
   const handleApply = () => {
-    navigation.navigate('DealDetailsInfluenceur', { dealId: deal.id });
+    setAlreadyApplied(true);
+  };
+
+  const getCurrentStep = () => {
+    const stepMap: any = {
+      "Envoyé": 1,
+      "Accepté": 2,
+      "Approbation": 3,
+      "Terminé": 4
+    };
+    return stepMap[status] || 1;
   };
 
   return (
@@ -49,7 +61,7 @@ export const DealsSeeMoreInfluenceurScreen: React.FC<Props> = ({ navigation }) =
       <ScrollView style={styles.content}>
         <View style={styles.card}>
           <View style={styles.imageContainer}>
-            <Image source={deal.image} style={styles.dealImage} />
+            <Image source={deal.imageUrl} style={styles.dealImage} />
             <TouchableOpacity 
               style={styles.saveButton}
               onPress={handleToggleSave}
@@ -108,12 +120,12 @@ export const DealsSeeMoreInfluenceurScreen: React.FC<Props> = ({ navigation }) =
                 <Text style={styles.backBtnText}>RETOUR</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.applyBtn, deal.alreadyApplied && styles.disabledBtn]}
+                style={[styles.applyBtn, alreadyApplied && styles.disabledBtn]}
                 onPress={handleApply}
-                disabled={deal.alreadyApplied}
+                disabled={alreadyApplied}
               >
                 <Text style={styles.applyBtnText}>
-                  {deal.alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
+                  {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -294,5 +306,44 @@ const styles = StyleSheet.create({
   },
   disabledBtn: {
     backgroundColor: '#9ca3af',
+  },
+  statusSection: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  statusTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1A2C24',
+    marginBottom: 8,
+  },
+  progressRibbon: {
+    backgroundColor: '#1A2C24',
+    borderRadius: 8,
+    padding: 12,
+  },
+  progressStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  progressStepText: {
+    color: '#FF6B2E',
+    opacity: 0.7,
+    fontSize: 14,
+  },
+  progressStepTextActive: {
+    opacity: 1,
+    fontWeight: 'bold',
+  },
+  progressLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: '#FF6B2E',
+    opacity: 0.3,
+    marginHorizontal: 8,
+  },
+  progressLineActive: {
+    opacity: 1,
   },
 });
