@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { doc, getDoc, updateDoc, getDocs, collection } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
@@ -142,90 +142,96 @@ export default function DealCandidatesPageCommercant() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F5F5E7]">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF6B2E" />
-        <Text className="mt-4 text-[#14210F]">Chargement en cours...</Text>
+        <Text style={styles.loadingText}>Chargement en cours...</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="flex-row justify-between items-center px-4 py-3 border-b border-gray-300">
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("DealsCommercant")}>
-          <Image source={sign} className="w-6 h-6" />
+          <Image source={sign} style={styles.signImage} />
         </TouchableOpacity>
       </View>
 
       {deal && (
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <Image
             source={{ uri: deal.imageUrl || Image.resolveAssetSource(profile).uri }}
-            style={{ width: "100%", height: 200 }}
+            style={styles.dealImage}
             resizeMode="cover"
           />
 
-          <View className="p-4">
-            <Text className="text-2xl font-bold mb-1">{deal.title}</Text>
-            <Text className="text-[#FF6B2E] mb-3">{deal.location || "Non défini"}</Text>
-            <Text className="text-base text-[#1A2C24] mb-6">{deal.description}</Text>
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>{deal.title}</Text>
+            <Text style={styles.location}>{deal.location || "Non défini"}</Text>
+            <Text style={styles.description}>{deal.description}</Text>
 
-            <Text className="text-xl font-bold text-[#1A2C24] mb-3">Candidats</Text>
+            <Text style={styles.candidatesTitle}>Candidats</Text>
             {candidates.length === 0 ? (
-              <Text className="text-gray-500">Aucun candidat pour ce deal.</Text>
+              <Text style={styles.noCandidates}>Aucun candidat pour ce deal.</Text>
             ) : (
               candidates.map((cand) => (
                 <TouchableOpacity
                   key={cand.influenceurId}
                   onPress={() => navigation.navigate("ProfilPublicCommercant", { userId: cand.influenceurId })}
-                  className="bg-gray-100 p-4 mb-3 rounded-xl"
+                  style={styles.candidateCard}
                 >
-                  <View className="flex-row justify-between items-center">
-                    <View className="flex-row items-center">
+                  <View style={styles.candidateContent}>
+                    <View style={styles.candidateInfo}>
                       <Image
                         source={{ uri: cand.userInfo?.photoURL || Image.resolveAssetSource(profile).uri }}
-                        className="w-16 h-16 rounded-full mr-4"
+                        style={styles.avatar}
                       />
                       <View>
-                        <Text className="font-semibold text-[#1A2C24] mb-1">{cand.userInfo?.pseudonyme}</Text>
-                        <View className="flex-row">{renderStars(Math.round(averageRatings[cand.influenceurId] || 0))}</View>
+                        <Text style={styles.username}>{cand.userInfo?.pseudonyme}</Text>
+                        <View style={styles.starsContainer}>{renderStars(Math.round(averageRatings[cand.influenceurId] || 0))}</View>
                       </View>
                     </View>
-                    <View className="items-end">
+                    <View style={styles.buttonsContainer}>
                       {cand.status === "Envoyé" && (
                         <>
                           <TouchableOpacity
-                            className="bg-[#1A2C24] px-4 py-1 mb-1 rounded"
+                            style={styles.acceptButton}
                             onPress={() => updateStatus(cand.influenceurId, "Accepté")}
                             disabled={buttonLoading === cand.influenceurId + "Accepté"}
                           >
-                            <Text className="text-white text-xs">{buttonLoading === cand.influenceurId + "Accepté" ? "..." : "ACCEPTER"}</Text>
+                            <Text style={styles.acceptButtonText}>
+                              {buttonLoading === cand.influenceurId + "Accepté" ? "..." : "ACCEPTER"}
+                            </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            className="border border-[#1A2C24] px-4 py-1 rounded"
+                            style={styles.refuseButton}
                             onPress={() => updateStatus(cand.influenceurId, "Refusé")}
                             disabled={buttonLoading === cand.influenceurId + "Refusé"}
                           >
-                            <Text className="text-[#1A2C24] text-xs">{buttonLoading === cand.influenceurId + "Refusé" ? "..." : "REFUSER"}</Text>
+                            <Text style={styles.refuseButtonText}>
+                              {buttonLoading === cand.influenceurId + "Refusé" ? "..." : "REFUSER"}
+                            </Text>
                           </TouchableOpacity>
                         </>
                       )}
                       {cand.status === "Accepté" && (
                         <>
-                          <Text className="text-sm bg-gray-300 px-3 py-1 rounded mb-1">EN COURS</Text>
+                          <Text style={styles.statusText}>EN COURS</Text>
                           <TouchableOpacity
                             onPress={() => cancelContract(cand.influenceurId)}
                             disabled={buttonLoading === cand.influenceurId + "cancel"}
                           >
-                            <Text className="text-red-500 text-xs underline">{buttonLoading === cand.influenceurId + "cancel" ? "..." : "RÉSILIER"}</Text>
+                            <Text style={styles.cancelText}>
+                              {buttonLoading === cand.influenceurId + "cancel" ? "..." : "RÉSILIER"}
+                            </Text>
                           </TouchableOpacity>
                         </>
                       )}
                       {cand.status === "Refusé" && (
-                        <Text className="text-red-500 font-bold text-xs">REFUSÉ</Text>
+                        <Text style={styles.refusedText}>REFUSÉ</Text>
                       )}
                     </View>
                   </View>
@@ -239,3 +245,138 @@ export default function DealCandidatesPageCommercant() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white'
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7'
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#14210F'
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5'
+  },
+  signImage: {
+    width: 24,
+    height: 24
+  },
+  scrollContent: {
+    paddingBottom: 100
+  },
+  dealImage: {
+    width: '100%',
+    height: 200
+  },
+  contentContainer: {
+    padding: 16
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    color: '#1A2C24'
+  },
+  location: {
+    color: '#FF6B2E',
+    marginBottom: 12
+  },
+  description: {
+    fontSize: 16,
+    color: '#1A2C24',
+    marginBottom: 24
+  },
+  candidatesTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1A2C24',
+    marginBottom: 12
+  },
+  noCandidates: {
+    color: '#666'
+  },
+  candidateCard: {
+    backgroundColor: '#F5F5F5',
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 12
+  },
+  candidateContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  candidateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginRight: 16
+  },
+  username: {
+    fontWeight: '600',
+    color: '#1A2C24',
+    marginBottom: 4
+  },
+  starsContainer: {
+    flexDirection: 'row'
+  },
+  buttonsContainer: {
+    alignItems: 'flex-end'
+  },
+  acceptButton: {
+    backgroundColor: '#1A2C24',
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    marginBottom: 4
+  },
+  acceptButtonText: {
+    color: 'white',
+    fontSize: 12
+  },
+  refuseButton: {
+    borderWidth: 1,
+    borderColor: '#1A2C24',
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+    borderRadius: 4
+  },
+  refuseButtonText: {
+    color: '#1A2C24',
+    fontSize: 12
+  },
+  statusText: {
+    fontSize: 14,
+    backgroundColor: '#E5E5E5',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    marginBottom: 4
+  },
+  cancelText: {
+    color: '#FF0000',
+    fontSize: 12,
+    textDecorationLine: 'underline'
+  },
+  refusedText: {
+    color: '#FF0000',
+    fontWeight: 'bold',
+    fontSize: 12
+  }
+});

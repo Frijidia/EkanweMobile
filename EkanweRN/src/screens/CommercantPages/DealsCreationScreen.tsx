@@ -171,7 +171,7 @@ export const DealsCreationScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#F5F5E7' },
+  container: { flex: 1, padding: 16, backgroundColor: '#F5F5E7', paddingTop: 40, paddingBottom: 20 },
   imageContainer: { alignItems: 'center', marginBottom: 16 },
   image: { width: '100%', height: 180, borderRadius: 8 },
   imageText: { marginTop: 8, fontSize: 14, color: '#FF6B2E' },

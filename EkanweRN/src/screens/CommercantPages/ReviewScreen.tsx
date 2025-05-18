@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Modal, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Modal, Alert, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { auth, db } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -7,16 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 const ThankYouModal = ({ visible, onClose }) => (
   <Modal transparent visible={visible} animationType="fade">
-    <View className="flex-1 bg-black/50 justify-center items-center px-4">
-      <View className="bg-[#F5F5E7] rounded-2xl p-6 w-full max-w-sm">
-        <View className="items-center">
-          <View className="h-16 w-16 rounded-full bg-[#FF6B2E]/10 justify-center items-center mb-4">
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <View style={styles.modalInner}>
+          <View style={styles.checkmarkContainer}>
             <Ionicons name="checkmark" size={40} color="#FF6B2E" />
           </View>
-          <Text className="text-2xl font-bold text-[#14210F] mb-2">Merci pour votre évaluation !</Text>
-          <Text className="text-gray-600 mb-6 text-center">Votre retour est précieux pour améliorer la qualité des prestations sur Ekanwe.</Text>
-          <TouchableOpacity onPress={onClose} className="bg-[#FF6B2E] py-3 px-6 rounded-lg w-full">
-            <Text className="text-white text-center font-semibold text-lg">Retour aux prestations</Text>
+          <Text style={styles.modalTitle}>Merci pour votre évaluation !</Text>
+          <Text style={styles.modalText}>Votre retour est précieux pour améliorer la qualité des prestations sur Ekanwe.</Text>
+          <TouchableOpacity onPress={onClose} style={styles.modalButton}>
+            <Text style={styles.modalButtonText}>Retour aux prestations</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -103,37 +103,37 @@ export default function ReviewPageCommercant() {
   };
 
   return (
-    <ScrollView className="bg-[#F5F5E7] min-h-screen">
-      <View className="flex-row items-center justify-between px-4 py-4">
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold">Evaluation</Text>
+        <Text style={styles.headerTitle}>Evaluation</Text>
         <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-          <Image source={require('../../assets/ekanwesign.png')} className="w-6 h-6" />
+          <Image source={require('../../assets/ekanwesign.png')} style={styles.logo} />
         </TouchableOpacity>
       </View>
 
-      <View className="px-4 mt-4">
-        <View className="flex-row items-center mb-6">
-          <View className="w-16 h-16 rounded-full bg-gray-200 mr-4" />
+      <View style={styles.content}>
+        <View style={styles.userInfo}>
+          <View style={styles.avatar} />
           <View>
-            <Text className="text-xl font-semibold">{user?.pseudonyme || user?.prenom || 'Nom'}</Text>
-            <Text className="text-gray-600 text-sm">Prestation : {(deal?.typeOfContent || []).join(', ')}</Text>
+            <Text style={styles.username}>{user?.pseudonyme || user?.prenom || 'Nom'}</Text>
+            <Text style={styles.prestationType}>Prestation : {(deal?.typeOfContent || []).join(', ')}</Text>
           </View>
         </View>
 
         {ratings.map((rating, index) => (
-          <View key={index} className="mb-4 bg-white/10 p-4 rounded-lg border border-gray-300">
-            <Text className="text-lg mb-2 text-[#1A2C24]">{rating.category}</Text>
-            <View className="flex-row">
+          <View key={index} style={styles.ratingCard}>
+            <Text style={styles.ratingCategory}>{rating.category}</Text>
+            <View style={styles.starsContainer}>
               {[1, 2, 3, 4, 5].map((s) => (
                 <TouchableOpacity key={s} onPress={() => handleRatingChange(index, s)}>
                   <Ionicons
                     name="star"
                     size={28}
                     color={s <= rating.score ? '#FF6B2E' : '#D1D5DB'}
-                    style={{ marginRight: 4 }}
+                    style={styles.star}
                   />
                 </TouchableOpacity>
               ))}
@@ -141,21 +141,21 @@ export default function ReviewPageCommercant() {
           </View>
         ))}
 
-        <Text className="text-lg mt-6 mb-2 text-[#1A2C24]">Commentaire</Text>
+        <Text style={styles.commentLabel}>Commentaire</Text>
         <TextInput
           value={comment}
           onChangeText={setComment}
           placeholder="Partagez votre expérience..."
-          className="bg-white/10 border border-gray-300 p-3 rounded-lg text-[#1A2C24]"
+          style={styles.commentInput}
           multiline
           numberOfLines={4}
         />
 
         <TouchableOpacity
           onPress={handleSubmit}
-          className="mt-6 bg-[#FF6B2E] py-3 rounded-lg"
+          style={styles.submitButton}
         >
-          <Text className="text-white text-center font-semibold text-lg">Soumettre l'évaluation</Text>
+          <Text style={styles.submitButtonText}>Soumettre l'évaluation</Text>
         </TouchableOpacity>
       </View>
 
@@ -166,3 +166,145 @@ export default function ReviewPageCommercant() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5E7',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  logo: {
+    width: 24,
+    height: 24,
+  },
+  content: {
+    padding: 16,
+    marginTop: 16,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#D1D5DB',
+    marginRight: 16,
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  prestationType: {
+    fontSize: 14,
+    color: '#666',
+  },
+  ratingCard: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  ratingCategory: {
+    fontSize: 18,
+    marginBottom: 8,
+    color: '#1A2C24',
+  },
+  starsContainer: {
+    flexDirection: 'row',
+  },
+  star: {
+    marginRight: 4,
+  },
+  commentLabel: {
+    fontSize: 18,
+    marginTop: 24,
+    marginBottom: 8,
+    color: '#1A2C24',
+  },
+  commentInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    color: '#1A2C24',
+    height: 120,
+    textAlignVertical: 'top',
+  },
+  submitButton: {
+    marginTop: 24,
+    backgroundColor: '#FF6B2E',
+    padding: 12,
+    borderRadius: 8,
+  },
+  submitButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: '#F5F5E7',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 350,
+  },
+  modalInner: {
+    alignItems: 'center',
+  },
+  checkmarkContainer: {
+    height: 64,
+    width: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 107, 46, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#14210F',
+    marginBottom: 8,
+  },
+  modalText: {
+    color: '#666',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalButton: {
+    backgroundColor: '#FF6B2E',
+    padding: 12,
+    borderRadius: 8,
+    width: '100%',
+  },
+  modalButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+});

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Linking, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { db, auth } from '../../firebase/firebase';
 import { doc, getDoc, collection, getDocs, setDoc, updateDoc } from 'firebase/firestore';
@@ -145,9 +145,9 @@ export default function ProfilPublicInfluenceur() {
 
   if (loading || !userData) {
     return (
-      <View className="flex-1 justify-center items-center bg-[#F5F5E7]">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF6B2E" />
-        <Text className="mt-4 text-[#14210F]">Chargement en cours...</Text>
+        <Text style={styles.loadingText}>Chargement en cours...</Text>
       </View>
     );
   }
@@ -156,84 +156,227 @@ export default function ProfilPublicInfluenceur() {
   const rating = Math.round(averageRatings[userId] || 0);
 
   return (
-    <ScrollView className="bg-[#F5F5E7] min-h-screen px-6 pt-4 pb-20">
-      <TouchableOpacity onPress={() => navigation.goBack()} className="mb-4 flex-row items-center">
+    <ScrollView style={styles.container}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
-        <Text className="ml-2 text-[#FF6B2E] text-lg">Retour</Text>
+        <Text style={styles.backButtonText}>Retour</Text>
       </TouchableOpacity>
 
-      <View className="items-center mb-6">
+      <View style={styles.profileHeader}>
         <Image
           source={{ uri: photoURL || 'https://via.placeholder.com/150' }}
-          className="w-28 h-28 rounded-full mb-3"
+          style={styles.profileImage}
         />
-        <Text className="text-2xl font-semibold text-[#14210F]">{pseudonyme || `${prenom} ${nom}`}</Text>
-        <Text className="text-gray-600 text-center mb-2">{bio || 'Aucune bio disponible.'}</Text>
-        <View className="flex-row space-x-1 mb-2">
+        <Text style={styles.profileName}>{pseudonyme || `${prenom} ${nom}`}</Text>
+        <Text style={styles.profileBio}>{bio || 'Aucune bio disponible.'}</Text>
+        <View style={styles.ratingContainer}>
           {[...Array(5)].map((_, i) => (
-            <Text key={i} className={`text-lg ${i < rating ? 'text-[#FF6B2E]' : 'text-gray-300'}`}>★</Text>
+            <Text key={i} style={[styles.star, i < rating && styles.starFilled]}>★</Text>
           ))}
         </View>
-        <Text className="font-bold text-[#14210F] text-xl mb-4">{dealsApplied} deals réalisés</Text>
+        <Text style={styles.dealsCount}>{dealsApplied} deals réalisés</Text>
         {currentUser?.role === 'commerçant' && currentUser.uid !== userId && (
           <TouchableOpacity
             onPress={handleContact}
             disabled={loadingContact}
-            className={`px-6 py-2 rounded-lg ${loadingContact ? 'bg-gray-400' : 'bg-orange-500'}`}
+            style={[styles.contactButton, loadingContact && styles.contactButtonDisabled]}
           >
-            <Text className="text-white font-medium">{loadingContact ? 'Contact...' : 'Contacter'}</Text>
+            <Text style={styles.contactButtonText}>{loadingContact ? 'Contact...' : 'Contacter'}</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <View className="bg-white/10 p-4 rounded-lg mb-6">
-        <Text className="text-xl font-semibold text-[#1A2C24] mb-3">Informations personnelles</Text>
-        <Text className="text-sm text-[#1A2C24]">Nom : {nom}</Text>
-        <Text className="text-sm text-[#1A2C24]">Prénom : {prenom}</Text>
-        <Text className="text-sm text-[#1A2C24]">Email : {email}</Text>
-        <Text className="text-sm text-[#1A2C24]">Téléphone : {phone}</Text>
-        <Text className="text-sm text-[#1A2C24]">Date de naissance : {dateNaissance}</Text>
+      <View style={styles.infoSection}>
+        <Text style={styles.sectionTitle}>Informations personnelles</Text>
+        <Text style={styles.infoText}>Nom : {nom}</Text>
+        <Text style={styles.infoText}>Prénom : {prenom}</Text>
+        <Text style={styles.infoText}>Email : {email}</Text>
+        <Text style={styles.infoText}>Téléphone : {phone}</Text>
+        <Text style={styles.infoText}>Date de naissance : {dateNaissance}</Text>
         {interets?.length > 0 && (
-          <Text className="text-sm text-[#1A2C24]">Centres d'intérêt : {interets.join(', ')}</Text>
+          <Text style={styles.infoText}>Centres d'intérêt : {interets.join(', ')}</Text>
         )}
       </View>
 
       {completedDealsData.length > 0 && (
-        <View className="mb-6">
-          <Text className="text-lg font-bold text-[#14210F] mb-2">Deals terminés :</Text>
+        <View style={styles.dealsSection}>
+          <Text style={styles.sectionTitle}>Deals terminés :</Text>
           {completedDealsData.map((deal, index) => (
-            <View key={index} className="bg-white p-3 rounded-xl shadow mb-2">
-              <Text className="font-semibold text-[#14210F]">{deal.title}</Text>
-              <Text className="text-sm text-gray-600">{deal.likes} likes · {deal.shares} vues</Text>
+            <View key={index} style={styles.dealCard}>
+              <Text style={styles.dealTitle}>{deal.title}</Text>
+              <Text style={styles.dealStats}>{deal.likes} likes · {deal.shares} vues</Text>
             </View>
           ))}
         </View>
       )}
 
-      <View className="mb-6">
-        <Text className="text-xl font-semibold text-[#1A2C24] mb-2">Portfolio</Text>
+      <View style={styles.portfolioSection}>
+        <Text style={styles.sectionTitle}>Portfolio</Text>
         {portfolioLink && portfolioLink !== 'Nothing' ? (
-          <TouchableOpacity onPress={() => Linking.openURL(portfolioLink)} className="bg-white p-3 rounded-lg border text-sm">
-            <Text className="text-[#14210F]">Voir le Portfolio</Text>
+          <TouchableOpacity onPress={() => Linking.openURL(portfolioLink)} style={styles.portfolioButton}>
+            <Text style={styles.portfolioButtonText}>Voir le Portfolio</Text>
           </TouchableOpacity>
         ) : (
-          <Text className="text-gray-500 text-sm">Aucun lien de portfolio</Text>
+          <Text style={styles.noContentText}>Aucun lien de portfolio</Text>
         )}
       </View>
 
-      <View className="mb-10 space-y-3">
+      <View style={styles.socialSection}>
         {instagram && (
           <TouchableOpacity onPress={() => Linking.openURL(instagram.startsWith('http') ? instagram : `https://instagram.com/${instagram}`)}>
-            <Text className="text-orange-500 underline text-sm">Instagram : {instagram}</Text>
+            <Text style={styles.socialLink}>Instagram : {instagram}</Text>
           </TouchableOpacity>
         )}
         {tiktok && (
           <TouchableOpacity onPress={() => Linking.openURL(tiktok.startsWith('http') ? tiktok : `https://tiktok.com/@${tiktok}`)}>
-            <Text className="text-orange-500 underline text-sm">TikTok : {tiktok}</Text>
+            <Text style={styles.socialLink}>TikTok : {tiktok}</Text>
           </TouchableOpacity>
         )}
-        {!instagram && !tiktok && <Text className="text-gray-500 text-sm">Aucun réseau social renseigné.</Text>}
+        {!instagram && !tiktok && <Text style={styles.noContentText}>Aucun réseau social renseigné.</Text>}
       </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5E7',
+    padding: 24,
+    paddingBottom: 80,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#14210F',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  backButtonText: {
+    marginLeft: 8,
+    color: '#FF6B2E',
+    fontSize: 18,
+  },
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  profileImage: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    marginBottom: 12,
+  },
+  profileName: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#14210F',
+  },
+  profileBio: {
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  star: {
+    fontSize: 18,
+    color: '#gray-300',
+  },
+  starFilled: {
+    color: '#FF6B2E',
+  },
+  dealsCount: {
+    fontWeight: '700',
+    color: '#14210F',
+    fontSize: 20,
+    marginBottom: 16,
+  },
+  contactButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#FF6B2E',
+  },
+  contactButtonDisabled: {
+    backgroundColor: '#gray-400',
+  },
+  contactButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  infoSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A2C24',
+    marginBottom: 12,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#1A2C24',
+  },
+  dealsSection: {
+    marginBottom: 24,
+  },
+  dealCard: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginBottom: 8,
+  },
+  dealTitle: {
+    fontWeight: '600',
+    color: '#14210F',
+  },
+  dealStats: {
+    fontSize: 14,
+    color: '#666',
+  },
+  portfolioSection: {
+    marginBottom: 24,
+  },
+  portfolioButton: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  portfolioButtonText: {
+    fontSize: 14,
+    color: '#14210F',
+  },
+  socialSection: {
+    marginBottom: 40,
+  },
+  socialLink: {
+    color: '#FF6B2E',
+    textDecorationLine: 'underline',
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  noContentText: {
+    color: '#666',
+    fontSize: 14,
+  },
+});

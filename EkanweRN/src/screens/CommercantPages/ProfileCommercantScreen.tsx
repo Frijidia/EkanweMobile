@@ -164,7 +164,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F5F5E7',
     minHeight: '100%',
-    padding: 16,
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
