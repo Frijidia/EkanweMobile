@@ -31,47 +31,50 @@ import { CreatorCommercantScreen } from './src/screens/EkanwePages/CreatorCommer
 import { DealsPageCommercantScreen } from './src/screens/CommercantPages/DealsCommercantScreen';
 import { ForgotPasswordScreen } from './src/screens/LoginPages/ForgotPasswordScreen';
 import { configureStatusBar } from './src/utils/capacitorUtils';
+import { UserProvider } from './src/context/UserContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Connection" component={ConnectionScreen} />
-        <Stack.Screen name="WelcomeInfluenceur" component={WelcomeInfluenceurScreen} />
-        <Stack.Screen name="WelcomeCommercant" component={WelcomeCommercantScreen} />
-        <Stack.Screen name="App" component={AppNavigator} />
-        <Stack.Screen name="CreatorTypeInfluenceur" component={CreatorTypeInfluenceurScreen} />
-        <Stack.Screen name="ConceptInfluenceur" component={ConceptInfluenceurScreen} />
-        <Stack.Screen name="LoginOrConnect" component={LoginOrConnectScreen} />
-        <Stack.Screen name='Login' component={LoginScreen} />
-        <Stack.Screen name='Register' component={RegisterScreen} />
-        <Stack.Screen name='ValidateInscription' component={ValidateInscriptionScreen} />
-        <Stack.Screen name='RegistrationStepOne' component={RegistrationStepOneScreen} />
-        <Stack.Screen name='InterestStep' component={InterestStepScreen} />
-        <Stack.Screen name='SocialConnect' component={SocialConnectScreen} />
-        <Stack.Screen name='PortfolioStep' component={PortfolioStepScreen} />
-        <Stack.Screen name='RegistrationComplete' component={RegistrationCompleteScreen} />
-        <Stack.Screen name='DealsInfluenceur' component={DealsInfluenceurScreen} />
-        <Stack.Screen name='SuivisDealsInfluenceur' component={SuivisDealsInfluenceurScreen} />
-        <Stack.Screen name='DiscussionInfluenceur' component={DiscussionInfluenceurScreen} />
-        <Stack.Screen name='SaveDealsInfluenceur' component={SaveDealsInfluenceurScreen} />
-        <Stack.Screen name='ProfileInfluenceur' component={ProfileInfluenceurScreen} />
-        <Stack.Screen name='ChatInfluenceur' component={ChatInfluenceurScreen} />
-        <Stack.Screen name='DealDetailsInfluenceur' component={DealDetailsInfluenceurScreen} />
-        <Stack.Screen name='DealsSeeMoreInfluenceur' component={DealsSeeMoreInfluenceurScreen} />
-        <Stack.Screen name='ConceptCommercant' component={ConceptCommercantScreen} />
-        <Stack.Screen name='CreatorCommercant' component={CreatorCommercantScreen} />
-        <Stack.Screen name='DealsCommercant' component={DealsPageCommercantScreen} />
-        <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <UserProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Connection" component={ConnectionScreen} />
+          <Stack.Screen name="WelcomeInfluenceur" component={WelcomeInfluenceurScreen} />
+          <Stack.Screen name="WelcomeCommercant" component={WelcomeCommercantScreen} />
+          <Stack.Screen name="App" component={AppNavigator} />
+          <Stack.Screen name="CreatorTypeInfluenceur" component={CreatorTypeInfluenceurScreen} />
+          <Stack.Screen name="ConceptInfluenceur" component={ConceptInfluenceurScreen} />
+          <Stack.Screen name="LoginOrConnect" component={LoginOrConnectScreen} />
+          <Stack.Screen name='Login' component={LoginScreen} />
+          <Stack.Screen name='Register' component={RegisterScreen} />
+          <Stack.Screen name='ValidateInscription' component={ValidateInscriptionScreen} />
+          <Stack.Screen name='RegistrationStepOne' component={RegistrationStepOneScreen} />
+          <Stack.Screen name='InterestStep' component={InterestStepScreen} />
+          <Stack.Screen name='SocialConnect' component={SocialConnectScreen} />
+          <Stack.Screen name='PortfolioStep' component={PortfolioStepScreen} />
+          <Stack.Screen name='RegistrationComplete' component={RegistrationCompleteScreen} />
+          <Stack.Screen name='DealsInfluenceur' component={DealsInfluenceurScreen} />
+          <Stack.Screen name='SuivisDealsInfluenceur' component={SuivisDealsInfluenceurScreen} />
+          <Stack.Screen name='DiscussionInfluenceur' component={DiscussionInfluenceurScreen} />
+          <Stack.Screen name='SaveDealsInfluenceur' component={SaveDealsInfluenceurScreen} />
+          <Stack.Screen name='ProfileInfluenceur' component={ProfileInfluenceurScreen} />
+          <Stack.Screen name='ChatInfluenceur' component={ChatInfluenceurScreen} />
+          <Stack.Screen name='DealDetailsInfluenceur' component={DealDetailsInfluenceurScreen} />
+          <Stack.Screen name='DealsSeeMoreInfluenceur' component={DealsSeeMoreInfluenceurScreen} />
+          <Stack.Screen name='ConceptCommercant' component={ConceptCommercantScreen} />
+          <Stack.Screen name='CreatorCommercant' component={CreatorCommercantScreen} />
+          <Stack.Screen name='DealsCommercant' component={DealsPageCommercantScreen} />
+          <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </UserProvider>
   );
 }
