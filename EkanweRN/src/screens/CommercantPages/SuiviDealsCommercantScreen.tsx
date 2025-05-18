@@ -204,14 +204,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   filterScroll: {
-    paddingHorizontal: 16
+    paddingHorizontal: 16,
+    marginBottom: 8 // Reduced from 16 to 8
   },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    height: 28,
     marginRight: 8,
     borderRadius: 20,
-    minWidth: 'auto'
+    minWidth: 90,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   activeFilter: {
     backgroundColor: '#1A2C24'
@@ -230,7 +233,7 @@ const styles = StyleSheet.create({
   },
   contentScroll: {
     padding: 16,
-    marginTop: 16
+    marginTop: 0 // Changed from 16 to 0
   },
   emptyText: {
     textAlign: 'center',
