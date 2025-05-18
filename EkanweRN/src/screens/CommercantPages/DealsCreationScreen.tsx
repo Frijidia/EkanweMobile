@@ -8,6 +8,7 @@ import { auth, db } from '../../firebase/firebase';
 import {
   collection, addDoc, serverTimestamp, getDocs, query, where, writeBatch, doc
 } from 'firebase/firestore';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export const DealsCreationScreen = () => {
   const navigation = useNavigation();
@@ -94,13 +95,20 @@ export const DealsCreationScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Créer un Deal</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
-              <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
-              <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
-            </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Créer un Deal</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
       </View>
       <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
         <Image
@@ -190,7 +198,19 @@ const styles = StyleSheet.create({
   header: { 
     padding: 16, 
     flexDirection: 'row',
-    justifyContent: 'space-between' 
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  backButton: {
+    marginRight: 8,
   },
   title: { fontSize: 24, 
     fontWeight: 'bold', 

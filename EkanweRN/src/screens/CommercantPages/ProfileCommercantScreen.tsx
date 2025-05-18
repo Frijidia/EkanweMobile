@@ -97,10 +97,20 @@ export const ProfileCommercantScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Mon Profil</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-          <Image source={require('../../assets/ekanwesign.png')} style={styles.logo} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Mon Profil</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.profileImageContainer}>
@@ -169,12 +179,22 @@ const styles = StyleSheet.create({
     padding: 10
 
   },
-  header: {
+  header: { 
+    padding: 16, 
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  headerLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 20,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  backButton: {
+    marginRight: 8,
   },
   title: {
     fontSize: 30,
@@ -244,5 +264,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });

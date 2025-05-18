@@ -105,13 +105,20 @@ export default function ReviewPageCommercant() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Evaluation</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-          <Image source={require('../../assets/ekanwesign.png')} style={styles.logo} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Évaluation</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -173,17 +180,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5E7',
   },
   header: {
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
   },
-  headerTitle: {
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  backButton: {
+    marginRight: 8,
+  },
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
   },
-  logo: {
+  icon: {
     width: 24,
     height: 24,
   },

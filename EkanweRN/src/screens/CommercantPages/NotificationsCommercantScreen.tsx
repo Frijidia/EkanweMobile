@@ -59,13 +59,11 @@ export default function NotificationPageCommercant() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.titleContainer}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
           <Text style={styles.title}>Notifications</Text>
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount}</Text>
-            </View>
-          )}
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
           <Ionicons name="home-outline" size={24} color="#1A2C24" />
@@ -120,30 +118,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   header: {
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  titleContainer: {
-    position: 'relative',
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#1A2C24',
   },
-  badge: {
-    position: 'absolute',
-    top: -8,
-    right: -16,
-    backgroundColor: '#FF0000',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 12,
+  backButton: {
+    marginRight: 8,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -208,14 +198,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginVertical: 40,
-  },
-  backButton: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: 'black',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
   },
   backButtonText: {
     fontSize: 16,

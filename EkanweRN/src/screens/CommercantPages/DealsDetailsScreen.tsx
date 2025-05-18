@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase/firebase";
 import { sendNotification } from "../../hooks/sendNotifications";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 import profile from "../../assets/profile.png";
 import sign from "../../assets/ekanwesign.png";
@@ -141,12 +142,20 @@ export default function DealDetailPageCommercant() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Retour</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("DealsCommercant")}>
-          <Image source={sign} style={styles.logo} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Détails du Deal</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Deal Image */}
@@ -324,24 +333,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "white",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
   },
   backButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    marginRight: 8,
   },
-  backText: {
-    fontSize: 18,
-    color: "#FF6B2E",
-  },
-  logo: {
-    width: 24,
-    height: 24,
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1A2C24",
+    marginBottom: 8,
   },
   dealImage: {
     width: "100%",
@@ -350,12 +362,6 @@ const styles = StyleSheet.create({
   infoContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1A2C24",
-    marginBottom: 8,
   },
   locationRow: {
     flexDirection: "row",
@@ -429,6 +435,10 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });
 

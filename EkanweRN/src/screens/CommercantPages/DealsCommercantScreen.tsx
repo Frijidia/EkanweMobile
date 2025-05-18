@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     marginBottom: 16, 
     marginTop: 20,
+    
   },
   filterButton: {
     paddingHorizontal: 16,

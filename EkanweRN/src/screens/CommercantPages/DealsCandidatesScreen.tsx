@@ -152,12 +152,20 @@ export default function DealCandidatesPageCommercant() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("DealsCommercant")}>
-          <Image source={sign} style={styles.signImage} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Candidats</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {deal && (
@@ -261,17 +269,26 @@ const styles = StyleSheet.create({
     marginTop: 16,
     color: '#14210F'
   },
-  header: {
+  header: { 
+    padding: 16, 
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5'
+    alignItems: 'center'
   },
-  signImage: {
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: 8,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  icon: {
     width: 24,
-    height: 24
+    height: 24,
   },
   scrollContent: {
     paddingBottom: 100

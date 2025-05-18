@@ -157,10 +157,14 @@ export default function ProfilPublicInfluenceur() {
 
   return (
     <ScrollView style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
-        <Text style={styles.backButtonText}>Retour</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#14210F" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Profil Public</Text>
+        </View>
+      </View>
 
       <View style={styles.profileHeader}>
         <Image
@@ -255,15 +259,23 @@ const styles = StyleSheet.create({
     marginTop: 16,
     color: '#14210F',
   },
-  backButton: {
+  header: { 
+    padding: 16, 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  backButtonText: {
-    marginLeft: 8,
-    color: '#FF6B2E',
-    fontSize: 18,
+  backButton: {
+    marginRight: 8,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#14210F',
   },
   profileHeader: {
     alignItems: 'center',
