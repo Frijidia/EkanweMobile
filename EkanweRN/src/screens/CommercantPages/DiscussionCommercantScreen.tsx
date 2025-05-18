@@ -5,9 +5,13 @@ import { onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { Navbar } from './Navbar';
+import { RootStackParamList } from '../../types/navigation';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DiscussionCommercantScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [chats, setChats] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);

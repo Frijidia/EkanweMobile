@@ -4,6 +4,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { auth, db } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ThankYouModal = ({ visible, onClose }) => (
   <Modal transparent visible={visible} animationType="fade">
@@ -25,7 +29,7 @@ const ThankYouModal = ({ visible, onClose }) => (
 );
 
 export default function ReviewPageCommercant() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { dealId, influenceurId } = route.params;
   const [comment, setComment] = useState('');

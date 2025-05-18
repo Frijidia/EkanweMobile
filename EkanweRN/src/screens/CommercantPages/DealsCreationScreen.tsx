@@ -11,9 +11,13 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { RootStackParamList } from '../../types/navigation';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DealsCreationScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);

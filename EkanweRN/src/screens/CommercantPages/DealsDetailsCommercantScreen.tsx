@@ -6,15 +6,11 @@ import { auth, db } from "../../firebase/firebase";
 import { sendNotification } from "../../hooks/sendNotifications";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../types/navigation";
 
 //import profile from "../../assets/profile.png";
 //import sign from "../../assets/ekanwesign.png";
 
-type RootStackParamList = {
-  DealsCommercant: undefined;
-  NotificationsCommercant: undefined;
-  ReviewCommercant: { dealId: string; influenceurId: string };
-};
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

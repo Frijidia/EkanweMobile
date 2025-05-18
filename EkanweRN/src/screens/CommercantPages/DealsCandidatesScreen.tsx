@@ -4,14 +4,17 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { doc, getDoc, updateDoc, getDocs, collection } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
 import { sendNotification } from "../../hooks/sendNotifications";
-import Navbar from "../../components/Navbar";
+import { Navbar } from "./Navbar";
 import { Ionicons } from "@expo/vector-icons";
+import { RootStackParamList } from "../../types/navigation";
 import profile from "../../assets/profile.png";
-import sign from "../../assets/ekanwesign.png";
-import fillplus from "../../assets/fillplus.png";
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-export default function DealCandidatesPageCommercant() {
-  const navigation = useNavigation();
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+
+export const DealCandidatesPageCommercant = () => {
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { dealId } = route.params as { dealId: string };
 

@@ -14,6 +14,10 @@ import { collection, doc, getDoc, onSnapshot, updateDoc, where, query } from "fi
 import { db, auth } from "../../firebase/firebase";
 import { MessageCircle } from "lucide-react-native";
 import { Navbar } from "./Navbar";
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const filters = ["Tous", "Envoyé", "Accepté", "Approbation", "Terminé", "Refusé"];
 
@@ -30,7 +34,7 @@ interface Candidature {
 }
 
 export const SuiviDealsCommercantScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState("Tous");
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
   const [loading, setLoading] = useState(true);

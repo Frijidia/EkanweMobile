@@ -4,9 +4,13 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { db, auth } from '../../firebase/firebase';
 import { doc, getDoc, collection, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function ProfilPublicInfluenceur() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { userId } = route.params;
 

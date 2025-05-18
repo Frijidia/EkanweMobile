@@ -13,9 +13,13 @@ import { collection, getDocs } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import { Heart, Eye, MoreHorizontal } from "lucide-react-native";
 import {Navbar} from "./Navbar";
+import { RootStackParamList } from "../../types/navigation";
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DashboardCommercantScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [reviews, setReviews] = useState([]);
   const [savedItems, setSavedItems] = useState({});
   const [stats, setStats] = useState({

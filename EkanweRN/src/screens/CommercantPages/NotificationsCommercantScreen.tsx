@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { collection, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
-import Navbar from '../../components/Navbar';
+import { Navbar } from './Navbar';
 import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
 
-export default function NotificationPageCommercant() {
-  const navigation = useNavigation();
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+export const NotificationsCommercantScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
   const [notifications, setNotifications] = useState([]);
   const [search, setSearch] = useState('');
 
@@ -57,56 +61,57 @@ export default function NotificationPageCommercant() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#14210F" />
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#14210F" />
+            </TouchableOpacity>
+            <Text style={styles.title}>Notifications</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
           </TouchableOpacity>
-          <Text style={styles.title}>Notifications</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-          <Ionicons name="home-outline" size={24} color="#1A2C24" />
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="black" style={styles.searchIcon} />
-        <TextInput
-          placeholder="Recherche"
-          value={search}
-          onChangeText={setSearch}
-          style={styles.searchInput}
-        />
-      </View>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="black" style={styles.searchIcon} />
+          <TextInput
+            placeholder="Recherche"
+            value={search}
+            onChangeText={setSearch}
+            style={styles.searchInput}
+          />
+        </View>
 
-      {filteredNotifications.length > 0 ? (
-        filteredNotifications.map((notif) => (
+        {filteredNotifications.length > 0 ? (
+          filteredNotifications.map((notif) => (
+            <TouchableOpacity
+              key={notif.id}
+              onPress={() => handleNotificationClick(notif)}
+              style={[styles.notificationCard, notif.read ? styles.readCard : styles.unreadCard]}
+            >
+              <Text style={styles.notificationText}>{notif.message}</Text>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Aucune notification pour l'instant</Text>
+          </View>
+        )}
+
+        {/*<View style={styles.buttonContainer}>
           <TouchableOpacity
-            key={notif.id}
-            onPress={() => handleNotificationClick(notif)}
-            style={[styles.notificationCard, notif.read ? styles.readCard : styles.unreadCard]}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
           >
-            <Text style={styles.notificationText}>{notif.message}</Text>
+            <Text style={styles.backButtonText}>Retour</Text>
           </TouchableOpacity>
-        ))
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Aucune notification pour l'instant</Text>
-        </View>
-      )}
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>Retour</Text>
-        </TouchableOpacity>
-      </View>
-
+        </View>*/}
+      </ScrollView>
       <Navbar />
-    </ScrollView>
+    </View>
   );
 }
 
@@ -114,6 +119,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
+  },
+  scrollView: {
+    flex: 1,
     paddingTop: 20,
     paddingHorizontal: 16,
   },
@@ -202,5 +210,9 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     color: '#1A2C24',
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });
