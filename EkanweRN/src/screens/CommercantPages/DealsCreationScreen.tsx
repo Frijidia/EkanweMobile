@@ -9,6 +9,8 @@ import {
   collection, addDoc, serverTimestamp, getDocs, query, where, writeBatch, doc
 } from 'firebase/firestore';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MapView, { Marker, MapPressEvent } from 'react-native-maps';
+import * as Location from 'expo-location';
 
 export const DealsCreationScreen = () => {
   const navigation = useNavigation();
@@ -19,7 +21,7 @@ export const DealsCreationScreen = () => {
   const [validUntil, setValidUntil] = useState('');
   const [conditions, setConditions] = useState('');
   const [imageUri, setImageUri] = useState('');
-  const [position, setPosition] = useState<any>(null);
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +34,21 @@ export const DealsCreationScreen = () => {
     } else {
       setter([...list, item]);
     }
+  };
+
+  const handleMapPress = async (e: MapPressEvent) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    setPosition({ lat: latitude, lng: longitude });
+    setLocationName(await getLocationName(latitude, longitude));
+  };
+
+  const getLocationName = async (latitude: number, longitude: number) => {
+    let result = await Location.reverseGeocodeAsync({ latitude, longitude });
+    if (result.length > 0) {
+      const place = result[0];
+      return `${place.city}, ${place.country}`;
+    }
+    return "Inconnu";
   };
 
   const pickImage = async () => {
@@ -105,7 +122,7 @@ export const DealsCreationScreen = () => {
           <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
             <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
             <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
           </TouchableOpacity>
         </View>
@@ -169,16 +186,37 @@ export const DealsCreationScreen = () => {
       />
 
       {/* TODO: Ajouter une vraie map de localisation ici plus tard */}
-      <Text style={styles.label}>Localisation (simulée)</Text>
-      <TouchableOpacity
-        onPress={() => {
-          setPosition({ lat: 5.35, lng: -4.01 });
-          setLocationName("Abidjan, Côte d'Ivoire");
+      <Text style={styles.label}>Localisation</Text>
+      <MapView
+        style={{ flex: 1 }}
+        initialRegion={{
+          latitude: 5.35,
+          longitude: -4.01,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
         }}
-        style={styles.fakeMap}
+        onPress={handleMapPress}
       >
-        <Text style={{ color: '#fff' }}>📍 Cliquer ici pour simuler la localisation</Text>
-      </TouchableOpacity>
+        {position && (
+          <Marker
+            coordinate={{
+              latitude: position.lat,
+              longitude: position.lng,
+            }}
+            title="Position choisie"
+          />
+        )}
+      </MapView>
+
+      <View style={styles.tagContainer}>
+        {position ? (
+          <Text style={styles.input}>
+            Latitude: {position.lat.toFixed(5)} / Longitude: {position.lng.toFixed(5)}
+          </Text>
+        ) : (
+          <Text style={styles.input}>Touchez la carte pour sélectionner un emplacement</Text>
+        )}
+      </View>
 
       <TouchableOpacity onPress={handleSubmit} disabled={loading} style={styles.submit}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>EXÉCUTER</Text>}
@@ -188,15 +226,15 @@ export const DealsCreationScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 16, 
-    backgroundColor: '#F5F5E7', 
-    paddingTop: 40, 
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#F5F5E7',
+    paddingTop: 40,
     paddingBottom: 80,
   },
-  header: { 
-    padding: 16, 
+  header: {
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
@@ -212,28 +250,31 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 8,
   },
-  title: { fontSize: 24, 
-    fontWeight: 'bold', 
-    color: '#14210F' 
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#14210F'
   },
 
-  imageContainer: { 
-    alignItems: 'center', 
-    marginBottom: 16 },
-  image: { 
-    width: '100%', 
-    height: 180, 
-    borderRadius: 8 
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 16
   },
-  imageText: { marginTop: 8, 
-    fontSize: 14, 
-    color: '#FF6B2E' 
+  image: {
+    width: '100%',
+    height: 180,
+    borderRadius: 8
   },
-  label: { 
-    fontWeight: 'bold', 
-    fontSize: 16, 
-    marginTop: 16, 
-    marginBottom: 4, 
+  imageText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#FF6B2E'
+  },
+  label: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginTop: 16,
+    marginBottom: 4,
     color: '#1A2C24'
   },
   icon: {
@@ -248,14 +289,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 6,
   },
-  multiline: { 
-    minHeight: 80, 
-    textAlignVertical: 'top' 
+  multiline: {
+    minHeight: 80,
+    textAlignVertical: 'top'
   },
-  tagContainer: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    gap: 8 
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
   },
   tag: {
     paddingHorizontal: 12,
@@ -266,15 +307,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginTop: 8,
   },
-  tagSelected: { 
+  tagSelected: {
     backgroundColor: '#FF6B2E',
-    borderColor: '#FF6B2E' 
+    borderColor: '#FF6B2E'
   },
-  tagText: { 
+  tagText: {
     color: '#1A2C24'
   },
-  tagTextSelected: { 
-    color: '#fff' 
+  tagTextSelected: {
+    color: '#fff'
   },
   fakeMap: {
     height: 60,
@@ -292,8 +333,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 20,
   },
-  submitText: { 
-    color: '#fff', 
+  submitText: {
+    color: '#fff',
     fontWeight: 'bold',
     paddingBottom: 10,
   },
