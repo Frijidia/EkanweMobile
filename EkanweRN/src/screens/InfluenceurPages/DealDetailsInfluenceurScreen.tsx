@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomNavbar } from './BottomNavbar';
+import { auth, db } from '../../firebase/firebase';
+import { doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { sendNotification } from '../../hooks/sendNotifications';
+import { Linking } from 'react-native';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DealDetailsRouteProp = RouteProp<RootStackParamList, 'DealDetailsInfluenceur'>;
@@ -49,27 +53,148 @@ export const DealDetailsInfluenceurScreen = () => {
   const [saved, setSaved] = useState(false);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
   const [status, setStatus] = useState("Envoyé");
+  const [loading, setLoading] = useState(true);
+  const [deal, setDeal] = useState<any>(null);
   const currentStep = 1;
 
-  const deal = {
-    id: route.params?.dealId,
-    title: 'Promotion Restaurant',
-    description: 'Offre spéciale pour les influenceurs culinaires. Venez découvrir notre nouvelle carte et partagez votre expérience avec vos followers.',
-    image: require('../../assets/photo.jpg'),
-    locationName: 'Paris, France',
-    interests: ['Restaurant', 'Food', 'Lifestyle'],
-    typeOfContent: 'Photos et Stories Instagram',
-    validUntil: '31/12/2023',
-    conditions: 'Minimum 10k followers'
-  };
+  useEffect(() => {
+    const fetchDeal = async () => {
+      if (!route.params?.dealId) return;
+
+      try {
+        const dealRef = doc(db, "deals", route.params.dealId);
+        const dealSnap = await getDoc(dealRef);
+
+        if (dealSnap.exists()) {
+          const data = dealSnap.data();
+          setDeal({ id: dealSnap.id, ...data });
+
+          const userId = auth.currentUser?.uid;
+          if (userId && data.candidatures) {
+            const applied = data.candidatures.some((c: any) => c.influenceurId === userId);
+            setAlreadyApplied(applied);
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement du deal:", error);
+        Alert.alert("Erreur", "Impossible de charger les détails du deal");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDeal();
+  }, [route.params?.dealId]);
 
   const handleToggleSave = () => {
     setSaved(!saved);
   };
 
-  const handleCandidature = () => {
-    setAlreadyApplied(true);
+  const handleCandidature = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Connexion requise", "Veuillez vous connecter pour postuler.");
+      return;
+    }
+
+    try {
+      const dealRef = doc(db, "deals", deal.id);
+      const dealSnap = await getDoc(dealRef);
+      if (!dealSnap.exists()) {
+        Alert.alert("Erreur", "Deal introuvable.");
+        return;
+      }
+
+      const dealData = dealSnap.data();
+      const candidatures = dealData?.candidatures || [];
+
+      if (candidatures.some((cand: any) => cand.influenceurId === user.uid)) {
+        setAlreadyApplied(true);
+        Alert.alert("Déjà postulé", "Vous avez déjà postulé à ce deal.");
+        return;
+      }
+
+      const newCandidature = {
+        influenceurId: user.uid,
+        status: "Envoyé",
+      };
+
+      await updateDoc(dealRef, { candidatures: arrayUnion(newCandidature) });
+
+      await sendNotification({
+        toUserId: deal.merchantId,
+        fromUserId: user.uid,
+        message: "Un influenceur a postulé à votre deal !",
+        type: "application",
+        relatedDealId: deal.id,
+        targetRoute: `/dealcandidatescommercant/${deal.id}`,
+      });
+
+      const chatId = [user.uid, deal.merchantId].sort().join("");
+      const chatRef = doc(db, "chats", chatId);
+      const chatSnap = await getDoc(chatRef);
+      const firstMessage = {
+        senderId: user.uid,
+        text: `Hello, je suis intéressé par le deal "${deal.title}". Pouvez-vous m'en dire plus ?`,
+        createdAt: new Date(),
+      };
+
+      if (!chatSnap.exists()) {
+        await setDoc(chatRef, { messages: [firstMessage] });
+      } else {
+        await updateDoc(chatRef, { messages: arrayUnion(firstMessage) });
+      }
+
+      const updateUserChats = async (uid: string, receiverId: string, read: boolean) => {
+        const ref = doc(db, "userchats", uid);
+        const snap = await getDoc(ref);
+        const entry = {
+          chatId,
+          lastMessage: firstMessage.text,
+          receiverId,
+          updatedAt: Date.now(),
+          read,
+        };
+
+        if (snap.exists()) {
+          const data = snap.data();
+          const chats = data.chats || [];
+          const idx = chats.findIndex((c: any) => c.chatId === chatId);
+          if (idx !== -1) chats[idx] = entry;
+          else chats.push(entry);
+          await updateDoc(ref, { chats });
+        } else {
+          await setDoc(ref, { chats: [entry] });
+        }
+      };
+
+      await updateUserChats(user.uid, deal.merchantId, true);
+      await updateUserChats(deal.merchantId, user.uid, false);
+
+      setAlreadyApplied(true);
+      Alert.alert("Succès", "Votre candidature a été envoyée avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la candidature :", error);
+      Alert.alert("Erreur", "Une erreur est survenue lors de l'envoi de votre candidature.");
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B2E" />
+        <Text style={styles.loadingText}>Chargement en cours...</Text>
+      </View>
+    );
+  }
+
+  if (!deal) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Deal introuvable.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -85,7 +210,11 @@ export const DealDetailsInfluenceurScreen = () => {
 
       <ScrollView style={styles.content}>
         <View style={styles.imageContainer}>
-          <Image source={deal.image} style={styles.dealImage} resizeMode="cover" />
+          <Image 
+            source={deal.imageUrl ? { uri: deal.imageUrl } : require('../../assets/profile.png')} 
+            style={styles.dealImage} 
+            resizeMode="cover" 
+          />
           <TouchableOpacity 
             style={styles.saveButton}
             onPress={handleToggleSave}
@@ -107,6 +236,13 @@ export const DealDetailsInfluenceurScreen = () => {
               <View style={styles.locationContainer}>
                 <Icon name="map-marker" size={16} color="#FF6B2E" />
                 <Text style={styles.location}>{deal.locationName}</Text>
+                {deal.locationCoords && (
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`https://www.google.com/maps?q=${deal.locationCoords.lat},${deal.locationCoords.lng}`)}
+                  >
+                    <Text style={styles.mapsLink}>Voir sur Google Maps</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
             <Text style={styles.dealId}>#{deal.id}</Text>
@@ -120,24 +256,28 @@ export const DealDetailsInfluenceurScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Intérêts</Text>
             <View style={styles.interestsContainer}>
-              {deal.interests.map((interest, index) => (
-                <Text key={index} style={styles.interest}>{interest}</Text>
-              ))}
+              {deal.interests && deal.interests.length > 0 ? (
+                deal.interests.map((interest: string, index: number) => (
+                  <Text key={index} style={styles.interest}>{interest}</Text>
+                ))
+              ) : (
+                <Text style={styles.noInterests}>Aucun intérêt défini</Text>
+              )}
             </View>
           </View>
 
           <View style={styles.infoBox}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Type de Contenu</Text>
-              <Text style={styles.infoValue}>{deal.typeOfContent}</Text>
+              <Text style={styles.infoValue}>{deal.typeOfContent || "Non spécifié"}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Date de Validité</Text>
-              <Text style={styles.infoValue}>{deal.validUntil}</Text>
+              <Text style={styles.infoValue}>{deal.validUntil || "Non spécifiée"}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Conditions</Text>
-              <Text style={styles.infoValue}>{deal.conditions}</Text>
+              <Text style={styles.infoValue}>{deal.conditions || "Aucune condition"}</Text>
             </View>
           </View>
 
@@ -381,5 +521,36 @@ const styles = StyleSheet.create({
   },
   disabledBtn: {
     backgroundColor: '#ccc'
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#14210F',
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: '#14210F',
+    fontSize: 16,
+  },
+  mapsLink: {
+    color: '#FF6B2E',
+    fontSize: 12,
+    textDecorationLine: 'underline',
+    marginLeft: 5,
+  },
+  noInterests: {
+    color: '#666',
+    fontSize: 14,
+  },
 });

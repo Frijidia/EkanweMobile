@@ -1,165 +1,304 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types/navigation';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase/firebase';
+import { signOut } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { BottomNavbar } from './BottomNavbar';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  type?: 'text' | 'date';
+  icon?: string;
+}
+
+const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 'text', icon }) => (
+  <View style={styles.inputContainer}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <View style={styles.inputWrapper}>
+      {icon && (
+        <Image 
+          source={{ uri: icon }} 
+          style={styles.inputIcon}
+        />
+      )}
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChange}
+        placeholderTextColor="#666666"
+        keyboardType={type === 'date' ? 'numeric' : 'default'}
+      />
+    </View>
+  </View>
+);
+
+const TextAreaField: React.FC<InputFieldProps> = ({ label, value, onChange }) => (
+  <View style={styles.inputContainer}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <TextInput
+      style={[styles.input, styles.textArea]}
+      value={value}
+      onChangeText={onChange}
+      multiline
+      numberOfLines={3}
+      placeholderTextColor="#666666"
+    />
+  </View>
+);
+
 export const ProfileInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [isEditing, setIsEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [pseudonyme, setPseudonyme] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [nom, setNom] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dateNaissance, setDateNaissance] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [tiktok, setTiktok] = useState('');
+  const [portfolioLink, setPortfolioLink] = useState('');
+  const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<null | string>(null);
 
-  // Simuler les données du profil
-  const profile = {
-    name: 'Sarah Martin',
-    username: '@sarahmartin',
-    bio: 'Influenceuse mode & lifestyle | Paris',
-    followers: 12500,
-    following: 850,
-    posts: 342,
-    categories: ['Mode', 'Lifestyle', 'Beauté'],
-    stats: {
-      engagement: '4.2%',
-      averageLikes: 2500,
-      averageComments: 180,
-    },
-    recentPosts: [
-      {
-        id: '1',
-        //image: require('../../assets/post1.png'),
-        likes: 2450,
-        comments: 156,
-      },
-      {
-        id: '2',
-        //image: require('../../assets/post2.png'),
-        likes: 1890,
-        comments: 98,
-      },
-      {
-        id: '3',
-        //image: require('../../assets/post3.png'),
-        likes: 3200,
-        comments: 245,
-      },
-    ],
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        setPseudonyme(data.pseudonyme || '');
+        setPrenom(data.prenom || '');
+        setNom(data.nom || '');
+        setPhone(data.phone || '');
+        setDateNaissance(data.dateNaissance || '');
+        setInstagram(data.instagram || '');
+        setTiktok(data.tiktok || '');
+        setPortfolioLink(data.portfolioLink || '');
+        setBio(data.bio || '');
+        setProfileImage(data.photoURL || null);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
+
+  const handleImageClick = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la prise de photo:", error);
+      setMessage("Erreur lors de la prise de photo");
+    }
+  };
+
+  const handleGalleryClick = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sélection de l'image:", error);
+      setMessage("Erreur lors de la sélection de l'image");
+    }
+  };
+
+  const handleSave = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        pseudonyme,
+        prenom,
+        nom,
+        phone,
+        dateNaissance,
+        instagram,
+        tiktok,
+        portfolioLink,
+        bio,
+        photoURL: profileImage || '',
+      });
+
+      setMessage("Profil mis à jour avec succès !");
+    } catch (error) {
+      console.error("Erreur de mise à jour du profil :", error);
+      setMessage("Une erreur est survenue.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Splash' }],
+      });
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion :", error);
+      setMessage("Erreur de déconnexion.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="arrow-left" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Profil</Text>
-          <TouchableOpacity 
-            style={styles.editButton}
-            onPress={() => setIsEditing(!isEditing)}
-          >
-            <Icon name={isEditing ? "check" : "pencil"} size={24} color="#FF6B2E" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.profileHeader}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Mon Profil</Text>
+        <TouchableOpacity 
+          onPress={async () => {
+            const userRef = doc(db, "users", auth.currentUser?.uid || "");
+            const snap = await getDoc(userRef);
+            const role = snap.data()?.role;
+            navigation.navigate(role === "influenceur" ? 'DealsInfluenceur' : 'DealsCommercant');
+          }}
+        >
           <Image 
-            //source={require('https://picsum.photos/200/300')} 
-            style={styles.profileImage} 
+            source={require('../../assets/ekanwesign.png')} 
+            style={styles.headerLogo}
           />
-          <View style={styles.profileInfo}>
-            <Text style={styles.name}>{profile.name}</Text>
-            <Text style={styles.username}>{profile.username}</Text>
-            {isEditing ? (
-              <TextInput
-                style={styles.bioInput}
-                defaultValue={profile.bio}
-                placeholder="Ajoutez une bio..."
-                placeholderTextColor="#9CA3AF"
-                multiline
-              />
-            ) : (
-              <Text style={styles.bio}>{profile.bio}</Text>
-            )}
-          </View>
-        </View>
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profile.followers}</Text>
-            <Text style={styles.statLabel}>Abonnés</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profile.following}</Text>
-            <Text style={styles.statLabel}>Abonnements</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profile.posts}</Text>
-            <Text style={styles.statLabel}>Publications</Text>
-          </View>
-        </View>
-
-        <View style={styles.categoriesContainer}>
-          {profile.categories.map((category, index) => (
-            <View key={index} style={styles.categoryTag}>
-              <Text style={styles.categoryText}>{category}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Statistiques</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Icon name="chart-line" size={24} color="#FF6B2E" />
-              <Text style={styles.statValue}>{profile.stats.engagement}</Text>
-              <Text style={styles.statLabel}>Taux d'engagement</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Icon name="heart" size={24} color="#FF6B2E" />
-              <Text style={styles.statValue}>{profile.stats.averageLikes}</Text>
-              <Text style={styles.statLabel}>Likes moyens</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Icon name="comment" size={24} color="#FF6B2E" />
-              <Text style={styles.statValue}>{profile.stats.averageComments}</Text>
-              <Text style={styles.statLabel}>Commentaires moyens</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.recentPostsSection}>
-          <Text style={styles.sectionTitle}>Publications récentes</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.postsScroll}
-          >
-            {profile.recentPosts.map((post) => (
-              <TouchableOpacity 
-                key={post.id} 
-                style={styles.postCard}
-                onPress={() => navigation.navigate('PostDetailsInfluenceur', { postId: post.id })}
-              >
-                <Image source={post.image} style={styles.postImage} />
-                <View style={styles.postStats}>
-                  <View style={styles.postStat}>
-                    <Icon name="heart" size={16} color="#fff" />
-                    <Text style={styles.postStatText}>{post.likes}</Text>
-                  </View>
-                  <View style={styles.postStat}>
-                    <Icon name="comment" size={16} color="#fff" />
-                    <Text style={styles.postStatText}>{post.comments}</Text>
-                  </View>
+      <ScrollView style={styles.content}>
+        <View style={styles.profileCard}>
+          <View style={styles.imageContainer}>
+            <TouchableOpacity 
+              style={styles.profileImageContainer}
+              onPress={handleGalleryClick}
+            >
+              {profileImage ? (
+                <Image 
+                  source={{ uri: profileImage }} 
+                  style={styles.profileImage}
+                />
+              ) : (
+                <View style={styles.placeholderImage}>
+                  <Ionicons name="camera" size={30} color="#FF6B2E" />
                 </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+              )}
+              <View style={styles.imageOverlay}>
+                <TouchableOpacity 
+                  style={styles.cameraButton}
+                  onPress={handleImageClick}
+                >
+                  <Ionicons name="camera" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.galleryButton}
+                  onPress={handleGalleryClick}
+                >
+                  <Ionicons name="images" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.formContainer}>
+            <InputField label="Pseudonyme" value={pseudonyme} onChange={setPseudonyme} />
+            <InputField label="Prénom" value={prenom} onChange={setPrenom} />
+            <InputField label="Nom" value={nom} onChange={setNom} />
+            <InputField label="Date de Naissance" value={dateNaissance} onChange={setDateNaissance} type="date" />
+            <InputField label="Téléphone" value={phone} onChange={setPhone} />
+            <InputField 
+              label="Instagram" 
+              value={instagram} 
+              onChange={setInstagram} 
+              icon="https://cdn-icons-png.flaticon.com/512/174/174855.png"
+            />
+            <InputField 
+              label="TikTok" 
+              value={tiktok} 
+              onChange={setTiktok} 
+              icon="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"
+            />
+            <InputField label="Lien de Portfolio" value={portfolioLink} onChange={setPortfolioLink} />
+            <TextAreaField label="Bio" value={bio} onChange={setBio} />
+
+            {message && (
+              <View style={[
+                styles.messageContainer,
+                message.includes("succès") ? styles.successMessage : styles.errorMessage
+              ]}>
+                <Text style={styles.messageText}>{message}</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={[styles.saveButton, loading && styles.disabledButton]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>Sauvegarder</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutButtonText}>Déconnexion</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -171,7 +310,7 @@ export const ProfileInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#F5F5E7',
   },
   header: {
     flexDirection: 'row',
@@ -179,158 +318,145 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     paddingTop: 48,
+    backgroundColor: '#FFFFFF',
   },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    color: '#fff',
+  headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#1A2C24',
   },
-  editButton: {
-    padding: 8,
+  headerLogo: {
+    width: 32,
+    height: 32,
   },
-  profileHeader: {
-    flexDirection: 'row',
-    padding: 16,
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 16,
-  },
-  profileInfo: {
+  content: {
     flex: 1,
-  },
-  name: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  username: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  bio: {
-    color: '#fff',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  bioInput: {
-    color: '#fff',
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#2A3C34',
-    borderRadius: 8,
-    padding: 8,
-    minHeight: 80,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
     padding: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#2A3C34',
   },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statLabel: {
-    color: '#9CA3AF',
-    fontSize: 12,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 16,
-    gap: 8,
-  },
-  categoryTag: {
-    backgroundColor: 'rgba(255, 107, 46, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  profileCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-  },
-  categoryText: {
-    color: '#FF6B2E',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  statsSection: {
     padding: 16,
-  },
-  sectionTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 16,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 16,
+  imageContainer: {
     alignItems: 'center',
-    marginHorizontal: 4,
+    marginBottom: 24,
   },
-  statValue: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  recentPostsSection: {
-    padding: 16,
-  },
-  postsScroll: {
-    marginTop: 8,
-  },
-  postCard: {
-    width: 200,
-    marginRight: 12,
-    borderRadius: 12,
+  profileImageContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2,
+    borderColor: '#FF6B2E',
     overflow: 'hidden',
   },
-  postImage: {
+  profileImage: {
     width: '100%',
-    height: 200,
-    borderRadius: 12,
+    height: '100%',
   },
-  postStats: {
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#FFF3E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageOverlay: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'center',
+    padding: 8,
   },
-  postStat: {
+  cameraButton: {
+    backgroundColor: '#FF6B2E',
+    padding: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  galleryButton: {
+    backgroundColor: '#1A2C24',
+    padding: 8,
+    borderRadius: 20,
+  },
+  formContainer: {
+    gap: 16,
+  },
+  inputContainer: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 4,
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
   },
-  postStatText: {
-    color: '#fff',
-    fontSize: 12,
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    color: '#1A2C24',
+    fontSize: 14,
+  },
+  inputIcon: {
+    width: 16,
+    height: 16,
+    marginRight: 8,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  messageContainer: {
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  successMessage: {
+    backgroundColor: '#E8F5E9',
+  },
+  errorMessage: {
+    backgroundColor: '#FFEBEE',
+  },
+  messageText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  saveButton: {
+    backgroundColor: '#FF6B2E',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  disabledButton: {
+    backgroundColor: '#CCCCCC',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  logoutButton: {
+    borderWidth: 2,
+    borderColor: '#1A2C24',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  logoutButtonText: {
+    color: '#1A2C24',
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 

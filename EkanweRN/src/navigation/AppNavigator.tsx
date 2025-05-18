@@ -36,6 +36,7 @@ import { ProfileCommercantScreen } from '../screens/CommercantPages/ProfileComme
 import { SuiviDealsCommercantScreen } from '../screens/CommercantPages/SuiviDealsCommercantScreen';
 import { DiscussionCommercantScreen } from '../screens/CommercantPages/DiscussionCommercantScreen';
 import { DashboardCommercantScreen } from '../screens/CommercantPages/DashboardCommercantScreen';
+import { NotificationInfluenceurScreen } from '../screens/InfluenceurPages/NotificationInfluenceurScreen';
 // Navigation principale de l'application
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -80,6 +81,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="SuiviDealsCommercant" component={SuiviDealsCommercantScreen} />
       <Stack.Screen name="DiscussionCommercant" component={DiscussionCommercantScreen} />
       <Stack.Screen name="DashboardCommercant" component={DashboardCommercantScreen} />
+      <Stack.Screen name="NotificationInfluenceur" component={NotificationInfluenceurScreen} />
     </Stack.Navigator>
   );
 }; 

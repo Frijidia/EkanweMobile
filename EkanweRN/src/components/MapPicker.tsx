@@ -14,11 +14,11 @@ export default function MapPicker({ onSelect }: MapPickerProps) {
       latitude: e.nativeEvent.coordinate.latitude,
       longitude: e.nativeEvent.coordinate.longitude,
     };
-    setPosition(coords);
-    onSelect(coords);
+            setPosition(coords);
+            onSelect(coords);
   };
 
-  return (
+    return (
     <View style={styles.container}>
       <MapView
         provider={PROVIDER_GOOGLE}

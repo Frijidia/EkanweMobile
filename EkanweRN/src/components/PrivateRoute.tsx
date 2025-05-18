@@ -49,7 +49,7 @@ export default function PrivateRoute({ children, allowedRole }: PrivateRouteProp
       navigation.replace('LoginOrSignup', {
         error: 'Vous devez être connecté avec le bon rôle pour accéder à cette page.',
       });
-    }
+  }
   }, [status, navigation]);
 
   if (status === 'loading') {

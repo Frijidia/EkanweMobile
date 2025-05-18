@@ -1,122 +1,224 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomNavbar } from '../components/BottomNavbar';
+import { collection, onSnapshot, query, orderBy, updateDoc, doc, where } from 'firebase/firestore';
+import { auth, db } from '../../firebase/firebase';
+import { Ionicons } from '@expo/vector-icons';
+import { BottomNavbar } from './BottomNavbar';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+interface NotificationType {
+  id: string;
+  message: string;
+  targetRoute?: string;
+  read: boolean;
+  type: 'message' | 'deal' | 'system';
+  createdAt: number;
+  data?: any;
+}
+
 export const NotificationInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  const notifications = [
-    {
-      id: '1',
-      type: 'message',
-      title: 'Nouveau message',
-      description: 'Le Petit Bistrot vous a envoyé un message',
-      timestamp: 'Il y a 5 min',
-      image: require('../assets/merchant1.png'),
-      unread: true,
-    },
-    {
-      id: '2',
-      type: 'deal',
-      title: 'Deal accepté',
-      description: 'Votre candidature pour "Collection Mode" a été acceptée',
-      timestamp: 'Il y a 1h',
-      image: require('../assets/deal2.png'),
-      unread: true,
-    },
-    {
-      id: '3',
-      type: 'system',
-      title: 'Mise à jour',
-      description: 'De nouvelles fonctionnalités sont disponibles',
-      timestamp: 'Il y a 2h',
-      icon: 'update',
-      unread: false,
-    },
-    // Ajoutez plus de notifications ici
-  ];
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    setLoading(true);
+    const notifRef = query(
+      collection(db, "users", user.uid, "notifications"),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(notifRef, (snapshot) => {
+      const notifList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as NotificationType[];
+
+      setNotifications(notifList);
+      setLoading(false);
+    }, (error) => {
+      console.error("Erreur lors du chargement des notifications:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleNotificationClick = async (notif: NotificationType) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const notifDocRef = doc(db, "users", user.uid, "notifications", notif.id);
+      await updateDoc(notifDocRef, { read: true });
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
+      );
+
+      if (notif.targetRoute) {
+        const route = notif.targetRoute;
+        if (route in navigation.getState().routes) {
+          navigation.navigate(route as any, notif.data);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la notification :", error);
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'message':
-        return 'message';
+        return 'chatbubble';
       case 'deal':
         return 'briefcase';
       case 'system':
-        return 'update';
+        return 'information-circle';
       default:
-        return 'bell';
+        return 'notifications';
     }
   };
+
+  const formatTimestamp = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    
+    if (diff < 60000) return 'À l\'instant';
+    if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)} min`;
+    if (diff < 86400000) return `Il y a ${Math.floor(diff / 3600000)}h`;
+    return new Date(timestamp).toLocaleDateString('fr-FR');
+  };
+
+  const filteredNotifications = notifications
+    .filter(notif => {
+      const matchesSearch = notif.message.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = filter === 'all' || !notif.read;
+      return matchesSearch && matchesFilter;
+    });
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B2E" />
+        <Text style={styles.loadingText}>Chargement des notifications...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Icon name="arrow-left" size={24} color="#fff" />
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Notifications</Text>
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('DealsInfluenceur')}>
+          <Image 
+            source={require('../../assets/ekanwesign.png')} 
+            style={styles.headerLogo}
+          />
         </TouchableOpacity>
-        <Text style={styles.title}>Notifications</Text>
-        <View style={styles.placeholder} />
+      </View>
+
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'all' && styles.activeFilter]}
+          onPress={() => setFilter('all')}
+        >
+          <Text style={[styles.filterText, filter === 'all' && styles.activeFilterText]}>
+            Toutes
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'unread' && styles.activeFilter]}
+          onPress={() => setFilter('unread')}
+        >
+          <Text style={[styles.filterText, filter === 'unread' && styles.activeFilterText]}>
+            Non lues
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputContainer}>
+          <Ionicons name="search" size={20} color="#1A2C24" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Rechercher une notification"
+            placeholderTextColor="#1A2C24"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
-        {notifications.length > 0 ? (
-          notifications.map((notification) => (
+        {filteredNotifications.length > 0 ? (
+          filteredNotifications.map((notif) => (
             <TouchableOpacity
-              key={notification.id}
+              key={notif.id}
               style={[
                 styles.notificationCard,
-                notification.unread && styles.unreadNotification,
+                !notif.read && styles.unreadNotification
               ]}
-              onPress={() => {
-                if (notification.type === 'message') {
-                  navigation.navigate('ChatInfluenceur', { conversationId: '1' });
-                } else if (notification.type === 'deal') {
-                  navigation.navigate('DealDetailsInfluenceur', { dealId: '2' });
-                }
-              }}
+              onPress={() => handleNotificationClick(notif)}
             >
-              {notification.image ? (
-                <Image source={notification.image} style={styles.notificationImage} />
-              ) : (
-                <View style={styles.iconContainer}>
-                  <Icon 
-                    name={getNotificationIcon(notification.type)} 
-                    size={24} 
-                    color="#FF6B2E" 
-                  />
-                </View>
-              )}
-              <View style={styles.notificationInfo}>
-                <Text style={styles.notificationTitle}>{notification.title}</Text>
-                <Text style={styles.notificationDescription}>
-                  {notification.description}
+              <View style={styles.notificationHeader}>
+                <Ionicons 
+                  name={getNotificationIcon(notif.type)} 
+                  size={24} 
+                  color="#FF6B2E" 
+                  style={styles.notificationIcon}
+                />
+                <Text style={styles.timestamp}>
+                  {formatTimestamp(notif.createdAt)}
                 </Text>
-                <Text style={styles.timestamp}>{notification.timestamp}</Text>
               </View>
-              {notification.unread && (
-                <View style={styles.unreadDot} />
-              )}
+              <Text style={styles.notificationText}>{notif.message}</Text>
             </TouchableOpacity>
           ))
         ) : (
           <View style={styles.emptyState}>
-            <Icon name="bell-outline" size={64} color="#9CA3AF" />
             <Text style={styles.emptyStateText}>
-              Vous n'avez pas de notifications
+              Aucune notification {filter === 'unread' ? 'non lue' : ''} pour l'instant
             </Text>
           </View>
         )}
       </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Retour</Text>
+        </TouchableOpacity>
+      </View>
 
       <BottomNavbar />
     </View>
@@ -126,7 +228,18 @@ export const NotificationInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#1A2C24',
   },
   header: {
     flexDirection: 'row',
@@ -135,82 +248,142 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 48,
   },
-  backButton: {
-    padding: 8,
+  titleContainer: {
+    position: 'relative',
   },
   title: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#1A2C24',
   },
-  placeholder: {
-    width: 40,
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -16,
+    backgroundColor: '#FF6B2E',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  headerLogo: {
+    width: 24,
+    height: 24,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  activeFilter: {
+    backgroundColor: '#FF6B2E',
+  },
+  filterText: {
+    color: '#1A2C24',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  activeFilterText: {
+    color: '#FFFFFF',
+  },
+  searchContainer: {
+    padding: 16,
+    paddingTop: 0,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#1A2C24',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    color: '#1A2C24',
+    fontSize: 14,
   },
   content: {
     flex: 1,
     padding: 16,
   },
   notificationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   unreadNotification: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#FFF3E0',
   },
-  notificationImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 107, 46, 0.1)',
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+    marginBottom: 8,
   },
-  notificationInfo: {
-    flex: 1,
-  },
-  notificationTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  notificationDescription: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 4,
+  notificationIcon: {
+    marginRight: 8,
   },
   timestamp: {
-    color: '#9CA3AF',
     fontSize: 12,
+    color: '#666666',
   },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FF6B2E',
-    marginLeft: 8,
+  notificationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A2C24',
   },
   emptyState: {
-    flex: 1,
+    marginTop: 80,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F5F5E7',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
   },
   emptyStateText: {
-    color: '#9CA3AF',
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  footer: {
+    padding: 16,
+    marginTop: 20,
+  },
+  backButton: {
+    borderWidth: 1,
+    borderColor: '#1A2C24',
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  backButtonText: {
+    color: '#1A2C24',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 16,
   },
 }); 

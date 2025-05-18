@@ -30,7 +30,7 @@ export default function LocationSelector({ position, setPosition, setLocationNam
       if (status !== 'granted') {
         console.error('Permission to access location was denied');
         return;
-      }
+}
 
       let location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;

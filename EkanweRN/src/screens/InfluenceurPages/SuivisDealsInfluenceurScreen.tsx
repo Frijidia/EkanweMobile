@@ -1,151 +1,197 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  TextInput,
+  Alert,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types/navigation';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { collection, onSnapshot, doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase/firebase';
+import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from './BottomNavbar';
+import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const SuivisDealsInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState("Tous");
+  const [candidatures, setCandidatures] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const filters = ["Tous", "Envoyé", "Accepté", "Refusé", "Terminé"];
 
-  const mockDeals = [
-    {
-      id: '1',
-      title: 'Promotion Restaurant',
-      description: 'Offre spéciale pour les influenceurs culinaires',
-      imageUrl: require('../../assets/profile.png'),
-      status: 'Accepté'
-    },
-    {
-      id: '2',
-      title: 'Collection Mode',
-      description: 'Découvrez notre nouvelle collection',
-      imageUrl: require('../../assets/profile.png'),
-      status: 'Envoyé'
-    }
-  ];
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const dealsRef = collection(db, "deals");
+
+    const unsubscribe = onSnapshot(dealsRef, (snapshot) => {
+      const myCandidatures: any[] = [];
+
+      snapshot.forEach((docSnap) => {
+        const deal = docSnap.data();
+        const dealId = docSnap.id;
+        const allCandidatures = deal.candidatures || [];
+
+        allCandidatures.forEach((candidature: any, index: number) => {
+          if (candidature.influenceurId === user.uid) {
+            myCandidatures.push({
+              ...candidature,
+              dealId,
+              dealInfo: deal,
+              candidatureIndex: index,
+            });
+          }
+        });
+      });
+
+      setCandidatures(myCandidatures);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const getProgressStyles = (status: string) => {
     const stages = ["Envoyé", "Accepté", "Terminé"];
     const currentStageIndex = stages.indexOf(status);
 
     return {
-      container: { color: currentStageIndex >= 0 ? "#1A2C24" : "#9CA3AF" },
-      accepted: { color: currentStageIndex >= 1 ? "#1A2C24" : "#9CA3AF" },
-      completed: { color: currentStageIndex >= 2 ? "#1A2C24" : "#9CA3AF" },
-      line1: { backgroundColor: currentStageIndex >= 1 ? "#1A2C24" : "#9CA3AF" },
-      line2: { backgroundColor: currentStageIndex >= 2 ? "#1A2C24" : "#9CA3AF" }
+      Envoyé: { text: styles.progressTextActive },
+      Accepté: { text: currentStageIndex >= 1 ? styles.progressTextActive : styles.progressTextInactive },
+      completed: { text: currentStageIndex >= 2 ? styles.progressTextActive : styles.progressTextInactive },
+      line1: currentStageIndex >= 1 ? styles.progressLineActive : styles.progressLineInactive,
+      line2: currentStageIndex >= 2 ? styles.progressLineActive : styles.progressLineInactive,
     };
   };
 
-  const filteredDeals = selectedFilter === "Tous" 
-    ? mockDeals
-    : mockDeals.filter((deal) => deal.status === selectedFilter);
+  const handleChatPress = async (e: any, candidature: any) => {
+    e.stopPropagation();
+    const chatId = [auth.currentUser?.uid, candidature.dealInfo?.merchantId].sort().join("");
+    const userRef = doc(db, "users", candidature.influenceurId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      navigation.navigate('ChatInfluenceur', {
+        chatId,
+        pseudonyme: userData.pseudonyme || "",
+        photoURL: userData.photoURL || "",
+        role: userData.role,
+      });
+    }
+  };
+
+  const filteredCandidatures = candidatures.filter(candidature => {
+    const matchesFilter = selectedFilter === "Tous" || candidature.status === selectedFilter;
+    const matchesSearch = candidature.dealInfo?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         candidature.dealInfo?.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Suivi Deals</Text>
+        <Text style={styles.headerTitle}>Suivi Deals</Text>
         <View style={styles.headerButtons}>
-          <TouchableOpacity>
-            <Icon name="bell" size={24} color="#1A2C24" />
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationInfluenceur')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.headerIcon} />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          <TouchableOpacity onPress={() => navigation.navigate('DealsInfluenceur')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.headerIcon} />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Icon name="magnify" size={24} color="#1A2C24" style={styles.searchIcon} />
-          <TextInput 
+          <Image source={require('../../assets/loupe.png')} style={styles.searchIcon} />
+          <TextInput
             style={styles.searchInput}
             placeholder="Recherche"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="#666666"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-          <Icon name="menu" size={24} color="#1A2C24" />
+          <Image source={require('../../assets/menu.png')} style={styles.menuIcon} />
         </View>
 
-        <ScrollView horizontal style={styles.filterContainer} showsHorizontalScrollIndicator={false}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
           {filters.map((item) => (
             <TouchableOpacity
               key={item}
-              onPress={() => setSelectedFilter(item)}
               style={[
                 styles.filterButton,
                 selectedFilter === item && styles.filterButtonActive
               ]}
+              onPress={() => setSelectedFilter(item)}
             >
               <Text style={[
-                styles.filterText,
-                selectedFilter === item && styles.filterTextActive
-              ]}>{item}</Text>
+                styles.filterButtonText,
+                selectedFilter === item && styles.filterButtonTextActive
+              ]}>
+                {item}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      <ScrollView style={styles.content}>
-        {filteredDeals.length === 0 ? (
-          <Text style={styles.emptyText}>Aucun deal trouvé</Text>
-        ) : (
-          filteredDeals.map((deal, index) => {
-            const progressStyles = getProgressStyles(deal.status);
-
+      {filteredCandidatures.length === 0 ? (
+        <Text style={styles.emptyText}>Aucun deal trouvé</Text>
+      ) : (
+        <ScrollView style={styles.dealsList}>
+          {filteredCandidatures.map((candidature, index) => {
+            const progressStyles = getProgressStyles(candidature.status);
             return (
               <TouchableOpacity
                 key={index}
                 style={styles.dealCard}
-                onPress={() => navigation.navigate('DealDetailsInfluenceur', { deal })}
+                onPress={() => navigation.navigate('DealDetailsInfluenceur', { dealId: candidature.dealId })}
               >
-                <Image 
-                  source={deal.imageUrl}
+                <Image
+                  source={candidature.dealInfo?.imageUrl ? { uri: candidature.dealInfo.imageUrl } : require('../../assets/profile.png')}
                   style={styles.dealImage}
                 />
-                <View style={styles.dealInfo}>
+                <View style={styles.dealContent}>
                   <View style={styles.dealHeader}>
-                    <Text style={styles.dealTitle}>{deal.title}</Text>
-                    <Text style={styles.dealId}>{deal.id}</Text>
-                    <Text style={styles.dealDescription}>{deal.description}</Text>
+                    <Text style={styles.dealTitle}>{candidature.dealInfo?.title}</Text>
+                    <Text style={styles.dealId}>{candidature.dealId}</Text>
+                    <Text style={styles.dealDescription} numberOfLines={1}>
+                      {candidature.dealInfo?.description}
+                    </Text>
                   </View>
 
                   <View style={styles.progressContainer}>
-                    <View style={styles.progressTracker}>
-                      <Icon 
-                        name="send" 
-                        size={24} 
-                        color={progressStyles.container.color}
-                      />
-                      <View style={[styles.progressLine, progressStyles.line1]} />
-                      <Icon 
-                        name="check-circle" 
-                        size={24} 
-                        color={progressStyles.accepted.color}
-                      />
-                      <View style={[styles.progressLine, progressStyles.line2]} />
-                      <Icon 
-                        name="flag-checkered" 
-                        size={24} 
-                        color={progressStyles.completed.color}
-                      />
+                    <View style={styles.progressSteps}>
+                      <Text style={progressStyles.Envoyé.text}>Envoyé</Text>
+                      <View style={progressStyles.line1} />
+                      <Text style={progressStyles.Accepté.text}>Accepté</Text>
+                      <View style={progressStyles.line2} />
+                      <Text style={progressStyles.completed.text}>Effectué</Text>
                     </View>
-                    <TouchableOpacity style={styles.chatButton}>
-                      <Icon name="message" size={12} color="#fff" />
-                    </TouchableOpacity>
-                    <Icon name="chevron-right" size={24} color="#14210F" />
+                    <View style={styles.actionButtons}>
+                      <TouchableOpacity
+                        style={styles.chatButton}
+                        onPress={(e) => handleChatPress(e, candidature)}
+                      >
+                        <Ionicons name="chatbubble-outline" size={16} color="#FFFFFF" />
+                      </TouchableOpacity>
+                      <Ionicons name="chevron-forward" size={20} color="#14210F" />
+                    </View>
                   </View>
                 </View>
               </TouchableOpacity>
             );
-          })
-        )}
-      </ScrollView>
+          })}
+        </ScrollView>
+      )}
 
       <BottomNavbar />
     </View>
@@ -162,9 +208,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    paddingTop: 20,
+    paddingTop: 48,
+    backgroundColor: '#FFFFFF',
   },
-  title: {
+  headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#14210F',
@@ -172,6 +219,10 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     gap: 16,
+  },
+  headerIcon: {
+    width: 24,
+    height: 24,
   },
   searchContainer: {
     padding: 16,
@@ -181,78 +232,81 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: '#14210F',
+    borderColor: '#000000',
     borderRadius: 8,
-    padding: 8,
+    padding: 12,
   },
   searchIcon: {
-    marginRight: 8,
-  },
-  icon: {
     width: 24,
     height: 24,
+    marginRight: 12,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     color: '#14210F',
   },
-  filterContainer: {
-    flexDirection: 'row',
+  menuIcon: {
+    width: 24,
+    height: 24,
+    marginLeft: 8,
+  },
+  filtersContainer: {
     marginTop: 12,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#14210F',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
     marginRight: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   filterButtonActive: {
     backgroundColor: '#1A2C24',
   },
-  filterText: {
+  filterButtonText: {
+    fontSize: 16,
     color: '#14210F',
-    fontSize: 14,
   },
-  filterTextActive: {
-    color: '#fff',
-  },
-  content: {
-    flex: 1,
+  filterButtonTextActive: {
+    color: '#FFFFFF',
   },
   emptyText: {
     textAlign: 'center',
+    color: '#666666',
     marginTop: 40,
-    color: '#9CA3AF',
+    fontSize: 16,
+  },
+  dealsList: {
+    padding: 16,
   },
   dealCard: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#14210F',
+    borderColor: '#000000',
     borderRadius: 8,
-    overflow: 'hidden',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    margin: 16,
-    alignItems: 'flex-start',
+    marginBottom: 16,
+    overflow: 'hidden',
   },
   dealImage: {
-    width: 100,
-    height: 100,
-    margin: 4,
+    width: 128,
+    height: 128,
     borderRadius: 8,
+    margin: 4,
   },
-  dealInfo: {
+  dealContent: {
     flex: 1,
-    padding: 4,
+    padding: 8,
+    justifyContent: 'space-between',
   },
   dealHeader: {
     marginBottom: 8,
   },
   dealTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1A2C24',
   },
@@ -263,28 +317,47 @@ const styles = StyleSheet.create({
   },
   dealDescription: {
     fontSize: 12,
-    color: '#666',
+    color: '#666666',
   },
   progressContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    alignItems: 'center',
   },
-  progressTracker: {
+  progressSteps: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  progressLine: {
+  progressTextActive: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1A2C24',
+  },
+  progressTextInactive: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  progressLineActive: {
     height: 2,
-    width: 20,
+    width: 40,
+    backgroundColor: '#1A2C24',
     marginHorizontal: 4,
+  },
+  progressLineInactive: {
+    height: 2,
+    width: 40,
+    backgroundColor: '#CCCCCC',
+    marginHorizontal: 4,
+    borderStyle: 'dashed',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   chatButton: {
     backgroundColor: '#FF6B2E',
     padding: 8,
-    borderRadius: 9999,
-    marginLeft: 8,
+    borderRadius: 20,
+    marginRight: 8,
   },
 });

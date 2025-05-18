@@ -1,136 +1,130 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
+import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from './BottomNavbar';
+import { Deal } from '../../types/deal';
 import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DealsSeeMoreInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-    const [saved, setSaved] = useState(false);
-  const [status, setStatus] = useState('Envoyé');
-  const [uploads, setUploads] = useState<{ image: string; likes: number; shares: number; isValidated: boolean }[]>([]);
-  const [alreadyApplied, setAlreadyApplied] = useState(false);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const deal = {
-    id: '1',
-    title: 'Promotion Restaurant',
-    description: 'Offre spéciale pour les influenceurs culinaires. Venez découvrir notre nouvelle carte et partagez votre expérience avec vos followers.',
-    imageUrl: require('../../assets/photo.jpg'),
-    locationName: 'Paris, France',
-    locationCoords: { lat: 48.8566, lng: 2.3522 },
-    interests: ['Restaurant', 'Food', 'Lifestyle'],
-    typeOfContent: 'Photos et Stories Instagram',
-    validUntil: '31/12/2023',
-    conditions: 'Minimum 10k followers',
+  const fetchDeals = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const dealsRef = collection(db, 'deals');
+      const q = query(
+        dealsRef,
+        where('status', '==', 'active'),
+        orderBy('createdAt', 'desc')
+      );
+
+      const querySnapshot = await getDocs(q);
+      const dealsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Deal[];
+
+      setDeals(dealsData);
+    } catch (err) {
+      console.error('Error fetching deals:', err);
+      setError('Une erreur est survenue lors du chargement des deals');
+      Alert.alert(
+        'Erreur',
+        'Impossible de charger les deals. Veuillez réessayer plus tard.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleToggleSave = () => {
-    setSaved(!saved);
+  useEffect(() => {
+    fetchDeals();
+  }, []);
+
+  const handleDealPress = (deal: Deal) => {
+    navigation.navigate('DealDetailsInfluenceur', { dealId: deal.id });
   };
 
-  const handleApply = () => {
-    setAlreadyApplied(true);
-  };
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B2E" />
+        <Text style={styles.loadingText}>Chargement des deals...</Text>
+      </View>
+    );
+  }
 
-  const getCurrentStep = () => {
-    const stepMap: any = {
-      "Envoyé": 1,
-      "Accepté": 2,
-      "Approbation": 3,
-      "Terminé": 4
-    };
-    return stepMap[status] || 1;
-  };
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color="#FF6B2E" />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchDeals}>
+          <Text style={styles.retryButtonText}>Réessayer</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-left" size={24} color="#FF6B2E" />
+          <Ionicons name="arrow-back" size={24} color="#FF6B2E" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Deals</Text>
+        <Text style={styles.headerTitle}>Tous les Deals</Text>
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.imageContainer}>
-            <Image source={deal.imageUrl} style={styles.dealImage} />
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleToggleSave}
-            >
-              <Icon 
-                name={saved ? "bookmark" : "bookmark-outline"} 
-                size={24} 
-                color="#1A2C24" 
-              />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.dealInfo}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>{deal.title}</Text>
-              <Text style={styles.dealId}>#{deal.id}</Text>
-            </View>
-
-            <View style={styles.locationContainer}>
-              <Icon name="map-marker" size={16} color="#FF6B2E" />
-              <Text style={styles.location}>{deal.locationName}</Text>
-            </View>
-
-            <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.description}>{deal.description}</Text>
-
-            <Text style={styles.sectionTitle}>Intérêts</Text>
-            <View style={styles.interestsContainer}>
-              {deal.interests.map((interest, index) => (
-                <View key={index} style={styles.interestTag}>
-                  <Text style={styles.interestText}>{interest}</Text>
+      <ScrollView style={styles.scrollView}>
+        {deals.map((deal) => (
+          <TouchableOpacity
+            key={deal.id}
+            style={styles.dealCard}
+            onPress={() => handleDealPress(deal)}
+          >
+            <Image
+              source={{ uri: deal.imageUrl }}
+              style={styles.dealImage}
+              resizeMode="cover"
+            />
+            <View style={styles.dealInfo}>
+              <Text style={styles.dealTitle}>{deal.title}</Text>
+              <Text style={styles.dealDescription} numberOfLines={2}>
+                {deal.description}
+              </Text>
+              <View style={styles.dealFooter}>
+                <View style={styles.locationContainer}>
+                  <Ionicons name="location-outline" size={16} color="#FF6B2E" />
+                  <Text style={styles.locationText}>{deal.locationName}</Text>
                 </View>
-              ))}
-            </View>
-
-            <View style={styles.detailsContainer}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Type de Contenu</Text>
-                <Text style={styles.detailValue}>{deal.typeOfContent}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Date de Validité</Text>
-                <Text style={styles.detailValue}>{deal.validUntil}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Conditions</Text>
-                <Text style={styles.detailValue}>{deal.conditions}</Text>
+                <Text style={styles.dealId}>#{deal.id}</Text>
               </View>
             </View>
-
-            <View style={styles.buttonsContainer}>
-              <TouchableOpacity 
-                style={styles.backBtn}
-                onPress={() => navigation.goBack()}
-              >
-                <Text style={styles.backBtnText}>RETOUR</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.applyBtn, alreadyApplied && styles.disabledBtn]}
-                onPress={handleApply}
-                disabled={alreadyApplied}
-              >
-                <Text style={styles.applyBtnText}>
-                  {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
       <BottomNavbar />
@@ -144,206 +138,110 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5E7',
   },
   header: {
-    backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    paddingTop: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   backButton: {
-    padding: 8,
+    marginRight: 16,
   },
   headerTitle: {
-    color: '#FF6B2E',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 16,
+    color: '#1A2C24',
   },
-  content: {
+  scrollView: {
     flex: 1,
     padding: 16,
   },
-  card: {
-    backgroundColor: '#fff',
+  dealCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
+    marginBottom: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  imageContainer: {
-    position: 'relative',
-    aspectRatio: 16/9,
-  },
   dealImage: {
     width: '100%',
-    height: '100%',
-  },
-  saveButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 8,
-    borderRadius: 20,
+    height: 200,
   },
   dealInfo: {
     padding: 16,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1A2C24',
-    flex: 1,
-  },
-  dealId: {
-    color: '#FF6B2E',
-    backgroundColor: 'rgba(255, 107, 46, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  location: {
-    color: '#1A2C24',
-    marginLeft: 8,
-  },
-  sectionTitle: {
+  dealTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1A2C24',
     marginBottom: 8,
   },
-  description: {
-    color: '#1A2C24',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  interestsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 16,
-    gap: 8,
-  },
-  interestTag: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  interestText: {
-    color: '#1A2C24',
+  dealDescription: {
     fontSize: 14,
+    color: '#666666',
+    marginBottom: 12,
   },
-  detailsContainer: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  detailRow: {
+  dealFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    alignItems: 'center',
   },
-  detailLabel: {
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    marginLeft: 4,
+    fontSize: 14,
+    color: '#FF6B2E',
+  },
+  dealId: {
+    fontSize: 12,
+    color: '#FF6B2E',
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#1A2C24',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7',
+    padding: 20,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#1A2C24',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 16,
+    backgroundColor: '#FF6B2E',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1A2C24',
-  },
-  detailValue: {
-    color: '#1A2C24',
-    maxWidth: '60%',
-    textAlign: 'right',
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  backBtn: {
-    flex: 1,
-    backgroundColor: '#1A2C24',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  backBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  applyBtn: {
-    flex: 1,
-    backgroundColor: '#FF6B2E',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  applyBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  disabledBtn: {
-    backgroundColor: '#9ca3af',
-  },
-  statusSection: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  statusTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1A2C24',
-    marginBottom: 8,
-  },
-  progressRibbon: {
-    backgroundColor: '#1A2C24',
-    borderRadius: 8,
-    padding: 12,
-  },
-  progressStep: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  progressStepText: {
-    color: '#FF6B2E',
-    opacity: 0.7,
-    fontSize: 14,
-  },
-  progressStepTextActive: {
-    opacity: 1,
-    fontWeight: 'bold',
-  },
-  progressLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: '#FF6B2E',
-    opacity: 0.3,
-    marginHorizontal: 8,
-  },
-  progressLineActive: {
-    opacity: 1,
   },
 });
