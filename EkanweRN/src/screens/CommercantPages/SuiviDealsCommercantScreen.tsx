@@ -106,34 +106,44 @@ export const SuiviDealsCommercantScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Suivi Candidatures</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
-              <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-              <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
-            </TouchableOpacity>
-          </View>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-        {filters.map((item) => (
-          <TouchableOpacity
-            key={item}
-            onPress={() => setSelectedFilter(item)}
-            style={[
-              styles.filterButton,
-              selectedFilter === item ? styles.activeFilter : styles.inactiveFilter
-            ]}
-          >
-            <Text style={[
-              styles.filterText,
-              selectedFilter === item ? styles.activeFilterText : styles.inactiveFilterText
-            ]}>{item}</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <ScrollView style={styles.contentScroll}>
+      <View style={styles.filtersContainer}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.filterScrollContent}
+        >
+          {filters.map((item) => (
+            <TouchableOpacity
+              key={item}
+              onPress={() => setSelectedFilter(item)}
+              style={[
+                styles.filterButton,
+                selectedFilter === item ? styles.activeFilter : styles.inactiveFilter
+              ]}
+            >
+              <Text style={[
+                styles.filterText,
+                selectedFilter === item ? styles.activeFilterText : styles.inactiveFilterText
+              ]}>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <ScrollView 
+        style={styles.contentScroll}
+        contentContainerStyle={styles.contentScrollContent}
+      >
         {filtered.length === 0 ? (
           <Text style={styles.emptyText}>Aucune candidature trouvée</Text>
         ) : (
@@ -210,7 +220,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20
+    padding: 16,
+    paddingTop: 48,
+    backgroundColor: '#F5F5E7',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   headerRight: {
     flexDirection: 'row',
@@ -218,109 +232,129 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    color: '#14210F'
   },
   icon: {
     width: 24,
     height: 24,
   },
-  filterScroll: {
+  filtersContainer: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  filterScrollContent: {
     paddingHorizontal: 16,
-    marginBottom: 8 // Reduced from 16 to 8
+    paddingVertical: 12,
   },
   filterButton: {
     paddingHorizontal: 20,
-    height: 28,
+    height: 36,
     marginRight: 8,
-    borderRadius: 20,
+    borderRadius: 18,
     minWidth: 90,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#14210F',
   },
   activeFilter: {
-    backgroundColor: '#1A2C24'
+    backgroundColor: '#1A2C24',
+    borderColor: '#1A2C24',
   },
   inactiveFilter: {
-    backgroundColor: 'rgba(255,255,255,0.2)'
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   filterText: {
-    fontSize: 14
+    fontSize: 14,
   },
   activeFilterText: {
-    color: '#FFFFFF'
+    color: '#FFFFFF',
   },
   inactiveFilterText: {
-    color: '#1A2C24'
+    color: '#14210F',
   },
   contentScroll: {
-    padding: 16,
-    marginTop: 0 // Changed from 16 to 0
+    flex: 1,
   },
-  emptyText: {
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 40
+  contentScrollContent: {
+    padding: 16,
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
-    padding: 12,
+    borderWidth: 1,
+    borderColor: '#000000',
     marginBottom: 16,
-    alignItems: 'flex-start'
+    overflow: 'hidden',
   },
   cardImage: {
-    width: 80,
-    height: 80,
+    width: 128,
+    height: 128,
     borderRadius: 8,
-    marginRight: 12
+    margin: 4,
   },
   cardContent: {
-    flex: 1
+    flex: 1,
+    padding: 8,
+    justifyContent: 'space-between',
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1A2C24'
+    color: '#1A2C24',
   },
   cardDescription: {
     fontSize: 12,
-    color: '#666'
+    color: '#666666',
+    marginTop: 4,
   },
   cardActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 8,
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: 8
+    gap: 8,
   },
   acceptButton: {
     backgroundColor: '#1A2C24',
-    padding: 8,
-    borderRadius: 4
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
   },
   refuseButton: {
-    backgroundColor: '#FF0000',
-    padding: 8,
-    borderRadius: 4
+    backgroundColor: '#FF6B2E',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 12
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   statusBadge: {
-    backgroundColor: '#FF6B2E',
+    backgroundColor: '#1A2C24',
     color: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
     fontSize: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20
+    fontWeight: 'bold',
   },
   detailsButton: {
-    fontSize: 20,
-    color: '#14210F'
-  }
+    fontSize: 24,
+    color: '#14210F',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#666666',
+    fontSize: 16,
+    marginTop: 40,
+  },
 });

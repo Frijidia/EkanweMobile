@@ -260,7 +260,9 @@ export const DealCandidatesPageCommercant = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white'
+    backgroundColor: '#F5F5E7',
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   loadingContainer: {
     flex: 1,
