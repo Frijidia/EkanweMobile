@@ -90,7 +90,7 @@ export const RegisterScreen = () => {
       const userRef = doc(db, 'users', cred.user.uid);
       await setDoc(userRef, {
         email,
-        role: null, // À modifier selon ton contexte
+        role: userData?.role || null, // À modifier selon ton contexte
         dateCreation: new Date(),
         inscription: '1',
       });

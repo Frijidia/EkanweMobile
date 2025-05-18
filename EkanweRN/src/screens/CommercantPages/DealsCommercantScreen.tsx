@@ -7,7 +7,7 @@ import { auth, db } from '../../firebase/firebase';
 import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { RootStackParamList } from '../../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Navbar from './Navbar';
+import {Navbar} from './Navbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsCommercant'>;
 
