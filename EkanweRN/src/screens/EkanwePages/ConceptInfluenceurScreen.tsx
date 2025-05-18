@@ -19,9 +19,11 @@ export const ConceptInfluenceurScreen = () => {
 
       <View style={styles.card}>
         <Text style={styles.title}>Concept</Text>
-        <Text style={styles.subtitle}>
-            Pas d'argent, pas de barrière, juste des collaborations gagnant-gagnant
-        </Text>
+        <View style={styles.list}>
+          <Text style={styles.listItem}>• Pas d'argent</Text>
+          <Text style={styles.listItem}>• Pas de barrière</Text>
+          <Text style={styles.listItem}>• Juste des collaborations gagnant-gagnant</Text>
+        </View>
 
         <View style={styles.dots}>
           <View style={styles.dot} />
@@ -83,6 +85,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     marginBottom: 44,
+  },
+  list: {
+    marginBottom: 32,
+  },
+  listItem: {
+    fontSize: 14,
+    color: 'white',
+    marginBottom: 8,
   },
   dots: {
     flexDirection: 'row',

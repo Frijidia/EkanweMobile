@@ -55,7 +55,7 @@ export const RegisterScreen = () => {
           nom: lastName || null,
           prenoms: firstName || null,
           photoURL: user.photoURL || null,
-          role: null, // À modifier selon ton contexte
+          role: 'commerçant', // À modifier selon ton contexte
           dateCreation: new Date(),
           inscription: '1',
         });

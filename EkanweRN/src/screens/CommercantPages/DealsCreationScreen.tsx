@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
-import { auth, db } from '../firebase/firebase';
+import { auth, db } from '../../firebase/firebase';
 import {
   collection, addDoc, serverTimestamp, getDocs, query, where, writeBatch, doc
 } from 'firebase/firestore';

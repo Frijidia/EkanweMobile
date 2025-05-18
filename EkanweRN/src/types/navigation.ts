@@ -27,4 +27,8 @@ export type RootStackParamList = {
   CreatorCommercant: undefined;
   DealsCommercant: undefined;
   ForgotPassword: undefined;
+  DealsCreation: undefined;
+  MerchantDetailCommercant: undefined;
+  DealCandidatesCommercant: undefined //{ dealId: string };
+  DealsCreationCommercant: undefined;
 }; 

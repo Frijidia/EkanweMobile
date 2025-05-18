@@ -7,6 +7,7 @@ import { auth, db } from '../../firebase/firebase';
 import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { RootStackParamList } from '../../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Navbar from './Navbar';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsCommercant'>;
 
@@ -101,7 +102,7 @@ export const DealsPageCommercantScreen = () => {
 
       {selectedFilter === 'Deals' ? (
         <>
-          <TouchableOpacity style={styles.createDealButton} onPress={() => navigation.navigate('MerchantDetailCommercant')}>
+          <TouchableOpacity style={styles.createDealButton} onPress={() => navigation.navigate('DealsCreation')}>
             <Text style={styles.createDealText}>Faire un deal</Text>
           </TouchableOpacity>
 
@@ -138,6 +139,7 @@ export const DealsPageCommercantScreen = () => {
           ))}
         </>
       )}
+      <Navbar />
     </ScrollView>
   );
 };

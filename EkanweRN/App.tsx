@@ -32,6 +32,10 @@ import { DealsPageCommercantScreen } from './src/screens/CommercantPages/DealsCo
 import { ForgotPasswordScreen } from './src/screens/LoginPages/ForgotPasswordScreen';
 import { configureStatusBar } from './src/utils/capacitorUtils';
 import { UserProvider } from './src/context/UserContext';
+import { DealsCreationScreen } from './src/screens/CommercantPages/DealsCreationScreen';
+//import { MerchantDetailCommercantScreen } from './src/screens/CommercantPages/MerchantDetailCommercantScreen';
+//import { DealCandidatesCommercantScreen } from './src/screens/CommercantPages/DealCandidatesCommercantScreen';
+//import { DealsCreationCommercantScreen } from './src/screens/CommercantPages/DealsCreationCommercantScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -73,6 +77,10 @@ export default function App() {
           <Stack.Screen name='CreatorCommercant' component={CreatorCommercantScreen} />
           <Stack.Screen name='DealsCommercant' component={DealsPageCommercantScreen} />
           <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
+          <Stack.Screen name='DealsCreation' component={DealsCreationScreen} />
+          {/*<Stack.Screen name='MerchantDetailCommercant' component={MerchantDetailCommercantScreen} />
+          <Stack.Screen name='DealCandidatesCommercant' component={DealCandidatesCommercantScreen} />
+          <Stack.Screen name='DealsCreationCommercant' component={DealsCreationCommercantScreen} />*/}
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

@@ -31,6 +31,7 @@ import { ConceptCommercantScreen } from '../screens/EkanwePages/ConceptCommercan
 import { CreatorCommercantScreen } from '../screens/EkanwePages/CreatorCommercantScreen';
 import { DealsPageCommercantScreen } from '../screens/CommercantPages/DealsCommercantScreen';
 import { ForgotPasswordScreen } from '../screens/LoginPages/ForgotPasswordScreen';
+import { DealsCreationScreen } from '../screens/CommercantPages/DealsCreationScreen';
 // Navigation principale de l'application
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -70,6 +71,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="CreatorCommercant" component={CreatorCommercantScreen} />
       <Stack.Screen name="DealsCommercant" component={DealsPageCommercantScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="DealsCreation" component={DealsCreationScreen} />
     </Stack.Navigator>
   );
 }; 
