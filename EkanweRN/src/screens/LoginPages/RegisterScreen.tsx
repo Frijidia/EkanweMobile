@@ -21,6 +21,7 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { useUserData } from '../../context/UserContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Register'>;
 
@@ -29,6 +30,7 @@ export const RegisterScreen = () => {
   const [formData, setFormData] = useState({ email: '', password: '', confirmation: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { userData } = useUserData();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -55,7 +57,7 @@ export const RegisterScreen = () => {
           nom: lastName || null,
           prenoms: firstName || null,
           photoURL: user.photoURL || null,
-          role: null, // À modifier selon ton contexte
+          role: userData?.role || null,
           dateCreation: new Date(),
           inscription: '1',
         });
