@@ -241,7 +241,9 @@ export const DealsInfluenceurScreen = () => {
           <TouchableOpacity onPress={() => navigation.navigate('NotificationInfluenceur')}>
             <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
           </TouchableOpacity>
-          <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          <TouchableOpacity onPress={()=>navigation.navigate('DealsInfluenceur')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
         </View>
       </View>
 

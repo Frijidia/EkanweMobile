@@ -138,10 +138,12 @@ export const DiscussionInfluenceurScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Discussions</Text>
-        <Image 
-          source={require('../../assets/ekanwesign.png')} 
-          style={styles.headerLogo}
-        />
+        <TouchableOpacity onPress={() => navigation.navigate('NotificationInfluenceur')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={()=>navigation.navigate('DealsInfluenceur')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
@@ -250,6 +252,10 @@ const styles = StyleSheet.create({
     color: '#1A2C24',
   },
   headerLogo: {
+    width: 24,
+    height: 24,
+  },
+  icon: {
     width: 24,
     height: 24,
   },

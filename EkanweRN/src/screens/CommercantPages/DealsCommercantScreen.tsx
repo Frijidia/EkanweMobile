@@ -81,6 +81,12 @@ export const DealsPageCommercantScreen = () => {
       <ScrollView>
         <View style={styles.header}>
           <Text style={styles.title}>Deals</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.searchContainer}>
@@ -171,7 +177,12 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     marginBottom: 12,
   },
-  filterContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16 },
+  filterContainer: { 
+    flexDirection: 'row',
+    justifyContent: 'center', 
+    marginBottom: 16, 
+    marginTop: 20,
+  },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -211,4 +222,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   buttonText: { color: '#fff', fontSize: 14 },
+  icon: {
+    width: 24,
+    height: 24,
+  },
 });

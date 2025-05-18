@@ -102,8 +102,13 @@ export const SuiviDealsCommercantScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Suivi Candidatures</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
       </View>
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
         {filters.map((item) => (
           <TouchableOpacity
@@ -199,11 +204,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16
+    padding: 20
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold'
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
   filterScroll: {
     paddingHorizontal: 16,

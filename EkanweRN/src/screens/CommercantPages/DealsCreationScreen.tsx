@@ -93,6 +93,15 @@ export const DealsCreationScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Créer un Deal</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+              <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
+              <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+            </TouchableOpacity>
+      </View>
       <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
         <Image
           source={{ uri: imageUri || 'https://via.placeholder.com/600x200' }}
@@ -171,11 +180,46 @@ export const DealsCreationScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#F5F5E7', paddingTop: 40, paddingBottom: 20 },
-  imageContainer: { alignItems: 'center', marginBottom: 16 },
-  image: { width: '100%', height: 180, borderRadius: 8 },
-  imageText: { marginTop: 8, fontSize: 14, color: '#FF6B2E' },
-  label: { fontWeight: 'bold', fontSize: 16, marginTop: 16, marginBottom: 4, color: '#1A2C24' },
+  container: { 
+    flex: 1, 
+    padding: 16, 
+    backgroundColor: '#F5F5E7', 
+    paddingTop: 40, 
+    paddingBottom: 80,
+  },
+  header: { 
+    padding: 16, 
+    flexDirection: 'row',
+    justifyContent: 'space-between' 
+  },
+  title: { fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#14210F' 
+  },
+
+  imageContainer: { 
+    alignItems: 'center', 
+    marginBottom: 16 },
+  image: { 
+    width: '100%', 
+    height: 180, 
+    borderRadius: 8 
+  },
+  imageText: { marginTop: 8, 
+    fontSize: 14, 
+    color: '#FF6B2E' 
+  },
+  label: { 
+    fontWeight: 'bold', 
+    fontSize: 16, 
+    marginTop: 16, 
+    marginBottom: 4, 
+    color: '#1A2C24'
+  },
+  icon: {
+    width: 24,
+    height: 24,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -184,8 +228,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 6,
   },
-  multiline: { minHeight: 80, textAlignVertical: 'top' },
-  tagContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  multiline: { 
+    minHeight: 80, 
+    textAlignVertical: 'top' 
+  },
+  tagContainer: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 8 
+  },
   tag: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -195,9 +246,16 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginTop: 8,
   },
-  tagSelected: { backgroundColor: '#FF6B2E', borderColor: '#FF6B2E' },
-  tagText: { color: '#1A2C24' },
-  tagTextSelected: { color: '#fff' },
+  tagSelected: { 
+    backgroundColor: '#FF6B2E',
+    borderColor: '#FF6B2E' 
+  },
+  tagText: { 
+    color: '#1A2C24'
+  },
+  tagTextSelected: { 
+    color: '#fff' 
+  },
   fakeMap: {
     height: 60,
     backgroundColor: '#1A2C24',
@@ -212,6 +270,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
+    paddingBottom: 20,
   },
-  submitText: { color: '#fff', fontWeight: 'bold' },
+  submitText: { 
+    color: '#fff', 
+    fontWeight: 'bold',
+    paddingBottom: 10,
+  },
 });

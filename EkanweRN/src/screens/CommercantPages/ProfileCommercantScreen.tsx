@@ -166,12 +166,15 @@ const styles = StyleSheet.create({
     minHeight: '100%',
     paddingTop: 40,
     paddingBottom: 20,
+    padding: 10
+
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
+    marginTop: 20,
   },
   title: {
     fontSize: 30,

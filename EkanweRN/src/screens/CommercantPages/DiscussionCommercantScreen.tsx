@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
+import { Navbar } from './Navbar';
 
 export const DiscussionCommercantScreen = () => {
   const navigation = useNavigation();
@@ -87,7 +88,7 @@ export const DiscussionCommercantScreen = () => {
         <View style={styles.headerTop}>
           <Text style={styles.title}>Discussions</Text>
           <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-            <Ionicons name="home" size={24} color="#1A2C24" />
+          <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
           </TouchableOpacity>
         </View>
         <View style={styles.searchContainer}>
@@ -101,37 +102,40 @@ export const DiscussionCommercantScreen = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.chatList}>
-        {filteredChats.length > 0 ? (
-          filteredChats.map((chat) => (
-            <TouchableOpacity
-              key={chat.chatId}
-              onPress={() => handleSelect(chat)}
-              style={styles.chatItem}
-            >
-              <View style={styles.chatContent}>
-                <Image
-                  source={{ uri: chat.user?.photoURL || 'https://via.placeholder.com/150' }}
-                  style={styles.avatar}
-                />
-                <View style={styles.chatInfo}>
-                  <View style={styles.chatHeader}>
-                    <Text style={styles.username} numberOfLines={1}>{chat.user?.pseudonyme || 'Utilisateur'}</Text>
-                    <Text style={styles.time}>{new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+      <View style={styles.mainContainer}>
+        <ScrollView style={styles.chatList}>
+          {filteredChats.length > 0 ? (
+            filteredChats.map((chat) => (
+              <TouchableOpacity
+                key={chat.chatId}
+                onPress={() => handleSelect(chat)}
+                style={styles.chatItem}
+              >
+                <View style={styles.chatContent}>
+                  <Image
+                    source={{ uri: chat.user?.photoURL || 'https://via.placeholder.com/150' }}
+                    style={styles.avatar}
+                  />
+                  <View style={styles.chatInfo}>
+                    <View style={styles.chatHeader}>
+                      <Text style={styles.username} numberOfLines={1}>{chat.user?.pseudonyme || 'Utilisateur'}</Text>
+                      <Text style={styles.time}>{new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                    </View>
+                    <Text style={[styles.lastMessage, !chat.read && styles.unreadMessage]} numberOfLines={1}>
+                      {chat.lastMessage || 'Commencez la conversation...'}
+                    </Text>
                   </View>
-                  <Text style={[styles.lastMessage, !chat.read && styles.unreadMessage]} numberOfLines={1}>
-                    {chat.lastMessage || 'Commencez la conversation...'}
-                  </Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Aucune conversation pour le moment</Text>
-          </View>
-        )}
-      </ScrollView>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Aucune conversation pour le moment</Text>
+            </View>
+          )}
+        </ScrollView>
+        <Navbar/>
+      </View>
     </View>
   );
 }
@@ -142,6 +146,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
     paddingBottom: 6
+  },
+  mainContainer: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between'
   },
   loadingContainer: {
     flex: 1,
@@ -239,5 +249,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: '#666'
+  },
+  icon:{
+    width: 24,
+    height:24,
   }
 });
