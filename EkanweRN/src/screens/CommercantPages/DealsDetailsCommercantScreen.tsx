@@ -33,7 +33,7 @@ export const DealsDetailsCommercantScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!dealId || !influenceurId) return;
+        if (!dealId) return;
 
         const dealRef = doc(db, "deals", dealId);
         const dealSnap = await getDoc(dealRef);
@@ -42,10 +42,13 @@ export const DealsDetailsCommercantScreen = () => {
           const dealData = dealSnap.data();
           setDeal({ id: dealSnap.id, ...dealData });
 
-          const cand = dealData.candidatures?.find((c: any) => c.influenceurId === influenceurId);
-          if (cand) {
-            setCandidature(cand);
-            setHasReviewed(!!cand.influreview);
+          // Si un influenceurId est fourni, chercher sa candidature
+          if (influenceurId) {
+            const cand = dealData.candidatures?.find((c: any) => c.influenceurId === influenceurId);
+            if (cand) {
+              setCandidature(cand);
+              setHasReviewed(!!cand.influreview);
+            }
           }
         }
       } catch (error) {
@@ -140,10 +143,10 @@ export const DealsDetailsCommercantScreen = () => {
     );
   }
 
-  if (!deal || !candidature) {
+  if (!deal) {
     return (
       <View style={styles.centered}>
-        <Text>Données introuvables</Text>
+        <Text>Deal introuvable</Text>
       </View>
     );
   }
@@ -216,75 +219,80 @@ export const DealsDetailsCommercantScreen = () => {
           </View>
         </View>
 
-        {/* Progress Ribbon */}
-        <View style={{ marginBottom: 16 }}>
-          <ProgressRibbon currentStatus={candidature.status} />
-        </View>
-
-        {/* Proofs */}
-        {["Accepté", "Approbation", "Terminé"].includes(candidature.status) &&
-          candidature.proofs &&
-          candidature.proofs.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Captures réalisées :</Text>
-              {candidature.proofs.map((proof: any, index: number) => (
-                <View key={index} style={{ marginBottom: 24 }}>
-                  <Image source={{ uri: proof.image }} style={styles.proofImage} />
-                  <View style={styles.proofStats}>
-                    <Text>Likes : {proof.likes}</Text>
-                    <Text>Nombre de vue : {proof.shares}</Text>
-                  </View>
-                </View>
-              ))}
+        {/* Afficher les informations de candidature seulement si une candidature existe */}
+        {candidature && (
+          <>
+            {/* Progress Ribbon */}
+            <View style={{ marginBottom: 16 }}>
+              <ProgressRibbon currentStatus={candidature.status} />
             </View>
-          )}
 
-        {/* Review */}
-        {candidature.status === "Terminé" && candidature.review && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Avis laissé :</Text>
-            <Text style={{ fontStyle: "italic" }}>"{candidature.review.comment}"</Text>
-          </View>
-        )}
+            {/* Proofs */}
+            {["Accepté", "Approbation", "Terminé"].includes(candidature.status) &&
+              candidature.proofs &&
+              candidature.proofs.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Captures réalisées :</Text>
+                  {candidature.proofs.map((proof: any, index: number) => (
+                    <View key={index} style={{ marginBottom: 24 }}>
+                      <Image source={{ uri: proof.image }} style={styles.proofImage} />
+                      <View style={styles.proofStats}>
+                        <Text>Likes : {proof.likes}</Text>
+                        <Text>Nombre de vue : {proof.shares}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
 
-        {/* Buttons */}
-        {candidature.status === "Terminé" && (
-          <TouchableOpacity
-            onPress={() =>
-              !hasReviewed && navigation.navigate("ReviewCommercant", { dealId, influenceurId })
-            }
-            disabled={hasReviewed}
-            style={[
-              styles.button,
-              hasReviewed ? styles.disabledButton : styles.primaryButton,
-            ]}
-          >
-            <Text style={styles.buttonText}>
-              {hasReviewed ? "Déjà évalué" : "Noter l'influenceur"}
-            </Text>
-          </TouchableOpacity>
-        )}
+            {/* Review */}
+            {candidature.status === "Terminé" && candidature.review && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Avis laissé :</Text>
+                <Text style={{ fontStyle: "italic" }}>"{candidature.review.comment}"</Text>
+              </View>
+            )}
 
-        {candidature.status === "Approbation" && (
-          <TouchableOpacity
-            onPress={handleApprove}
-            disabled={approving}
-            style={[styles.button, styles.primaryButton, approving && styles.disabledButton]}
-          >
-            <Text style={styles.buttonText}>{approving ? "Approbation..." : "Approuver"}</Text>
-          </TouchableOpacity>
-        )}
+            {/* Buttons */}
+            {candidature.status === "Terminé" && (
+              <TouchableOpacity
+                onPress={() =>
+                  !hasReviewed && navigation.navigate("ReviewCommercant", { dealId, influenceurId })
+                }
+                disabled={hasReviewed}
+                style={[
+                  styles.button,
+                  hasReviewed ? styles.disabledButton : styles.primaryButton,
+                ]}
+              >
+                <Text style={styles.buttonText}>
+                  {hasReviewed ? "Déjà évalué" : "Noter l'influenceur"}
+                </Text>
+              </TouchableOpacity>
+            )}
 
-        {candidature.status === "Envoyé" && (
-          <TouchableOpacity
-            onPress={handleCancel}
-            disabled={cancelling}
-            style={[styles.button, styles.cancelButton, cancelling && styles.disabledButton]}
-          >
-            <Text style={[styles.cancelButtonText]}>
-              {cancelling ? "Résiliation..." : "Résilier"}
-            </Text>
-          </TouchableOpacity>
+            {candidature.status === "Approbation" && (
+              <TouchableOpacity
+                onPress={handleApprove}
+                disabled={approving}
+                style={[styles.button, styles.primaryButton, approving && styles.disabledButton]}
+              >
+                <Text style={styles.buttonText}>{approving ? "Approbation..." : "Approuver"}</Text>
+              </TouchableOpacity>
+            )}
+
+            {candidature.status === "Envoyé" && (
+              <TouchableOpacity
+                onPress={handleCancel}
+                disabled={cancelling}
+                style={[styles.button, styles.cancelButton, cancelling && styles.disabledButton]}
+              >
+                <Text style={[styles.cancelButtonText]}>
+                  {cancelling ? "Résiliation..." : "Résilier"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
     </ScrollView>
