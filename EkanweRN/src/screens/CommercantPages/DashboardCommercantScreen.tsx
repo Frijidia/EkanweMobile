@@ -116,12 +116,14 @@ export const DashboardCommercantScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Dashboard</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
               <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
+            <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
               <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
             </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.statsContainer}>
@@ -338,5 +340,9 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
   }
 });

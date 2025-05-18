@@ -81,14 +81,15 @@ export const DealsPageCommercantScreen = () => {
       <ScrollView>
         <View style={styles.header}>
           <Text style={styles.title}>Deals</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
-            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate('DealsCommercant')}>
-            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+              <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+              <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
         </View>
-
         <View style={styles.searchContainer}>
           <TextInput placeholder="Recherche" placeholderTextColor="#999" style={styles.input} />
         </View>
@@ -167,6 +168,10 @@ const styles = StyleSheet.create({
   },
   loadingText: { fontSize: 16, color: '#14210F' },
   header: { padding: 16, flexDirection: 'row', justifyContent: 'space-between' },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
   title: { fontSize: 24, fontWeight: 'bold', color: '#14210F' },
   searchContainer: { paddingHorizontal: 16 },
   input: {
@@ -182,7 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     marginBottom: 16, 
     marginTop: 20,
-    
+
   },
   filterButton: {
     paddingHorizontal: 16,
