@@ -38,9 +38,12 @@ export type RootStackParamList = {
   DealCandidatesCommercant: { dealId: string };
   DealsCreationCommercant: undefined;
   ProfileCommercant: undefined;
+  DealsDetailsCommercant: { dealId: string; influenceurId: string };
   SuiviDealsCommercant: undefined;
   DiscussionCommercant: undefined;
   DashboardCommercant: undefined;
   NotificationInfluenceur: undefined;
+  NotificationsCommercant: undefined;
+  ProfilPublicCommercant: { userId: string };
   BottomNavbar: undefined;
 }; 

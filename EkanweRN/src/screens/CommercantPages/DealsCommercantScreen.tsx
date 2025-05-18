@@ -122,7 +122,10 @@ export const DealsPageCommercantScreen = () => {
                   <Text style={styles.dealDesc}>{deal.description || '-'}</Text>
                   {renderStars(calculateAverageRating(deal.candidatures))}
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('DealCandidatesCommercant', { dealId: deal.id })}
+                    onPress={() => navigation.navigate('DealsDetailsCommercant', { 
+                      dealId: deal.id,
+                      influenceurId: auth.currentUser?.uid || ''
+                    })}
                     style={styles.button}
                   >
                     <Text style={styles.buttonText}>Voir plus</Text>

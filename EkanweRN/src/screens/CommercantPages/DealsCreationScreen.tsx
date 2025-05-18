@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator, Alert
 } from 'react-native';
@@ -24,6 +24,14 @@ export const DealsCreationScreen = () => {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [region, setRegion] = useState({
+    latitude: 5.35,
+    longitude: -4.01,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const availableInterests = ["Mode", "Cuisine", "Voyage", "Beauté", "Sport", "Technologie", "Gaming"];
   const availableTypes = ["Post Instagram", "Story Instagram", "Vidéo TikTok", "Autre"];
@@ -109,6 +117,51 @@ export const DealsCreationScreen = () => {
     }
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const results = await Location.geocodeAsync(searchQuery);
+      if (results.length > 0) {
+        const { latitude, longitude } = results[0];
+        setRegion({
+          latitude,
+          longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        });
+        setPosition({ lat: latitude, lng: longitude });
+        setLocationName(await getLocationName(latitude, longitude));
+      } else {
+        Alert.alert('Erreur', 'Adresse non trouvée');
+      }
+    } catch (error) {
+      console.error('Erreur de recherche:', error);
+      Alert.alert('Erreur', 'Impossible de trouver cette adresse');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'La permission de localisation est nécessaire pour utiliser la carte.');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    })();
+  }, []);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -185,36 +238,54 @@ export const DealsCreationScreen = () => {
         multiline
       />
 
-      {/* TODO: Ajouter une vraie map de localisation ici plus tard */}
       <Text style={styles.label}>Localisation</Text>
-      <MapView
-        style={{ flex: 1 }}
-        initialRegion={{
-          latitude: 5.35,
-          longitude: -4.01,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-        onPress={handleMapPress}
-      >
-        {position && (
-          <Marker
-            coordinate={{
-              latitude: position.lat,
-              longitude: position.lng,
-            }}
-            title="Position choisie"
-          />
-        )}
-      </MapView>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Rechercher une adresse..."
+          onSubmitEditing={handleSearch}
+        />
+        <TouchableOpacity 
+          style={styles.searchButton} 
+          onPress={handleSearch}
+          disabled={isSearching}
+        >
+          {isSearching ? (
+            <ActivityIndicator size="small" color="#FF6B2E" />
+          ) : (
+            <Ionicons name="search" size={24} color="#FF6B2E" />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.mapContainer}>
+        <MapView
+          style={styles.map}
+          region={region}
+          onRegionChangeComplete={setRegion}
+          onPress={handleMapPress}
+        >
+          {position && (
+            <Marker
+              coordinate={{
+                latitude: position.lat,
+                longitude: position.lng,
+              }}
+              title="Position choisie"
+            />
+          )}
+        </MapView>
+      </View>
 
       <View style={styles.tagContainer}>
         {position ? (
-          <Text style={styles.input}>
-            Latitude: {position.lat.toFixed(5)} / Longitude: {position.lng.toFixed(5)}
+          <Text style={styles.locationText}>
+            {locationName || `Latitude: ${position.lat.toFixed(5)} / Longitude: ${position.lng.toFixed(5)}`}
           </Text>
         ) : (
-          <Text style={styles.input}>Touchez la carte pour sélectionner un emplacement</Text>
+          <Text style={styles.locationText}>Touchez la carte ou recherchez une adresse</Text>
         )}
       </View>
 
@@ -337,5 +408,45 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     paddingBottom: 10,
+  },
+  mapContainer: {
+    height: 200,
+    marginVertical: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  searchButton: {
+    width: 44,
+    height: 44,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#1A2C24',
+    marginTop: 8,
+    textAlign: 'center',
   },
 });

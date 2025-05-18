@@ -4,13 +4,22 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase/firebase";
 import { sendNotification } from "../../hooks/sendNotifications";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import profile from "../../assets/profile.png";
-import sign from "../../assets/ekanwesign.png";
+//import profile from "../../assets/profile.png";
+//import sign from "../../assets/ekanwesign.png";
 
-export default function DealDetailPageCommercant() {
-  const navigation = useNavigation();
+type RootStackParamList = {
+  DealsCommercant: undefined;
+  NotificationsCommercant: undefined;
+  ReviewCommercant: { dealId: string; influenceurId: string };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+export const DealsDetailsCommercantScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { dealId, influenceurId } = route.params as { dealId: string; influenceurId: string };
 
@@ -124,7 +133,8 @@ export default function DealDetailPageCommercant() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Image source={sign} style={styles.loadingImage} />
+        {/*<Image source={sign} style={styles.loadingImage} />*/}
+        <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
         <Text style={styles.loadingText}>Chargement en cours...</Text>
       </View>
     );
@@ -160,7 +170,7 @@ export default function DealDetailPageCommercant() {
 
       {/* Deal Image */}
       <Image
-        source={deal.imageUrl ? { uri: deal.imageUrl } : profile}
+        source={deal.imageUrl ? { uri: deal.imageUrl } : require('../../assets/profile.png')}
         style={styles.dealImage}
         resizeMode="cover"
       />
@@ -420,6 +430,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
   },
   primaryButton: {
     backgroundColor: "#FF6B2E",

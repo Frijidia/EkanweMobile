@@ -38,6 +38,7 @@ import { SuiviDealsCommercantScreen } from './src/screens/CommercantPages/SuiviD
 import { DiscussionCommercantScreen } from './src/screens/CommercantPages/DiscussionCommercantScreen';
 import { DashboardCommercantScreen } from './src/screens/CommercantPages/DashboardCommercantScreen';
 import { NotificationInfluenceurScreen } from './src/screens/InfluenceurPages/NotificationInfluenceurScreen';
+import { DealsDetailsCommercantScreen } from './src/screens/CommercantPages/DealsDetailsCommercantScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -85,6 +86,7 @@ export default function App() {
           <Stack.Screen name='DiscussionCommercant' component={DiscussionCommercantScreen} />
           <Stack.Screen name='DashboardCommercant' component={DashboardCommercantScreen} />
           <Stack.Screen name='NotificationInfluenceur' component={NotificationInfluenceurScreen} />
+          <Stack.Screen name='DealsDetailsCommercant' component={DealsDetailsCommercantScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>
