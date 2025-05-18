@@ -15,10 +15,31 @@ import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from './BottomNavbar';
-import { Deal } from '../../types/deal';
+//import { Deal } from '../../types/deal';
 import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+interface Deal {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  status: string;
+  candidatures?: Array<{
+    influenceurId: string;
+    status: string;
+    review?: {
+      rating: number | string;
+    };
+  }>;
+  merchantId: string;
+  interest?: string;
+}
 
 export const DealsSeeMoreInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -118,7 +139,7 @@ export const DealsSeeMoreInfluenceurScreen = () => {
               <View style={styles.dealFooter}>
                 <View style={styles.locationContainer}>
                   <Ionicons name="location-outline" size={16} color="#FF6B2E" />
-                  <Text style={styles.locationText}>{deal.locationName}</Text>
+                  {/*<Text style={styles.locationText}>{deal.location.name}</Text>*/}
                 </View>
                 <Text style={styles.dealId}>#{deal.id}</Text>
               </View>
@@ -136,6 +157,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',

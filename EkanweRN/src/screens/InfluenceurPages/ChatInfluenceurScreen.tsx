@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -15,7 +15,8 @@ export const ChatInfluenceurScreen = () => {
 
   // Simuler les données de la conversation
   const conversation = {
-    id: route.params.conversationId,
+    //id: route.params.conversationId,
+    id: route.params.chatId,
     merchant: {
       name: 'Le Petit Bistrot',
       image: require('../../assets/profile.png'),
@@ -129,7 +130,9 @@ export const ChatInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EBEBDF',
+    backgroundColor: '#F5F5E7',
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',

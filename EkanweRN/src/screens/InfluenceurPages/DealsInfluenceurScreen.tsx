@@ -506,6 +506,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -522,7 +524,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 20,
   },
   headerRight: {
     flexDirection: 'row',
@@ -590,6 +592,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingBottom: 80,
   },
   section: {
     marginBottom: 24,

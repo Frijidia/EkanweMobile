@@ -308,7 +308,9 @@ export const DealDetailsInfluenceurScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f6ed'
+    backgroundColor: '#f7f6ed',
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',

@@ -42,4 +42,5 @@ export type RootStackParamList = {
   DiscussionCommercant: undefined;
   DashboardCommercant: undefined;
   NotificationInfluenceur: undefined;
+  BottomNavbar: undefined;
 }; 
