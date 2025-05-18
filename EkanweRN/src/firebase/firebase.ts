@@ -6,12 +6,13 @@ import { getFunctions } from 'firebase/functions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAs9Ol9gHfqcl9CJsG-uxyDuInN5CPui6Q",
-  authDomain: "ekanwe-96b6c.firebaseapp.com",
-  projectId: "ekanwe-96b6c",
-  storageBucket: "ekanwe-96b6c.firebasestorage.app",
-  messagingSenderId: "862152717069",
-  appId: "1:862152717069:web:efb3d771aa9c5ebfa2f644"
+  apiKey: "AIzaSyDyRgBYPs6qUJpjr9rW4F8nE4s6YwY-g-k",
+  authDomain: "ekanwe-app.firebaseapp.com",
+  projectId: "ekanwe-app",
+  storageBucket: "ekanwe-app.firebasestorage.app",
+  messagingSenderId: "177322625777",
+  appId: "1:177322625777:web:3e8a67a4d99cf388b13750",
+  measurementId: "G-17MSPHGKVV"
 };
 
 const app = initializeApp(firebaseConfig);
