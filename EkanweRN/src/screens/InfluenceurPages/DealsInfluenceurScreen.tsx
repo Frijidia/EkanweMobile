@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../../firebase/firebase';
 import { sendNotification } from '../../hooks/sendNotifications';
-import { getCurrentPosition, configureStatusBar } from '../../utils/capacitorUtils';
+//import { getCurrentPosition, configureStatusBar } from '../../utils/capacitorUtils';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -69,7 +69,7 @@ export const DealsInfluenceurScreen = () => {
   const otherRef = useRef(null);
 
   useEffect(() => {
-    configureStatusBar();
+    //configureStatusBar();
     fetchUserLocation();
     fetchDeals();
   }, []);
@@ -88,8 +88,8 @@ export const DealsInfluenceurScreen = () => {
 
   const fetchUserLocation = async () => {
     try {
-      const position = await getCurrentPosition();
-      setUserLocation(position);
+      //const position = await getCurrentPosition();
+      //setUserLocation(position);
     } catch (error) {
       console.error("Erreur lors de la récupération de la position:", error);
       setError({
