@@ -46,4 +46,10 @@ export type RootStackParamList = {
   NotificationsCommercant: undefined;
   ProfilPublicCommercant: { userId: string };
   BottomNavbar: undefined;
+  Chat: {
+    chatId: string;
+    pseudonyme?: string;
+    photoURL?: string;
+    role: string;
+  };
 }; 

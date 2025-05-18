@@ -12,27 +12,32 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
-import { Ionicons } from '@expo/vector-icons';
-import { RootStackParamList } from '../../types/navigation';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ReviewScreenRouteProp = RouteProp<RootStackParamList, 'ReviewScreen'>;
+
+interface Rating {
+  category: string;
+  score: number;
+}
 
 const ThankYouModal = ({ isVisible, onClose }: { isVisible: boolean; onClose: () => void }) => {
   if (!isVisible) return null;
   return (
     <Modal
-      transparent
       visible={isVisible}
+      transparent
       animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalIconContainer}>
-            <Ionicons name="checkmark" size={40} color="#FF6B2E" />
+            <Icon name="check" size={40} color="#FF6B2E" />
           </View>
           <Text style={styles.modalTitle}>Merci pour votre évaluation !</Text>
           <Text style={styles.modalText}>
@@ -51,7 +56,7 @@ const StarRating = ({ score, onRate }: { score: number; onRate: (s: number) => v
   <View style={styles.starContainer}>
     {[1, 2, 3, 4, 5].map((s) => (
       <TouchableOpacity key={s} onPress={() => onRate(s)}>
-        <Ionicons
+        <Icon
           name={s <= score ? "star" : "star-outline"}
           size={32}
           color={s <= score ? "#FF6B2E" : "#CCCCCC"}
@@ -70,7 +75,7 @@ export const ReviewScreen = () => {
   const [user, setUser] = useState<any>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const [ratings, setRatings] = useState([
+  const [ratings, setRatings] = useState<Rating[]>([
     { category: "Qualité de la prestation", score: 0 },
     { category: "Respect des délais", score: 0 },
     { category: "Communication", score: 0 },
@@ -161,12 +166,17 @@ export const ReviewScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#FF6B2E" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Évaluation</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="chevron-left" size={24} color="#FF6B2E" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Évaluation</Text>
+        </View>
         <TouchableOpacity onPress={() => navigation.navigate('DealsInfluenceur')}>
-          <Image source={require('../../assets/ekanwesign.png')} style={styles.headerIcon} />
+          <Image
+            source={require('../../assets/ekanwesign.png')}
+            style={styles.headerLogo}
+          />
         </TouchableOpacity>
       </View>
 
@@ -196,12 +206,13 @@ export const ReviewScreen = () => {
           <Text style={styles.commentLabel}>Commentaire</Text>
           <TextInput
             style={styles.commentInput}
-            multiline
-            numberOfLines={4}
             value={comment}
             onChangeText={setComment}
             placeholder="Partagez votre expérience détaillée..."
             placeholderTextColor="#666666"
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
           />
         </View>
 
@@ -219,8 +230,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
-    paddingTop: 40,
-    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -228,21 +237,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     paddingTop: 48,
-    backgroundColor: '#FFFFFF',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
-    padding: 8,
+    marginRight: 16,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#14210F',
   },
-  headerIcon: {
+  headerLogo: {
     width: 24,
     height: 24,
   },
   content: {
+    flex: 1,
     padding: 16,
   },
   userInfo: {
@@ -253,8 +266,8 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 64,
     height: 64,
-    borderRadius: 32,
     backgroundColor: '#CCCCCC',
+    borderRadius: 32,
     marginRight: 16,
   },
   userName: {
@@ -275,7 +288,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#CCCCCC',
+    borderColor: '#E5E5E5',
   },
   ratingCategory: {
     fontSize: 16,
@@ -297,12 +310,11 @@ const styles = StyleSheet.create({
   commentInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: '#CCCCCC',
+    borderColor: '#E5E5E5',
     borderRadius: 8,
     padding: 12,
-    height: 120,
-    textAlignVertical: 'top',
     color: '#14210F',
+    height: 120,
   },
   submitButton: {
     backgroundColor: '#FF6B2E',
@@ -356,7 +368,8 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     backgroundColor: '#FF6B2E',
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 8,
     width: '100%',
   },

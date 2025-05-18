@@ -40,7 +40,10 @@ import { DashboardCommercantScreen } from './src/screens/CommercantPages/Dashboa
 import { NotificationInfluenceurScreen } from './src/screens/InfluenceurPages/NotificationInfluenceurScreen';
 import { DealsDetailsCommercantScreen } from './src/screens/CommercantPages/DealsDetailsCommercantScreen';
 import { NotificationsCommercantScreen } from './src/screens/CommercantPages/NotificationsCommercantScreen';
-const Stack = createNativeStackNavigator();
+import { ChatScreen } from './src/screens/ChatScreen';
+import { RootStackParamList } from './src/types/navigation';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
 
@@ -56,7 +59,7 @@ export default function App() {
           <Stack.Screen name="Connection" component={ConnectionScreen} />
           <Stack.Screen name="WelcomeInfluenceur" component={WelcomeInfluenceurScreen} />
           <Stack.Screen name="WelcomeCommercant" component={WelcomeCommercantScreen} />
-          <Stack.Screen name="App" component={AppNavigator} />
+          {/* <Stack.Screen name="App" component={AppNavigator} /> */}
           <Stack.Screen name="CreatorTypeInfluenceur" component={CreatorTypeInfluenceurScreen} />
           <Stack.Screen name="ConceptInfluenceur" component={ConceptInfluenceurScreen} />
           <Stack.Screen name="LoginOrConnect" component={LoginOrConnectScreen} />
@@ -88,6 +91,7 @@ export default function App() {
           <Stack.Screen name='NotificationInfluenceur' component={NotificationInfluenceurScreen} />
           <Stack.Screen name='DealsDetailsCommercant' component={DealsDetailsCommercantScreen} />
           <Stack.Screen name='NotificationsCommercant' component={NotificationsCommercantScreen} />
+          <Stack.Screen name='Chat' component={ChatScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

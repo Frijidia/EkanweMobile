@@ -7,23 +7,30 @@ import {
   Image,
   ScrollView,
   TextInput,
-  Alert,
+  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
 import { collection, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomNavbar } from './BottomNavbar';
-import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+interface Candidature {
+  dealId: string;
+  dealInfo: any;
+  candidatureIndex: number;
+  status: string;
+  influenceurId: string;
+}
 
 export const SuivisDealsInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState("Tous");
-  const [candidatures, setCandidatures] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [candidatures, setCandidatures] = useState<Candidature[]>([]);
   const filters = ["Tous", "Envoyé", "Accepté", "Refusé", "Terminé"];
 
   useEffect(() => {
@@ -33,7 +40,7 @@ export const SuivisDealsInfluenceurScreen = () => {
     const dealsRef = collection(db, "deals");
 
     const unsubscribe = onSnapshot(dealsRef, (snapshot) => {
-      const myCandidatures: any[] = [];
+      const myCandidatures: Candidature[] = [];
 
       snapshot.forEach((docSnap) => {
         const deal = docSnap.data();
@@ -63,15 +70,15 @@ export const SuivisDealsInfluenceurScreen = () => {
     const currentStageIndex = stages.indexOf(status);
 
     return {
-      Envoyé: { text: styles.progressTextActive },
-      Accepté: { text: currentStageIndex >= 1 ? styles.progressTextActive : styles.progressTextInactive },
-      completed: { text: currentStageIndex >= 2 ? styles.progressTextActive : styles.progressTextInactive },
-      line1: currentStageIndex >= 1 ? styles.progressLineActive : styles.progressLineInactive,
-      line2: currentStageIndex >= 2 ? styles.progressLineActive : styles.progressLineInactive,
+      Envoyé: { color: "#1A2C24", fontWeight: "bold" as const },
+      Accepté: { color: currentStageIndex >= 1 ? "#1A2C24" : "#666666", fontWeight: currentStageIndex >= 1 ? "bold" as const : "normal" as const },
+      completed: { color: currentStageIndex >= 2 ? "#1A2C24" : "#666666", fontWeight: currentStageIndex >= 2 ? "bold" as const : "normal" as const },
+      line1: { backgroundColor: currentStageIndex >= 1 ? "#1A2C24" : "#CCCCCC" },
+      line2: { backgroundColor: currentStageIndex >= 2 ? "#1A2C24" : "#CCCCCC" },
     };
   };
 
-  const handleChatPress = async (e: any, candidature: any) => {
+  const handleChatPress = async (e: any, candidature: Candidature) => {
     e.stopPropagation();
     const chatId = [auth.currentUser?.uid, candidature.dealInfo?.merchantId].sort().join("");
     const userRef = doc(db, "users", candidature.influenceurId);
@@ -83,17 +90,58 @@ export const SuivisDealsInfluenceurScreen = () => {
         chatId,
         pseudonyme: userData.pseudonyme || "",
         photoURL: userData.photoURL || "",
-        role: userData.role,
+        role: "influenceur"
       });
     }
   };
 
-  const filteredCandidatures = candidatures.filter(candidature => {
-    const matchesFilter = selectedFilter === "Tous" || candidature.status === selectedFilter;
-    const matchesSearch = candidature.dealInfo?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         candidature.dealInfo?.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const filteredCandidatures = selectedFilter === "Tous"
+    ? candidatures
+    : candidatures.filter((c) => c.status === selectedFilter);
+
+  const renderCandidature = ({ item: candidature }: { item: Candidature }) => {
+    const progressStyles = getProgressStyles(candidature.status);
+
+    return (
+      <TouchableOpacity
+        style={styles.dealCard}
+        onPress={() => navigation.navigate('DealDetailsInfluenceur', { dealId: candidature.dealId })}
+      >
+        <Image
+          source={candidature.dealInfo?.imageUrl ? { uri: candidature.dealInfo.imageUrl } : require('../../assets/profile.png')}
+          style={styles.dealImage}
+        />
+        <View style={styles.dealContent}>
+          <View style={styles.dealHeader}>
+            <Text style={styles.dealTitle}>{candidature.dealInfo?.title}</Text>
+            <Text style={styles.dealId}>{candidature.dealId}</Text>
+            <Text style={styles.dealDescription} numberOfLines={2}>
+              {candidature.dealInfo?.description}
+            </Text>
+          </View>
+
+          <View style={styles.dealFooter}>
+            <View style={styles.progressContainer}>
+              <Text style={[styles.progressText, progressStyles.Envoyé]}>Envoyé</Text>
+              <View style={[styles.progressLine, progressStyles.line1]} />
+              <Text style={[styles.progressText, progressStyles.Accepté]}>Accepté</Text>
+              <View style={[styles.progressLine, progressStyles.line2]} />
+              <Text style={[styles.progressText, progressStyles.completed]}>Effectué</Text>
+            </View>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.chatButton}
+                onPress={(e) => handleChatPress(e, candidature)}
+              >
+                <Icon name="message-outline" size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+              <Icon name="chevron-right" size={20} color="#14210F" />
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -101,42 +149,58 @@ export const SuivisDealsInfluenceurScreen = () => {
         <Text style={styles.headerTitle}>Suivi Deals</Text>
         <View style={styles.headerButtons}>
           <TouchableOpacity onPress={() => navigation.navigate('NotificationInfluenceur')}>
-            <Image source={require('../../assets/clochenotification.png')} style={styles.headerIcon} />
+            <Image
+              source={require('../../assets/clochenotification.png')}
+              style={styles.headerIcon}
+            />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('DealsInfluenceur')}>
-            <Image source={require('../../assets/ekanwesign.png')} style={styles.headerIcon} />
+            <Image
+              source={require('../../assets/ekanwesign.png')}
+              style={styles.headerIcon}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Image source={require('../../assets/loupe.png')} style={styles.searchIcon} />
+        <View style={styles.searchInputContainer}>
+          <Image
+            source={require('../../assets/loupe.png')}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Recherche"
             placeholderTextColor="#666666"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
           />
-          <Image source={require('../../assets/menu.png')} style={styles.menuIcon} />
+          <Image
+            source={require('../../assets/menu.png')}
+            style={styles.menuIcon}
+          />
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
-          {filters.map((item) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+        >
+          {filters.map((filter) => (
             <TouchableOpacity
-              key={item}
+              key={filter}
               style={[
                 styles.filterButton,
-                selectedFilter === item && styles.filterButtonActive
+                selectedFilter === filter && styles.filterButtonActive,
               ]}
-              onPress={() => setSelectedFilter(item)}
+              onPress={() => setSelectedFilter(filter)}
             >
-              <Text style={[
-                styles.filterButtonText,
-                selectedFilter === item && styles.filterButtonTextActive
-              ]}>
-                {item}
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  selectedFilter === filter && styles.filterButtonTextActive,
+                ]}
+              >
+                {filter}
               </Text>
             </TouchableOpacity>
           ))}
@@ -144,53 +208,16 @@ export const SuivisDealsInfluenceurScreen = () => {
       </View>
 
       {filteredCandidatures.length === 0 ? (
-        <Text style={styles.emptyText}>Aucun deal trouvé</Text>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Aucun deal trouvé</Text>
+        </View>
       ) : (
-        <ScrollView style={styles.dealsList}>
-          {filteredCandidatures.map((candidature, index) => {
-            const progressStyles = getProgressStyles(candidature.status);
-            return (
-              <TouchableOpacity
-                key={index}
-                style={styles.dealCard}
-                onPress={() => navigation.navigate('DealDetailsInfluenceur', { dealId: candidature.dealId })}
-              >
-                <Image
-                  source={candidature.dealInfo?.imageUrl ? { uri: candidature.dealInfo.imageUrl } : require('../../assets/profile.png')}
-                  style={styles.dealImage}
-                />
-                <View style={styles.dealContent}>
-                  <View style={styles.dealHeader}>
-                    <Text style={styles.dealTitle}>{candidature.dealInfo?.title}</Text>
-                    <Text style={styles.dealId}>{candidature.dealId}</Text>
-                    <Text style={styles.dealDescription} numberOfLines={1}>
-                      {candidature.dealInfo?.description}
-                    </Text>
-                  </View>
-
-                  <View style={styles.progressContainer}>
-                    <View style={styles.progressSteps}>
-                      <Text style={progressStyles.Envoyé.text}>Envoyé</Text>
-                      <View style={progressStyles.line1} />
-                      <Text style={progressStyles.Accepté.text}>Accepté</Text>
-                      <View style={progressStyles.line2} />
-                      <Text style={progressStyles.completed.text}>Effectué</Text>
-                    </View>
-                    <View style={styles.actionButtons}>
-                      <TouchableOpacity
-                        style={styles.chatButton}
-                        onPress={(e) => handleChatPress(e, candidature)}
-                      >
-                        <Ionicons name="chatbubble-outline" size={16} color="#FFFFFF" />
-                      </TouchableOpacity>
-                      <Ionicons name="chevron-forward" size={20} color="#14210F" />
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FlatList
+          data={filteredCandidatures}
+          renderItem={renderCandidature}
+          keyExtractor={(item) => item.dealId}
+          contentContainerStyle={styles.dealsList}
+        />
       )}
 
       <BottomNavbar />
@@ -202,8 +229,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
-    paddingTop: 40,
-    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -211,7 +236,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     paddingTop: 48,
-    backgroundColor: '#F5F5E7',
   },
   headerTitle: {
     fontSize: 24,
@@ -229,24 +253,25 @@ const styles = StyleSheet.create({
   searchContainer: {
     padding: 16,
   },
-  searchBar: {
+  searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
     borderColor: '#000000',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   searchIcon: {
     width: 24,
     height: 24,
-    marginRight: 12,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
     color: '#14210F',
+    fontSize: 14,
   },
   menuIcon: {
     width: 24,
@@ -257,13 +282,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   filterButton: {
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#14210F',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-    marginRight: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginRight: 8,
   },
   filterButtonActive: {
     backgroundColor: '#1A2C24',
@@ -275,21 +300,15 @@ const styles = StyleSheet.create({
   filterButtonTextActive: {
     color: '#FFFFFF',
   },
-  emptyText: {
-    textAlign: 'center',
-    color: '#666666',
-    marginTop: 40,
-    fontSize: 16,
-  },
   dealsList: {
     padding: 16,
   },
   dealCard: {
     flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#000000',
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     marginBottom: 16,
     overflow: 'hidden',
   },
@@ -308,7 +327,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dealTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1A2C24',
   },
@@ -320,37 +339,24 @@ const styles = StyleSheet.create({
   dealDescription: {
     fontSize: 12,
     color: '#666666',
+    marginTop: 4,
   },
-  progressContainer: {
+  dealFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  progressSteps: {
+  progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  progressTextActive: {
+  progressText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#1A2C24',
   },
-  progressTextInactive: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  progressLineActive: {
+  progressLine: {
     height: 2,
     width: 40,
-    backgroundColor: '#1A2C24',
     marginHorizontal: 4,
-  },
-  progressLineInactive: {
-    height: 2,
-    width: 40,
-    backgroundColor: '#CCCCCC',
-    marginHorizontal: 4,
-    borderStyle: 'dashed',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -361,5 +367,15 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
     marginRight: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666666',
   },
 });

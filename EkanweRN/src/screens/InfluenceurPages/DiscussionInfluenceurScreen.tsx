@@ -16,6 +16,7 @@ import { db, auth } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from './BottomNavbar';
 import { RootStackParamList } from '../../types/navigation';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -40,9 +41,9 @@ interface ChatItem {
 export const DiscussionInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [chats, setChats] = useState<ChatItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState("");
   const [addMode, setAddMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -50,7 +51,6 @@ export const DiscussionInfluenceurScreen = () => {
 
     const unsub = onSnapshot(doc(db, "userchats", user.uid), async (snapshot) => {
       try {
-        setLoading(true);
         const data = snapshot.data();
         if (!data?.chats) {
           setChats([]);
@@ -88,7 +88,7 @@ export const DiscussionInfluenceurScreen = () => {
         const chatData = await Promise.all(promises);
         setChats(chatData.sort((a, b) => b.updatedAt - a.updatedAt));
       } catch (error) {
-        console.error('Error fetching chats:', error);
+        console.error("Erreur lors du chargement des chats:", error);
       } finally {
         setLoading(false);
       }
@@ -110,11 +110,11 @@ export const DiscussionInfluenceurScreen = () => {
 
       await updateDoc(userChatsRef, { chats: updatedChats });
 
-      navigation.navigate('ChatInfluenceur', {
+      navigation.navigate('Chat', {
         chatId: chat.chatId,
         pseudonyme: chat.user?.pseudonyme,
         photoURL: chat.user?.photoURL,
-        role: 'influenceur'
+        role: "influenceur"
       });
     } catch (err) {
       console.error("Erreur lors de la mise à jour du chat :", err);
@@ -122,7 +122,7 @@ export const DiscussionInfluenceurScreen = () => {
   };
 
   const filteredChats = chats.filter((chat) =>
-    chat.user?.pseudonyme.toLowerCase().includes(searchQuery.toLowerCase())
+    chat.user?.pseudonyme.toLowerCase().includes(input.toLowerCase())
   );
 
   if (loading) {
@@ -138,25 +138,29 @@ export const DiscussionInfluenceurScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Discussions</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('NotificationInfluenceur')}>
-            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.navigate('DealsInfluenceur')}>
-            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
-          </TouchableOpacity>
+        <Image
+          source={require('../../assets/ekanwesign.png')}
+          style={styles.headerLogo}
+        />
       </View>
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color="#1A2C24" style={styles.searchIcon} />
+          <Image
+            source={require('../../assets/loupe.png')}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
+            value={input}
+            onChangeText={setInput}
             placeholder="Rechercher une conversation"
-            placeholderTextColor="#1A2C24"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+            placeholderTextColor="#666666"
           />
-          <Ionicons name="menu" size={20} color="#1A2C24" style={styles.menuIcon} />
+          <Image
+            source={require('../../assets/menu.png')}
+            style={styles.menuIcon}
+          />
         </View>
         <TouchableOpacity
           style={styles.addButton}
@@ -168,50 +172,59 @@ export const DiscussionInfluenceurScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
-        {filteredChats.length > 0 ? (
+      <ScrollView style={styles.chatList}>
+        {addMode ? (
+          <View style={styles.addUserContainer}>
+            {/* AddUser component will be implemented separately */}
+            <Text style={styles.addUserText}>Composant AddUser à implémenter</Text>
+          </View>
+        ) : filteredChats.length > 0 ? (
           filteredChats.map((chat) => (
             <TouchableOpacity
               key={chat.chatId}
-              style={styles.chatCard}
+              style={styles.chatItem}
               onPress={() => handleSelect(chat)}
             >
-              <Image
-                source={chat.user?.photoURL ? { uri: chat.user.photoURL } : require('../../assets/profile.png')}
-                style={styles.userImage}
-              />
-              <View style={styles.chatInfo}>
-                <View style={styles.chatHeader}>
-                  <Text style={styles.userName}>{chat.user?.pseudonyme || "Utilisateur"}</Text>
-                  <Text style={styles.timestamp}>
-                    {new Date(chat.updatedAt).toLocaleTimeString("fr-FR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Text>
-                </View>
-                <View style={styles.messageContainer}>
-                  <Text
-                    style={[
-                      styles.lastMessage,
-                      !chat.read && styles.unreadMessage
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {chat.lastMessage || "Commencez la conversation..."}
-                  </Text>
-                  {!chat.read && (
-                    <View style={styles.unreadBadge}>
-                      <Text style={styles.unreadBadgeText}>1</Text>
-                    </View>
-                  )}
+              <View style={styles.chatContent}>
+                <Image
+                  source={chat.user?.photoURL ? { uri: chat.user.photoURL } : require('../../assets/profile.png')}
+                  style={styles.avatar}
+                />
+                <View style={styles.chatInfo}>
+                  <View style={styles.chatHeader}>
+                    <Text style={styles.chatName}>
+                      {chat.user?.pseudonyme || "Utilisateur"}
+                    </Text>
+                    <Text style={styles.chatTime}>
+                      {new Date(chat.updatedAt).toLocaleTimeString("fr-FR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.chatFooter}>
+                    <Text
+                      style={[
+                        styles.chatMessage,
+                        chat.read ? styles.readMessage : styles.unreadMessage
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {chat.lastMessage || "Commencez la conversation..."}
+                    </Text>
+                    {!chat.read && (
+                      <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadCount}>1</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
             </TouchableOpacity>
           ))
         ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Aucune conversation</Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Aucune conversation</Text>
           </View>
         )}
       </ScrollView>
@@ -225,8 +238,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
-    paddingTop: 40,
-    paddingBottom: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -235,33 +246,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5E7',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#1A2C24',
+    marginTop: 16,
+    color: '#14210F',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    paddingTop: 48,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1A2C24',
+    color: '#14210F',
   },
   headerLogo: {
     width: 24,
     height: 24,
   },
-  icon: {
-    width: 24,
-    height: 24,
-  },
   searchContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     padding: 16,
     gap: 8,
   },
@@ -269,60 +273,69 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: '#000000',
     borderRadius: 8,
     paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#1A2C24',
+    paddingVertical: 8,
   },
   searchIcon: {
+    width: 24,
+    height: 24,
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 12,
-    color: '#1A2C24',
+    color: '#14210F',
+    fontSize: 14,
   },
   menuIcon: {
+    width: 24,
+    height: 24,
     marginLeft: 8,
   },
   addButton: {
-    backgroundColor: '#1A2C24',
+    backgroundColor: '#14210F',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 8,
+    justifyContent: 'center',
   },
   addButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
   },
-  content: {
+  chatList: {
     flex: 1,
     padding: 16,
   },
-  chatCard: {
-    flexDirection: 'row',
-    backgroundColor: '#F5F5E7',
-    borderRadius: 12,
+  addUserContainer: {
     padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  addUserText: {
+    color: '#666666',
+    textAlign: 'center',
+  },
+  chatItem: {
+    backgroundColor: '#F5F5E7',
+    borderRadius: 8,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E5E5E5',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  userImage: {
+  chatContent: {
+    flexDirection: 'row',
+    padding: 16,
+  },
+  avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    marginRight: 12,
+    marginRight: 16,
   },
   chatInfo: {
     flex: 1,
@@ -333,51 +346,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  userName: {
+  chatName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A2C24',
+    color: '#14210F',
   },
-  timestamp: {
+  chatTime: {
     fontSize: 12,
     color: '#666666',
   },
-  messageContainer: {
+  chatFooter: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  lastMessage: {
-    flex: 1,
+  chatMessage: {
     fontSize: 14,
+    flex: 1,
+    marginRight: 8,
+  },
+  readMessage: {
     color: '#666666',
   },
   unreadMessage: {
-    color: '#1A2C24',
-    fontWeight: '500',
+    color: '#000000',
+    fontWeight: 'bold',
   },
   unreadBadge: {
-    backgroundColor: '#FF6B2E',
+    backgroundColor: '#FF0000',
     width: 20,
     height: 20,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
   },
-  unreadBadgeText: {
+  unreadCount: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
   },
-  emptyState: {
+  emptyContainer: {
     marginTop: 80,
     padding: 8,
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    alignItems: 'center',
+    marginBottom: 16,
   },
-  emptyStateText: {
-    fontSize: 14,
+  emptyText: {
     color: '#666666',
+    fontSize: 14,
+    textAlign: 'center',
   },
 }); 
