@@ -196,7 +196,7 @@ export const DealsDetailsCommercantScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Intérêts</Text>
           <View style={styles.tagContainer}>
-            {(deal.interests || []).map((item: string, idx: number) => (
+            {(deal.interest || []).map((item: string, idx: number) => (
               <View key={idx} style={styles.tag}>
                 <Text>{item}</Text>
               </View>
