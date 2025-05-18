@@ -29,9 +29,9 @@ export const Navbar = () => {
         />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+      <TouchableOpacity onPress={() => navigation.navigate('DashboardCommercant')}>
         <Image
-          source={require('../../assets/chat.png')}
+          source={require('../../assets/dashboard.png')}
           style={[
             styles.icon,
             route.name === 'Dashboard' && styles.activeIcon
@@ -41,7 +41,7 @@ export const Navbar = () => {
 
       <TouchableOpacity onPress={() => navigation.navigate('DiscussionCommercant')}>
         <Image
-          source={require('../../assets/navigationsave.png')}
+          source={require('../../assets/chat.png')}
           style={[
             styles.icon,
             route.name === 'DiscussionCommercant' && styles.activeIcon

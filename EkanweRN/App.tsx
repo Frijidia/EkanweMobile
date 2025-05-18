@@ -33,9 +33,10 @@ import { ForgotPasswordScreen } from './src/screens/LoginPages/ForgotPasswordScr
 import { configureStatusBar } from './src/utils/capacitorUtils';
 import { UserProvider } from './src/context/UserContext';
 import { DealsCreationScreen } from './src/screens/CommercantPages/DealsCreationScreen';
-//import { MerchantDetailCommercantScreen } from './src/screens/CommercantPages/MerchantDetailCommercantScreen';
-//import { DealCandidatesCommercantScreen } from './src/screens/CommercantPages/DealCandidatesCommercantScreen';
-//import { DealsCreationCommercantScreen } from './src/screens/CommercantPages/DealsCreationCommercantScreen';
+import { ProfileCommercantScreen } from './src/screens/CommercantPages/ProfileCommercantScreen';
+import { SuiviDealsCommercantScreen } from './src/screens/CommercantPages/SuiviDealsCommercantScreen';
+import { DiscussionCommercantScreen } from './src/screens/CommercantPages/DiscussionCommercantScreen';
+import { DashboardCommercantScreen } from './src/screens/CommercantPages/DashboardCommercantScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -78,9 +79,10 @@ export default function App() {
           <Stack.Screen name='DealsCommercant' component={DealsPageCommercantScreen} />
           <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
           <Stack.Screen name='DealsCreation' component={DealsCreationScreen} />
-          {/*<Stack.Screen name='MerchantDetailCommercant' component={MerchantDetailCommercantScreen} />
-          <Stack.Screen name='DealCandidatesCommercant' component={DealCandidatesCommercantScreen} />
-          <Stack.Screen name='DealsCreationCommercant' component={DealsCreationCommercantScreen} />*/}
+          <Stack.Screen name='ProfileCommercant' component={ProfileCommercantScreen} />
+          <Stack.Screen name='SuiviDealsCommercant' component={SuiviDealsCommercantScreen} />
+          <Stack.Screen name='DiscussionCommercant' component={DiscussionCommercantScreen} />
+          <Stack.Screen name='DashboardCommercant' component={DashboardCommercantScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

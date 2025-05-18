@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function DiscussionPageInfluenceur() {
+export const DiscussionCommercantScreen = () => {
   const navigation = useNavigation();
   const [chats, setChats] = useState([]);
   const [input, setInput] = useState('');
@@ -74,52 +74,52 @@ export default function DiscussionPageInfluenceur() {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-[#F5F5E7]">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF6B2E" />
-        <Text className="mt-4 text-[#14210F]">Chargement en cours...</Text>
+        <Text style={styles.loadingText}>Chargement en cours...</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#F5F5E7] pb-6">
-      <View className="px-4 pt-10 pb-4 bg-[#F5F5E7]">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-2xl font-bold">Discussions</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Discussions</Text>
           <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
             <Ionicons name="home" size={24} color="#1A2C24" />
           </TouchableOpacity>
         </View>
-        <View className="flex-row items-center bg-white rounded-lg px-3 py-2 shadow">
+        <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#999" />
           <TextInput
             value={input}
             onChangeText={setInput}
             placeholder="Rechercher une conversation"
-            className="flex-1 ml-2 text-sm"
+            style={styles.searchInput}
           />
         </View>
       </View>
 
-      <ScrollView className="px-4">
+      <ScrollView style={styles.chatList}>
         {filteredChats.length > 0 ? (
           filteredChats.map((chat) => (
             <TouchableOpacity
               key={chat.chatId}
               onPress={() => handleSelect(chat)}
-              className="bg-white p-3 rounded-xl shadow mb-3"
+              style={styles.chatItem}
             >
-              <View className="flex-row items-center">
+              <View style={styles.chatContent}>
                 <Image
                   source={{ uri: chat.user?.photoURL || 'https://via.placeholder.com/150' }}
-                  className="w-12 h-12 rounded-full mr-3"
+                  style={styles.avatar}
                 />
-                <View className="flex-1">
-                  <View className="flex-row justify-between">
-                    <Text className="font-semibold text-base" numberOfLines={1}>{chat.user?.pseudonyme || 'Utilisateur'}</Text>
-                    <Text className="text-xs text-gray-500">{new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                <View style={styles.chatInfo}>
+                  <View style={styles.chatHeader}>
+                    <Text style={styles.username} numberOfLines={1}>{chat.user?.pseudonyme || 'Utilisateur'}</Text>
+                    <Text style={styles.time}>{new Date(chat.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                   </View>
-                  <Text className={`text-sm ${chat.read ? 'text-gray-500' : 'text-black font-medium'}`} numberOfLines={1}>
+                  <Text style={[styles.lastMessage, !chat.read && styles.unreadMessage]} numberOfLines={1}>
                     {chat.lastMessage || 'Commencez la conversation...'}
                   </Text>
                 </View>
@@ -127,11 +127,116 @@ export default function DiscussionPageInfluenceur() {
             </TouchableOpacity>
           ))
         ) : (
-          <View className="items-center mt-20">
-            <Text className="text-gray-500">Aucune conversation pour le moment</Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Aucune conversation pour le moment</Text>
           </View>
         )}
       </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5E7',
+    paddingBottom: 6
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5E7'
+  },
+  loadingText: {
+    marginTop: 4,
+    color: '#14210F'
+  },
+  header: {
+    padding: 16,
+    paddingTop: 40,
+    paddingBottom: 16,
+    backgroundColor: '#F5F5E7'
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold'
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14
+  },
+  chatList: {
+    padding: 16
+  },
+  chatItem: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 12
+  },
+  chatContent: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12
+  },
+  chatInfo: {
+    flex: 1
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  username: {
+    fontWeight: '600',
+    fontSize: 16
+  },
+  time: {
+    fontSize: 12,
+    color: '#666'
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#666'
+  },
+  unreadMessage: {
+    color: '#000',
+    fontWeight: '500'
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 80
+  },
+  emptyText: {
+    color: '#666'
+  }
+});

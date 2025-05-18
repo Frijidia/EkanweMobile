@@ -77,76 +77,86 @@ export const DealsPageCommercantScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Deals</Text>
-      </View>
+    <View style={styles.container}>
+      <ScrollView>
+        <View style={styles.header}>
+          <Text style={styles.title}>Deals</Text>
+        </View>
 
-      <View style={styles.searchContainer}>
-        <TextInput placeholder="Recherche" placeholderTextColor="#999" style={styles.input} />
-      </View>
+        <View style={styles.searchContainer}>
+          <TextInput placeholder="Recherche" placeholderTextColor="#999" style={styles.input} />
+        </View>
 
-      <View style={styles.filterContainer}>
-        {['Deals', 'Influenceurs'].map((item) => (
-          <TouchableOpacity
-            key={item}
-            onPress={() => setSelectedFilter(item as 'Deals' | 'Influenceurs')}
-            style={[styles.filterButton, selectedFilter === item && styles.filterButtonActive]}
-          >
-            <Text style={selectedFilter === item ? styles.filterTextActive : styles.filterText}>
-              {item}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {selectedFilter === 'Deals' ? (
-        <>
-          <TouchableOpacity style={styles.createDealButton} onPress={() => navigation.navigate('DealsCreation')}>
-            <Text style={styles.createDealText}>Faire un deal</Text>
-          </TouchableOpacity>
-
-          {deals.map((deal) => (
-            <View key={deal.id} style={styles.card}>
-              <Image source={{ uri: deal.imageUrl || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
-              <View style={styles.cardContent}>
-                <Text style={styles.dealTitle}>{deal.title || 'Sans titre'}</Text>
-                <Text style={styles.dealDesc}>{deal.description || '-'}</Text>
-                {renderStars(calculateAverageRating(deal.candidatures))}
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('DealCandidatesCommercant', { dealId: deal.id })}
-                  style={styles.button}
-                >
-                  <Text style={styles.buttonText}>Voir plus</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </>
-      ) : (
-        <>
-          {influencers.map((inf) => (
+        <View style={styles.filterContainer}>
+          {['Deals', 'Influenceurs'].map((item) => (
             <TouchableOpacity
-              key={inf.id}
-              onPress={() => navigation.navigate('ProfilPublicCommercant', { userId: inf.id })}
-              style={styles.card}
+              key={item}
+              onPress={() => setSelectedFilter(item as 'Deals' | 'Influenceurs')}
+              style={[styles.filterButton, selectedFilter === item && styles.filterButtonActive]}
             >
-              <Image source={{ uri: inf.photoURL || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
-              <View style={styles.cardContent}>
-                <Text style={styles.dealTitle}>{inf.pseudonyme || 'Influenceur'}</Text>
-              </View>
+              <Text style={selectedFilter === item ? styles.filterTextActive : styles.filterText}>
+                {item}
+              </Text>
             </TouchableOpacity>
           ))}
-        </>
-      )}
+        </View>
+
+        {selectedFilter === 'Deals' ? (
+          <>
+            <TouchableOpacity style={styles.createDealButton} onPress={() => navigation.navigate('DealsCreation')}>
+              <Text style={styles.createDealText}>Faire un deal</Text>
+            </TouchableOpacity>
+
+            {deals.map((deal) => (
+              <View key={deal.id} style={styles.card}>
+                <Image source={{ uri: deal.imageUrl || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
+                <View style={styles.cardContent}>
+                  <Text style={styles.dealTitle}>{deal.title || 'Sans titre'}</Text>
+                  <Text style={styles.dealDesc}>{deal.description || '-'}</Text>
+                  {renderStars(calculateAverageRating(deal.candidatures))}
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('DealCandidatesCommercant', { dealId: deal.id })}
+                    style={styles.button}
+                  >
+                    <Text style={styles.buttonText}>Voir plus</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </>
+        ) : (
+          <>
+            {influencers.map((inf) => (
+              <TouchableOpacity
+                key={inf.id}
+                onPress={() => navigation.navigate('ProfilPublicCommercant', { userId: inf.id })}
+                style={styles.card}
+              >
+                <Image source={{ uri: inf.photoURL || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
+                <View style={styles.cardContent}>
+                  <Text style={styles.dealTitle}>{inf.pseudonyme || 'Influenceur'}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+      </ScrollView>
       <Navbar />
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5E7' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F5E7' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F5F5E7' 
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#F5F5E7' 
+  },
   loadingText: { fontSize: 16, color: '#14210F' },
   header: { padding: 16, flexDirection: 'row', justifyContent: 'space-between' },
   title: { fontSize: 24, fontWeight: 'bold', color: '#14210F' },

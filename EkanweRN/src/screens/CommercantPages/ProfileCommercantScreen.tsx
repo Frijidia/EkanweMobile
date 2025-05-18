@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { auth, db } from '../../firebase/firebase';
@@ -7,7 +7,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ProfilePageCommercant() {
+export const ProfileCommercantScreen = () => {
   const navigation = useNavigation();
   const [profileImage, setProfileImage] = useState(null);
   const [pseudonyme, setPseudonyme] = useState('');
@@ -95,21 +95,21 @@ export default function ProfilePageCommercant() {
   };
 
   return (
-    <ScrollView className="bg-[#F5F5E7] min-h-screen px-4 py-6">
-      <View className="flex-row justify-between items-center mb-6">
-        <Text className="text-3xl text-[#1A2C24] font-bold">Mon Profil</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Mon Profil</Text>
         <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-          <Image source={require('../../assets/ekanwesign.png')} className="w-6 h-6" />
+          <Image source={require('../../assets/ekanwesign.png')} style={styles.logo} />
         </TouchableOpacity>
       </View>
 
-      <View className="items-center mb-6">
-        <TouchableOpacity onPress={pickImage} className="relative">
-          <Image source={{ uri: profileImage || 'https://via.placeholder.com/100' }} className="w-24 h-24 rounded-full" />
+      <View style={styles.profileImageContainer}>
+        <TouchableOpacity onPress={pickImage}>
+          <Image source={{ uri: profileImage || 'https://via.placeholder.com/100' }} style={styles.profileImage} />
         </TouchableOpacity>
       </View>
 
-      <View className="space-y-4">
+      <View style={styles.inputContainer}>
         <Input label="Pseudonyme" value={pseudonyme} setValue={setPseudonyme} />
         <Input label="Prénom" value={prenom} setValue={setPrenom} />
         <Input label="Nom" value={nom} setValue={setNom} />
@@ -122,22 +122,24 @@ export default function ProfilePageCommercant() {
       </View>
 
       {message && (
-        <Text className={`text-center mt-4 ${message.includes('succès') ? 'text-green-600' : 'text-red-500'}`}>{message}</Text>
+        <Text style={[styles.message, message.includes('succès') ? styles.successMessage : styles.errorMessage]}>
+          {message}
+        </Text>
       )}
 
       <TouchableOpacity
         onPress={handleSave}
         disabled={loading}
-        className={`w-full py-3 rounded-lg mt-6 ${loading ? 'bg-gray-400' : 'bg-[#1A2C24]'}`}
+        style={[styles.button, loading ? styles.disabledButton : styles.saveButton]}
       >
-        <Text className="text-white text-center font-bold text-lg">{loading ? 'Sauvegarde...' : 'Sauvegarder'}</Text>
+        <Text style={styles.buttonText}>{loading ? 'Sauvegarde...' : 'Sauvegarder'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={handleLogout}
-        className="w-full bg-red-500 py-3 rounded-lg mt-4"
+        style={[styles.button, styles.logoutButton]}
       >
-        <Text className="text-white text-center font-bold text-lg">Déconnexion</Text>
+        <Text style={styles.buttonText}>Déconnexion</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -145,15 +147,98 @@ export default function ProfilePageCommercant() {
 
 function Input({ label, value, setValue, multiline = false }) {
   return (
-    <View>
-      <Text className="text-[#1A2C24] font-medium mb-1">{label}</Text>
+    <View style={styles.inputWrapper}>
+      <Text style={styles.label}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={setValue}
-        className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm"
+        style={styles.input}
         multiline={multiline}
         numberOfLines={multiline ? 4 : 1}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#F5F5E7',
+    minHeight: '100%',
+    padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 30,
+    color: '#1A2C24',
+    fontWeight: 'bold',
+  },
+  logo: {
+    width: 24,
+    height: 24,
+  },
+  profileImageContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  profileImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+  },
+  inputContainer: {
+    gap: 16,
+  },
+  inputWrapper: {
+    marginBottom: 8,
+  },
+  label: {
+    color: '#1A2C24',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  input: {
+    width: '100%',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    backgroundColor: 'white',
+    fontSize: 14,
+  },
+  message: {
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  successMessage: {
+    color: '#22C55E',
+  },
+  errorMessage: {
+    color: '#EF4444',
+  },
+  button: {
+    width: '100%',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 24,
+  },
+  saveButton: {
+    backgroundColor: '#1A2C24',
+  },
+  disabledButton: {
+    backgroundColor: '#9CA3AF',
+  },
+  logoutButton: {
+    backgroundColor: '#EF4444',
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+});

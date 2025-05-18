@@ -32,6 +32,10 @@ import { CreatorCommercantScreen } from '../screens/EkanwePages/CreatorCommercan
 import { DealsPageCommercantScreen } from '../screens/CommercantPages/DealsCommercantScreen';
 import { ForgotPasswordScreen } from '../screens/LoginPages/ForgotPasswordScreen';
 import { DealsCreationScreen } from '../screens/CommercantPages/DealsCreationScreen';
+import { ProfileCommercantScreen } from '../screens/CommercantPages/ProfileCommercantScreen';
+import { SuiviDealsCommercantScreen } from '../screens/CommercantPages/SuiviDealsCommercantScreen';
+import { DiscussionCommercantScreen } from '../screens/CommercantPages/DiscussionCommercantScreen';
+import { DashboardCommercantScreen } from '../screens/CommercantPages/DashboardCommercantScreen';
 // Navigation principale de l'application
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -72,6 +76,10 @@ export const AppNavigator = () => {
       <Stack.Screen name="DealsCommercant" component={DealsPageCommercantScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="DealsCreation" component={DealsCreationScreen} />
+      <Stack.Screen name="ProfileCommercant" component={ProfileCommercantScreen} />
+      <Stack.Screen name="SuiviDealsCommercant" component={SuiviDealsCommercantScreen} />
+      <Stack.Screen name="DiscussionCommercant" component={DiscussionCommercantScreen} />
+      <Stack.Screen name="DashboardCommercant" component={DashboardCommercantScreen} />
     </Stack.Navigator>
   );
 }; 
