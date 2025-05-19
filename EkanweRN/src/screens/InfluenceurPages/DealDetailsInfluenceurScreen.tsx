@@ -415,7 +415,7 @@ export const DealDetailsInfluenceurScreen = () => {
             <View style={styles.interestsContainer}>
                 {deal.interests ? (
                   <View style={styles.interestTag}>
-                    <Text style={styles.interestText}>{deal.interest}</Text>
+                    <Text style={styles.interestText}>{deal.interests}</Text>
                   </View>
                 ) : (
                   <Text style={styles.noInterestText}>Aucun intérêt défini</Text>
