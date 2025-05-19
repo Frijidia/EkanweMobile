@@ -401,8 +401,8 @@ export const DealDetailsInfluenceurScreen = () => {
                     )}
                   </View>
                 </View>
-              </View>
-              <Text style={styles.dealId}>#{deal.id}</Text>
+            </View>
+            <Text style={styles.dealId}>#{deal.id}</Text>
           </View>
 
           <View style={styles.section}>
@@ -420,7 +420,7 @@ export const DealDetailsInfluenceurScreen = () => {
                 ) : (
                   <Text style={styles.noInterestText}>Aucun intérêt défini</Text>
                 )}
-              </View>
+            </View>
           </View>
 
             <View style={styles.infoContainer}>
@@ -612,9 +612,9 @@ export const DealDetailsInfluenceurScreen = () => {
           >
             <Text style={styles.applyButtonText}>
               {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
       <BottomNavbar />
@@ -913,6 +913,7 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 30,
     marginBottom: 12,
   },
   statInput: {

@@ -28,7 +28,7 @@ const ThankYouModal = ({ visible, onClose }) => (
   </Modal>
 );
 
-export default function ReviewPageCommercant() {
+export const ReviewCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { dealId, influenceurId } = route.params;
@@ -182,6 +182,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5E7',
+    paddingTop: 40,
+    paddingBottom: 50,
   },
   header: {
     padding: 16,

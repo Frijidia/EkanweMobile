@@ -42,6 +42,8 @@ import { DealsDetailsCommercantScreen } from './src/screens/CommercantPages/Deal
 import { NotificationsCommercantScreen } from './src/screens/CommercantPages/NotificationsCommercantScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { RootStackParamList } from './src/types/navigation';
+import { ReviewCommercantScreen } from './src/screens/CommercantPages/ReviewCommercantScreen';
+import { ProfilPublicScreen } from './src/screens/CommercantPages/ProfilPublicScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -91,6 +93,8 @@ export default function App() {
           <Stack.Screen name='NotificationInfluenceur' component={NotificationInfluenceurScreen} />
           <Stack.Screen name='DealsDetailsCommercant' component={DealsDetailsCommercantScreen} />
           <Stack.Screen name='NotificationsCommercant' component={NotificationsCommercantScreen} />
+          <Stack.Screen name='ReviewCommercant' component={ReviewCommercantScreen} />
+          <Stack.Screen name='ProfilPublic' component={ProfilPublicScreen} />
           <Stack.Screen name='Chat' component={ChatScreen} />
         </Stack.Navigator>
       </NavigationContainer>

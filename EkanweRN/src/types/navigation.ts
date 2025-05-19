@@ -28,6 +28,7 @@ export type RootStackParamList = {
   };
   DealDetailsInfluenceur: { dealId: string };
   DealsSeeMoreInfluenceur: { dealId: string };
+  ReviewCommercant: {dealId: string}
   ReviewScreen: { dealId: string };
   ConceptCommercant: undefined;
   CreatorCommercant: undefined;
@@ -44,7 +45,7 @@ export type RootStackParamList = {
   DashboardCommercant: undefined;
   NotificationInfluenceur: undefined;
   NotificationsCommercant: undefined;
-  ProfilPublicCommercant: { userId: string };
+  //ProfilPublicCommercant: { userId: string };
   BottomNavbar: undefined;
   Chat: {
     chatId: string;
@@ -52,4 +53,5 @@ export type RootStackParamList = {
     photoURL?: string;
     role: string;
   };
+  ProfilPublic: { userId: string }
 }; 

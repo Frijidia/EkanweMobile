@@ -139,7 +139,7 @@ export const DealsPageCommercantScreen = () => {
             {influencers.map((inf) => (
               <TouchableOpacity
                 key={inf.id}
-                onPress={() => navigation.navigate('ProfilPublicCommercant', { userId: inf.id })}
+                onPress={() => navigation.navigate('ProfilPublic', { userId: inf.id })}
                 style={styles.card}
               >
                 <Image source={{ uri: inf.photoURL || 'https://via.placeholder.com/150' }} style={styles.dealImage} />

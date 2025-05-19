@@ -122,16 +122,29 @@ export const SuivisDealsInfluenceurScreen = () => {
 
           <View style={styles.dealFooter}>
             <View style={styles.progressContainer}>
-              <Text style={[styles.progressText, progressStyles.Envoyé]}>Envoyé</Text>
+              <Icon 
+                name="send" 
+                size={16} 
+                color={progressStyles.Envoyé.color} 
+              />
               <View style={[styles.progressLine, progressStyles.line1]} />
-              <Text style={[styles.progressText, progressStyles.Accepté]}>Accepté</Text>
+              <Icon 
+                name="check-circle" 
+                size={16} 
+                color={progressStyles.Accepté.color} 
+              />
               <View style={[styles.progressLine, progressStyles.line2]} />
-              <Text style={[styles.progressText, progressStyles.completed]}>Effectué</Text>
+              <Icon 
+                name="check-all" 
+                size={16} 
+                color={progressStyles.completed.color} 
+              />
             </View>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.chatButton}
-                onPress={(e) => handleChatPress(e, candidature)}
+                onPress={() => navigation.navigate('DiscussionInfluenceur', { chatId: candidature.dealInfo?.chatId })}
+                //onPress={(e) => handleChatPress(e, candidature)}
               >
                 <Icon name="message-outline" size={16} color="#FFFFFF" />
               </TouchableOpacity>
@@ -352,9 +365,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  progressText: {
-    fontSize: 12,
-  },
   progressLine: {
     height: 2,
     width: 40,
@@ -366,7 +376,7 @@ const styles = StyleSheet.create({
   },
   chatButton: {
     backgroundColor: '#FF6B2E',
-    padding: 8,
+    padding: 4,
     borderRadius: 20,
     marginRight: 8,
   },

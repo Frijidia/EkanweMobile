@@ -40,6 +40,9 @@ import { NotificationInfluenceurScreen } from '../screens/InfluenceurPages/Notif
 import { DealsDetailsCommercantScreen } from '../screens/CommercantPages/DealsDetailsCommercantScreen';
 import { NotificationsCommercantScreen } from '../screens/CommercantPages/NotificationsCommercantScreen';
 import { ChatScreen } from '../screens/ChatScreen';
+import { ReviewCommercantScreen } from '../screens/CommercantPages/ReviewCommercantScreen';
+import { ProfilPublicScreen } from '../screens/CommercantPages/ProfilPublicScreen';
+
 // Navigation principale de l'application
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -88,6 +91,8 @@ export const AppNavigator = () => {
       <Stack.Screen name="DealsDetailsCommercant" component={DealsDetailsCommercantScreen} />
       <Stack.Screen name="NotificationsCommercant" component={NotificationsCommercantScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="ReviewCommercant" component={ReviewCommercantScreen} />
+      <Stack.Screen name="ProfilPublic" component={ProfilPublicScreen} />
     </Stack.Navigator>
   );
 }; 

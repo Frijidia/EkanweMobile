@@ -9,7 +9,7 @@ import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function ProfilPublicInfluenceur() {
+export const ProfilPublicScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { userId } = route.params;
