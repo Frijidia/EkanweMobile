@@ -38,7 +38,7 @@ interface Deal {
     };
   }>;
   merchantId: string;
-  interest?: string;
+  interests?: string;
 }
 
 export const DealsInfluenceurScreen = () => {
@@ -153,8 +153,8 @@ export const DealsInfluenceurScreen = () => {
     }
   };
 
-  const filters = ["All", ...Array.from(new Set(deals.map((d) => d.interest).filter((interest): interest is string => interest !== undefined)))];
-  const filteredDeals = selectedFilter === "All" ? deals : deals.filter((d) => d.interest === selectedFilter);
+  const filters = ["All", ...Array.from(new Set(deals.map((d) => d.interests).filter((interests): interests is string => interests !== undefined)))];
+  const filteredDeals = selectedFilter === "All" ? deals : deals.filter((d) => d.interests === selectedFilter);
   const sortedByPopularity = [...filteredDeals].sort((a, b) => (b.candidatures?.length || 0) - (a.candidatures?.length || 0));
   const popularDeals = sortedByPopularity.slice(0, 5);
   const otherDeals = sortedByPopularity.slice(5);
