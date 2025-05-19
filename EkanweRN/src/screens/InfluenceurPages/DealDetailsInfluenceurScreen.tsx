@@ -400,7 +400,7 @@ export const DealDetailsInfluenceurScreen = () => {
                       </TouchableOpacity>
                     )}
                   </View>
-                </View>
+              </View>
             </View>
             <Text style={styles.dealId}>#{deal.id}</Text>
           </View>
@@ -607,11 +607,11 @@ export const DealDetailsInfluenceurScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.applyButton, alreadyApplied && styles.disabledButton]}
-            onPress={handleCandidature}
-            disabled={alreadyApplied}
-          >
+              onPress={handleCandidature}
+              disabled={alreadyApplied}
+            >
             <Text style={styles.applyButtonText}>
-              {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
+                {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
               </Text>
             </TouchableOpacity>
           </View>

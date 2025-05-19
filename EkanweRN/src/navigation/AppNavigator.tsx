@@ -41,6 +41,7 @@ import { DealsDetailsCommercantScreen } from '../screens/CommercantPages/DealsDe
 import { NotificationsCommercantScreen } from '../screens/CommercantPages/NotificationsCommercantScreen';
 import { ChatScreen } from '../screens/ChatScreen';
 import { ReviewCommercantScreen } from '../screens/CommercantPages/ReviewCommercantScreen';
+import { ReviewInfluenceurScreen } from '../screens/InfluenceurPages/ReviewInfluenceurScreen';
 import { ProfilPublicScreen } from '../screens/CommercantPages/ProfilPublicScreen';
 
 // Navigation principale de l'application
@@ -92,6 +93,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="NotificationsCommercant" component={NotificationsCommercantScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="ReviewCommercant" component={ReviewCommercantScreen} />
+      <Stack.Screen name="ReviewInfluenceur" component={ReviewInfluenceurScreen} />
       <Stack.Screen name="ProfilPublic" component={ProfilPublicScreen} />
     </Stack.Navigator>
   );
