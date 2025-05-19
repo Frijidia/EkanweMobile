@@ -10,9 +10,19 @@ import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+interface Notification {
+  id: string;
+  message: string;
+  read: boolean;
+  createdAt: any;
+  targetRoute?: string;
+  dealId?: string;
+  influenceurId?: string;
+}
+
 export const NotificationsCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -28,14 +38,14 @@ export const NotificationsCommercantScreen = () => {
       const notifList = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      })) as Notification[];
       setNotifications(notifList);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const handleNotificationClick = async (notif) => {
+  const handleNotificationClick = async (notif: Notification) => {
     const user = auth.currentUser;
     if (!user) return;
 
@@ -48,7 +58,26 @@ export const NotificationsCommercantScreen = () => {
       );
 
       if (notif.targetRoute) {
-        navigation.navigate(notif.targetRoute);
+        switch (notif.targetRoute) {
+          case 'DealsDetailsCommercant':
+            if (notif.dealId && notif.influenceurId) {
+              navigation.navigate('DealsDetailsCommercant', {
+                dealId: notif.dealId,
+                influenceurId: notif.influenceurId
+              });
+            }
+            break;
+          case 'SuiviDealsCommercant':
+            navigation.navigate('SuiviDealsCommercant' as never);
+            break;
+          case 'DealsCommercant':
+            navigation.navigate('DealsCommercant' as never);
+            break;
+          default:
+            if (notif.targetRoute in navigation.getState().routes) {
+              navigation.navigate(notif.targetRoute as never);
+            }
+        }
       }
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la notification :', error);

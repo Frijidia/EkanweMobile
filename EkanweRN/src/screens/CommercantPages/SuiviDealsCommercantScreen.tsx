@@ -139,7 +139,7 @@ export const SuiviDealsCommercantScreen = () => {
           ))}
         </ScrollView>
       </View>
-
+      
       <ScrollView 
         style={styles.contentScroll}
         contentContainerStyle={styles.contentScrollContent}
@@ -148,49 +148,56 @@ export const SuiviDealsCommercantScreen = () => {
           <Text style={styles.emptyText}>Aucune candidature trouvée</Text>
         ) : (
           filtered.map((c, index) => (
-            <View key={index} style={styles.card}>
-              <Image source={{ uri: c.dealInfo?.imageUrl }} style={styles.cardImage} />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{c.dealInfo?.title}</Text>
-                <Text style={styles.cardDescription} numberOfLines={1}>{c.dealInfo?.description}</Text>
-                <View style={styles.cardActions}>
-                  <View style={styles.actionButtons}>
-                    {c.status === "Envoyé" ? (
-                      <>
-                        <TouchableOpacity
-                          style={styles.acceptButton}
-                          onPress={() => handleStatusChange(c.dealId, c.candidatureIndex, "Accepté")}
-                          disabled={loadingIndex === c.candidatureIndex}
-                        >
-                          <Text style={styles.buttonText}>
-                            {loadingIndex === c.candidatureIndex ? "..." : "Accepter"}
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.refuseButton}
-                          onPress={() => handleStatusChange(c.dealId, c.candidatureIndex, "Refusé")}
-                          disabled={loadingIndex === c.candidatureIndex}
-                        >
-                          <Text style={styles.buttonText}>
-                            {loadingIndex === c.candidatureIndex ? "..." : "Refuser"}
-                          </Text>
-                        </TouchableOpacity>
-                      </>
-                    ) : (
-                      <Text style={styles.statusBadge}>{getLabel(c.status)}</Text>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate("DealDetailCommercant" as never, { 
-                      dealId: c.dealId, 
-                      influenceurId: c.influenceurId 
-                    } as never)}
-                  >
+            <TouchableOpacity 
+              key={index}
+              onPress={() => navigation.navigate("DealsDetailsCommercant" as never, { 
+                dealId: c.dealId, 
+                influenceurId: c.influenceurId 
+              } as never)}
+            >
+              <View style={styles.card}>
+                <Image source={{ uri: c.dealInfo?.imageUrl }} style={styles.cardImage} />
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{c.dealInfo?.title}</Text>
+                  <Text style={styles.cardDescription} numberOfLines={1}>{c.dealInfo?.description}</Text>
+                  <View style={styles.cardActions}>
+                    <View style={styles.actionButtons}>
+                      {c.status === "Envoyé" ? (
+                        <>
+                          <TouchableOpacity
+                            style={styles.acceptButton}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(c.dealId, c.candidatureIndex, "Accepté");
+                            }}
+                            disabled={loadingIndex === c.candidatureIndex}
+                          >
+                            <Text style={styles.buttonText}>
+                              {loadingIndex === c.candidatureIndex ? "..." : "Accepter"}
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.refuseButton}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(c.dealId, c.candidatureIndex, "Refusé");
+                            }}
+                            disabled={loadingIndex === c.candidatureIndex}
+                          >
+                            <Text style={styles.buttonText}>
+                              {loadingIndex === c.candidatureIndex ? "..." : "Refuser"}
+                            </Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : (
+                        <Text style={styles.statusBadge}>{getLabel(c.status)}</Text>
+                      )}
+                    </View>
                     <Text style={styles.detailsButton}>→</Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>
