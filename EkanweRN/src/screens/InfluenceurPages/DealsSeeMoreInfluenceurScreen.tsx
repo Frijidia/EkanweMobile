@@ -161,12 +161,12 @@ export const DealsSeeMoreInfluenceurScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView>
-        <View style={styles.header}>
+      <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={24} color="#FF6B2E" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Deals</Text>
-        </View>
+          <Icon name="arrow-left" size={24} color="#FF6B2E" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Deals</Text>
+      </View>
 
         <View style={styles.dealCard}>
           <View style={styles.imageContainer}>
@@ -212,13 +212,13 @@ export const DealsSeeMoreInfluenceurScreen = () => {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Intérêts</Text>
-              <View style={styles.interestsContainer}>
+            <Text style={styles.sectionTitle}>Intérêts</Text>
+            <View style={styles.interestsContainer}>
                 {deal.interests && deal.interests.length > 0 ? (
                   deal.interests.map((interest: string, index: number) => (
-                    <View key={index} style={styles.interestTag}>
-                      <Text style={styles.interestText}>{interest}</Text>
-                    </View>
+                <View key={index} style={styles.interestTag}>
+                  <Text style={styles.interestText}>{interest}</Text>
+                </View>
                   ))
                 ) : (
                   <Text style={styles.noInterestText}>Aucun intérêt défini</Text>
@@ -242,7 +242,7 @@ export const DealsSeeMoreInfluenceurScreen = () => {
             </View>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity
+              <TouchableOpacity 
                 style={styles.backButton}
                 onPress={() => navigation.navigate('DealsInfluenceur')}
               >

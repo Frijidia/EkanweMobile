@@ -61,10 +61,10 @@ export const NotificationsCommercantScreen = () => {
         switch (notif.targetRoute) {
           case 'DealsDetailsCommercant':
             if (notif.dealId && notif.influenceurId) {
-              navigation.navigate('DealsDetailsCommercant', {
+              navigation.navigate('ChatCommercant' as never, {
                 dealId: notif.dealId,
                 influenceurId: notif.influenceurId
-              });
+              } as never);
             }
             break;
           case 'SuiviDealsCommercant':

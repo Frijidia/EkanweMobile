@@ -117,7 +117,8 @@ export const DiscussionCommercantScreen = () => {
               >
                 <View style={styles.chatContent}>
                   <Image
-                    source={{ uri: chat.user?.photoURL || 'https://via.placeholder.com/150' }}
+                    //source={{ uri: chat.user?.photoURL || 'https://via.placeholder.com/150' }}
+                    source={chat.user?.photoURL ? { uri: chat.user?.photoURL } : require('../../assets/profile.png')}
                     style={styles.avatar}
                   />
                   <View style={styles.chatInfo}>
@@ -204,15 +205,12 @@ const styles = StyleSheet.create({
     padding: 16
   },
   chatItem: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     padding: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: 12
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+    marginBottom: 1,
+    borderRadius: 12
   },
   chatContent: {
     flexDirection: 'row',
@@ -222,7 +220,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    marginRight: 12
+    marginRight: 12,
+    backgroundColor: '#E5E5E5'
   },
   chatInfo: {
     flex: 1

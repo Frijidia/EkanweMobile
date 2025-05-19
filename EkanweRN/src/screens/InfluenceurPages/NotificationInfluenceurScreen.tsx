@@ -154,7 +154,7 @@ export const NotificationInfluenceurScreen = () => {
             Toutes
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity 
           style={[styles.filterButton, filter === 'unread' && styles.activeFilter]}
           onPress={() => setFilter('unread')}
         >
@@ -191,8 +191,8 @@ export const NotificationInfluenceurScreen = () => {
               <View style={styles.notificationHeader}>
                 <Ionicons 
                   name={getNotificationIcon(notif.type)} 
-                  size={24} 
-                  color="#FF6B2E" 
+                    size={24} 
+                    color="#FF6B2E" 
                   style={styles.notificationIcon}
                 />
                 <Text style={styles.timestamp}>

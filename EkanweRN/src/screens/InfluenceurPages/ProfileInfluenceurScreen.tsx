@@ -219,10 +219,7 @@ export const ProfileInfluenceurScreen = () => {
       <ScrollView style={styles.content}>
         <View style={styles.profileCard}>
           <View style={styles.imageContainer}>
-            <TouchableOpacity 
-              style={styles.profileImageContainer}
-              onPress={handleGalleryClick}
-            >
+            <View style={styles.profileImageContainer}>
               {profileImage ? (
                 <Image 
                   source={{ uri: profileImage }} 
@@ -233,21 +230,21 @@ export const ProfileInfluenceurScreen = () => {
                   <Ionicons name="camera" size={30} color="#FF6B2E" />
                 </View>
               )}
-              <View style={styles.imageOverlay}>
-                <TouchableOpacity 
-                  style={styles.cameraButton}
-                  onPress={handleImageClick}
-                >
-                  <Ionicons name="camera" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.galleryButton}
-                  onPress={handleGalleryClick}
-                >
-                  <Ionicons name="images" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
+            </View>
+            <View style={styles.imageButtonsContainer}>
+              <TouchableOpacity 
+                style={styles.cameraButton}
+                onPress={handleImageClick}
+              >
+                <Ionicons name="camera" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.galleryButton}
+                onPress={handleGalleryClick}
+              >
+                <Ionicons name="images" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.formContainer}>
@@ -352,6 +349,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FF6B2E',
     overflow: 'hidden',
+    marginBottom: 16,
   },
   profileImage: {
     width: '100%',
@@ -364,26 +362,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  imageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  imageButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    padding: 8,
+    gap: 16,
   },
   cameraButton: {
     backgroundColor: '#FF6B2E',
-    padding: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    padding: 12,
+    borderRadius: 24,
   },
   galleryButton: {
     backgroundColor: '#1A2C24',
-    padding: 8,
-    borderRadius: 20,
+    padding: 12,
+    borderRadius: 24,
   },
   formContainer: {
     gap: 16,
@@ -461,4 +453,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-}); 
+});

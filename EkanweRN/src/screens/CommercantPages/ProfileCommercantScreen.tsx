@@ -118,9 +118,18 @@ export const ProfileCommercantScreen = () => {
       </View>
 
       <View style={styles.profileImageContainer}>
-        <TouchableOpacity onPress={pickImage}>
-          <Image source={{ uri: profileImage || 'https://via.placeholder.com/100' }} style={styles.profileImage} />
+        <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
+          <Image 
+            //source={{ uri: profileImage || 'https://via.placeholder.com/150' }}
+            //style={styles.profileImage}
+            source={profileImage ? { uri: profileImage } : require('../../assets/profile.png')} 
+            style={styles.profileImage} 
+          />
+          <View style={styles.editIconContainer}>
+            <Ionicons name="camera" size={20} color="white" />
+          </View>
         </TouchableOpacity>
+        <Text style={styles.changePhotoText}>Changer la photo</Text>
       </View>
 
       <View style={styles.inputContainer}>
@@ -181,7 +190,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 20,
     padding: 10
-
   },
   header: { 
     padding: 16, 
@@ -213,10 +221,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  imagePickerButton: {
+    position: 'relative',
+    marginBottom: 8,
+  },
   profileImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#1A2C24',
+  },
+  editIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#1A2C24',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#F5F5E7',
+  },
+  changePhotoText: {
+    color: '#1A2C24',
+    fontSize: 16,
+    marginTop: 8,
+    fontWeight: '500',
   },
   inputContainer: {
     gap: 16,

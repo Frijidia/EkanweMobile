@@ -332,7 +332,7 @@ export const DealDetailsInfluenceurScreen = () => {
       await updateUserChats(user.uid, deal.merchantId, true);
       await updateUserChats(deal.merchantId, user.uid, false);
 
-      setAlreadyApplied(true);
+    setAlreadyApplied(true);
       Alert.alert("Succès", "Votre candidature a été envoyée avec succès !");
     } catch (error) {
       console.error("Erreur lors de la candidature :", error);
@@ -360,15 +360,15 @@ export const DealDetailsInfluenceurScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView>
-        <View style={styles.header}>
+      <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={24} color="#FF6B2E" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Deals</Text>
-        </View>
+          <Icon name="arrow-left" size={24} color="#FF6B2E" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Deals</Text>
+      </View>
 
         <View style={styles.dealCard}>
-          <View style={styles.imageContainer}>
+        <View style={styles.imageContainer}>
             <Image
               source={deal.imageUrl ? { uri: deal.imageUrl } : require('../../assets/profile.png')}
               style={styles.dealImage}
@@ -378,16 +378,16 @@ export const DealDetailsInfluenceurScreen = () => {
               <Image
                 source={saved ? require('../../assets/fullsave.png') : require('../../assets/save.png')}
                 style={styles.saveIcon}
-              />
-            </TouchableOpacity>
-          </View>
+            />
+          </TouchableOpacity>
+        </View>
 
           <View style={styles.dealContent}>
             <View style={styles.titleContainer}>
-              <View>
+            <View>
                 <Text style={styles.dealTitle}>{deal.title}</Text>
-                <View style={styles.locationContainer}>
-                  <Icon name="map-marker" size={16} color="#FF6B2E" />
+              <View style={styles.locationContainer}>
+                <Icon name="map-marker" size={16} color="#FF6B2E" />
                   <View>
                     {deal.locationName && (
                       <Text style={styles.locationName}>{deal.locationName}</Text>
@@ -403,16 +403,16 @@ export const DealDetailsInfluenceurScreen = () => {
                 </View>
               </View>
               <Text style={styles.dealId}>#{deal.id}</Text>
-            </View>
+          </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Description</Text>
-              <Text style={styles.description}>{deal.description}</Text>
-            </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.description}>{deal.description}</Text>
+          </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Intérêts</Text>
-              <View style={styles.interestsContainer}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Intérêts</Text>
+            <View style={styles.interestsContainer}>
                 {deal.interests ? (
                   <View style={styles.interestTag}>
                     <Text style={styles.interestText}>{deal.interest}</Text>
@@ -421,41 +421,23 @@ export const DealDetailsInfluenceurScreen = () => {
                   <Text style={styles.noInterestText}>Aucun intérêt défini</Text>
                 )}
               </View>
-            </View>
+          </View>
 
             <View style={styles.infoContainer}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Type de Contenu</Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Type de Contenu</Text>
                 <Text style={styles.infoValue}>{deal.typeOfContent || "Non spécifié"}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Date de Validité</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Date de Validité</Text>
                 <Text style={styles.infoValue}>{deal.validUntil || "Non spécifiée"}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Conditions</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Conditions</Text>
                 <Text style={styles.infoValue}>{deal.conditions || "Aucune condition"}</Text>
               </View>
             </View>
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => navigation.navigate('DealsInfluenceur')}
-              >
-                <Text style={styles.backButtonText}>RETOUR</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.applyButton, alreadyApplied && styles.disabledButton]}
-                onPress={handleCandidature}
-                disabled={alreadyApplied}
-              >
-                <Text style={styles.applyButtonText}>
-                  {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
         </View>
 
         <View style={styles.statusSection}>
@@ -521,9 +503,9 @@ export const DealDetailsInfluenceurScreen = () => {
 
                   {isValid && !upload.isValidated && (
                     <TouchableOpacity
-                      style={[styles.validateButton, upload.loading && styles.disabledButton]}
-                      onPress={() => handleValidateUpload(i)}
-                      disabled={upload.loading}
+                    style={[styles.validateButton, upload.loading && styles.disabledButton]}
+                    onPress={() => handleValidateUpload(i)}
+                    disabled={upload.loading}
                     >
                       <Text style={styles.validateButtonText}>
                         {upload.loading ? "Validation..." : "Valider cet upload"}
@@ -552,13 +534,13 @@ export const DealDetailsInfluenceurScreen = () => {
 
         {status === "Approbation" && (
           <View style={styles.approvalSection}>
-            <TouchableOpacity
+            <TouchableOpacity 
               style={styles.pendingButton}
               disabled
             >
               <Text style={styles.pendingButtonText}>En attente d'approbation</Text>
             </TouchableOpacity>
-            <TouchableOpacity
+            <TouchableOpacity 
               style={styles.undoButton}
               onPress={handleUndoMarkAsDone}
               disabled={loading}
@@ -615,6 +597,24 @@ export const DealDetailsInfluenceurScreen = () => {
               </View>
             ))}
           </View>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>RETOUR</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.applyButton, alreadyApplied && styles.disabledButton]}
+            onPress={handleCandidature}
+            disabled={alreadyApplied}
+          >
+            <Text style={styles.applyButtonText}>
+              {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
+            </Text>
+          </TouchableOpacity>
+        </View>
         </View>
       </ScrollView>
       <BottomNavbar />
@@ -793,6 +793,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 20,
   },
   backButton: {
     flex: 1,
