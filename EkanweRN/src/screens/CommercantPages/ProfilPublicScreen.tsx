@@ -82,7 +82,7 @@ export const ProfilPublicScreen = () => {
     if (!currentUser || !userId || currentUser.uid === userId) return;
     setLoadingContact(true);
     try {
-      const chatId = [currentUser.uid, userId].sort().join('_');
+      const chatId = [userId, currentUser.uid].sort().join("");
       const chatRef = doc(db, 'chats', chatId);
       const chatSnap = await getDoc(chatRef);
 
@@ -135,10 +135,8 @@ export const ProfilPublicScreen = () => {
 
       navigation.navigate('Chat', {
         chatId,
-        receiverId: userId,
         pseudonyme: userData.pseudonyme,
         photoURL: userData.photoURL,
-        role: userData.role,
       });
     } catch (err) {
       console.error('Erreur contact :', err);
@@ -212,7 +210,7 @@ export const ProfilPublicScreen = () => {
           {completedDealsData.map((deal, index) => (
             <View key={index} style={styles.dealCard}>
               <Text style={styles.dealTitle}>{deal.title}</Text>
-              <Text style={styles.dealStats}>{deal.likes} likes · {deal.shares} vues</Text>
+              <Text style={styles.dealStats}>{deal.likes} likes · {deal.shares} nombre de partage</Text>
             </View>
           ))}
         </View>

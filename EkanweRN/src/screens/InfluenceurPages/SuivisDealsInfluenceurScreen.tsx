@@ -33,6 +33,7 @@ export const SuivisDealsInfluenceurScreen = () => {
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
   const filters = ["Tous", "Envoyé", "Accepté", "Refusé", "Terminé"];
 
+
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -83,7 +84,7 @@ export const SuivisDealsInfluenceurScreen = () => {
     const chatId = [auth.currentUser?.uid, candidature.dealInfo?.merchantId].sort().join("");
     const userRef = doc(db, "users", candidature.influenceurId);
     const userSnap = await getDoc(userRef);
-    
+
     if (userSnap.exists()) {
       const userData = userSnap.data();
       navigation.navigate('ChatInfluenceur', {
@@ -122,29 +123,40 @@ export const SuivisDealsInfluenceurScreen = () => {
 
           <View style={styles.dealFooter}>
             <View style={styles.progressContainer}>
-              <Icon 
-                name="send" 
-                size={16} 
-                color={progressStyles.Envoyé.color} 
+              <Icon
+                name="send"
+                size={16}
+                color={progressStyles.Envoyé.color}
               />
               <View style={[styles.progressLine, progressStyles.line1]} />
-              <Icon 
-                name="check-circle" 
-                size={16} 
-                color={progressStyles.Accepté.color} 
+              <Icon
+                name="check-circle"
+                size={16}
+                color={progressStyles.Accepté.color}
               />
               <View style={[styles.progressLine, progressStyles.line2]} />
-              <Icon 
-                name="check-all" 
-                size={16} 
-                color={progressStyles.completed.color} 
+              <Icon
+                name="check-all"
+                size={16}
+                color={progressStyles.completed.color}
               />
             </View>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.chatButton}
-                onPress={() => navigation.navigate('DiscussionInfluenceur', { chatId: candidature.dealInfo?.chatId })}
-                //onPress={(e) => handleChatPress(e, candidature)}
+                onPress={async () => {
+                  const userRef = doc(db, "users", candidature.dealInfo?.merchantId);
+                  const userSnap = await getDoc(userRef);
+                  if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    navigation.navigate('Chat', {
+                      chatId: [auth.currentUser?.uid, candidature.dealInfo?.merchantId].sort().join(""),
+                      pseudonyme: userData?.displayName ?? 'Utilisateur introuvable',
+                      photoURL: userData?.photoURL ?? '',
+                    })
+                  }
+                }}
+
               >
                 <Icon name="message-outline" size={16} color="#FFFFFF" />
               </TouchableOpacity>

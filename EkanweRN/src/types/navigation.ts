@@ -51,7 +51,6 @@ export type RootStackParamList = {
     chatId: string;
     pseudonyme?: string;
     photoURL?: string;
-    role: string;
   };
   ProfilPublic: { userId: string }
 }; 

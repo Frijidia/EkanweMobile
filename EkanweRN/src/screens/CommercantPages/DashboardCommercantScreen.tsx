@@ -11,7 +11,7 @@ import {
 import { db, auth } from "../../firebase/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
-import { Heart, Eye, MoreHorizontal } from "lucide-react-native";
+import { Heart, Share, MoreHorizontal } from "lucide-react-native";
 import {Navbar} from "./Navbar";
 import { RootStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -192,7 +192,7 @@ export const DashboardCommercantScreen = () => {
                   <Text style={styles.statText}>{review.likes}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Eye size={16} color="#14210F" />
+                  <Share size={16} color="#14210F" />
                   <Text style={styles.statText}>{review.shares}</Text>
                 </View>
               </View>

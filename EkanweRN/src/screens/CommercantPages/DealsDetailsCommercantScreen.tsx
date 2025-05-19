@@ -234,7 +234,7 @@ export const DealsDetailsCommercantScreen = () => {
                       <Image source={{ uri: proof.image }} style={styles.proofImage} />
                       <View style={styles.proofStats}>
                         <Text>Likes : {proof.likes}</Text>
-                        <Text>Nombre de vue : {proof.shares}</Text>
+                        <Text>Nombre de partage : {proof.shares}</Text>
                       </View>
                     </View>
                   ))}

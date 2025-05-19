@@ -121,7 +121,7 @@ export const LoginScreen = () => {
         <Text style={styles.googleText}>Continuer avec Google</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.retour}>
+      <TouchableOpacity onPress={() => navigation.navigate('LoginOrConnect')} style={styles.retour}>
         <Text style={{ color: '#ccc' }}>← Retour</Text>
       </TouchableOpacity>
     </View>

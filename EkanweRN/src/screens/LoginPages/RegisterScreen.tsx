@@ -163,7 +163,7 @@ export const RegisterScreen = () => {
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.retour}>
+      <TouchableOpacity onPress={() => navigation.navigate('LoginOrConnect')} style={styles.retour}>
         <Text style={{ color: '#ccc' }}>← Retour</Text>
       </TouchableOpacity>
     </View>
