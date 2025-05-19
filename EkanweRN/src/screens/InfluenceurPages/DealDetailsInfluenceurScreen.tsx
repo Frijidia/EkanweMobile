@@ -574,7 +574,7 @@ export const DealDetailsInfluenceurScreen = () => {
           <View style={styles.reviewButtonSection}>
             <TouchableOpacity
               style={[styles.reviewButton, hasReviewed && styles.disabledButton]}
-              onPress={() => !hasReviewed && navigation.navigate('ReviewScreen', { dealId: deal.id })}
+              onPress={() => !hasReviewed && navigation.navigate('ReviewInfluenceur', { dealId: deal.id })}
               disabled={hasReviewed}
             >
               <Text style={styles.reviewButtonText}>

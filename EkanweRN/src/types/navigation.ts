@@ -29,7 +29,7 @@ export type RootStackParamList = {
   DealDetailsInfluenceur: { dealId: string };
   DealsSeeMoreInfluenceur: { dealId: string };
   ReviewCommercant: {dealId: string, influenceurId: string}
-  ReviewScreen: { dealId: string };
+  ReviewInfluenceur: { dealId: string };
   ConceptCommercant: undefined;
   CreatorCommercant: undefined;
   DealsCommercant: undefined;
