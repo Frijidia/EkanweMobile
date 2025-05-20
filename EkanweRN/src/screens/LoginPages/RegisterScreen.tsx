@@ -15,12 +15,12 @@ import { RootStackParamList } from '../../types/navigation';
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  signInWithCredential,
-  GoogleAuthProvider,
+  // signInWithCredential,
+  // GoogleAuthProvider,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+// import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useUserData } from '../../context/UserContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Register'>;
@@ -37,40 +37,40 @@ export const RegisterScreen = () => {
   };
 
   const handleGoogleSignUp = async () => {
-    try {
-      setLoading(true);
-      const googleUser = await GoogleAuth.signIn();
-      const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
-      const result = await signInWithCredential(auth, credential);
-      const user = result.user;
+    // try {
+    //   setLoading(true);
+    //   const googleUser = await GoogleAuth.signIn();
+    //   const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+    //   const result = await signInWithCredential(auth, credential);
+    //   const user = result.user;
 
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+    //   const userRef = doc(db, 'users', user.uid);
+    //   const userSnap = await getDoc(userRef);
 
-      if (!userSnap.exists()) {
-        const fullName = user.displayName || '';
-        const [firstName, ...rest] = fullName.split(' ');
-        const lastName = rest.join(' ');
+    //   if (!userSnap.exists()) {
+    //     const fullName = user.displayName || '';
+    //     const [firstName, ...rest] = fullName.split(' ');
+    //     const lastName = rest.join(' ');
 
-        await setDoc(userRef, {
-          email: user.email,
-          nom: lastName || null,
-          prenoms: firstName || null,
-          photoURL: user.photoURL || null,
-          role: userData?.role || null,
-          dateCreation: new Date(),
-          inscription: '1',
-        });
-      }
+    //     await setDoc(userRef, {
+    //       email: user.email,
+    //       nom: lastName || null,
+    //       prenoms: firstName || null,
+    //       photoURL: user.photoURL || null,
+    //       role: userData?.role || null,
+    //       dateCreation: new Date(),
+    //       inscription: '1',
+    //     });
+    //   }
 
-      navigation.replace('RegistrationStepOne');
-    } catch (err) {
-      console.error('Erreur Google Sign In :', err);
-      setError('Erreur lors de la connexion avec Google.');
-      Alert.alert('Erreur', 'Échec de la connexion Google');
-    } finally {
-      setLoading(false);
-    }
+    //   navigation.replace('RegistrationStepOne');
+    // } catch (err) {
+    //   console.error('Erreur Google Sign In :', err);
+    //   setError('Erreur lors de la connexion avec Google.');
+    //   Alert.alert('Erreur', 'Échec de la connexion Google');
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   const handleRegister = async () => {

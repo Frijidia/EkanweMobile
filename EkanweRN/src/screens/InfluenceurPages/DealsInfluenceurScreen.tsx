@@ -16,7 +16,7 @@ import { sendNotification } from "../../hooks/sendNotifications";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
 import { BottomNavbar } from "./BottomNavbar";
-import * as Location from 'expo-location';
+// import * as Location from 'expo-location';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -47,32 +47,32 @@ export const DealsInfluenceurScreen = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [savedDeals, setSavedDeals] = useState<string[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  // const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const user = auth.currentUser;
 
   useEffect(() => {
-    fetchUserLocation();
+    // fetchUserLocation();
     fetchDeals();
   }, []);
 
-  const fetchUserLocation = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Permission de localisation refusée');
-        return;
-      }
+  // const fetchUserLocation = async () => {
+  //   try {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== 'granted') {
+  //       console.log('Permission de localisation refusée');
+  //       return;
+  //     }
 
-      const location = await Location.getCurrentPositionAsync({});
-      setUserLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      });
-    } catch (error) {
-      console.error("Erreur lors de la récupération de la position:", error);
-    }
-  };
+  //     const location = await Location.getCurrentPositionAsync({});
+  //     setUserLocation({
+  //       latitude: location.coords.latitude,
+  //       longitude: location.coords.longitude
+  //     });
+  //   } catch (error) {
+  //     console.error("Erreur lors de la récupération de la position:", error);
+  //   }
+  // };
 
   const fetchDeals = async () => {
     try {
@@ -85,23 +85,23 @@ export const DealsInfluenceurScreen = () => {
         ...doc.data()
       })) as Deal[];
 
-      if (userLocation) {
-        dealsData.sort((a, b) => {
-          const distanceA = calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            a.location.latitude,
-            a.location.longitude
-          );
-          const distanceB = calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            b.location.latitude,
-            b.location.longitude
-          );
-          return distanceA - distanceB;
-        });
-      }
+      // if (userLocation) {
+      //   dealsData.sort((a, b) => {
+      //     const distanceA = calculateDistance(
+      //       userLocation.latitude,
+      //       userLocation.longitude,
+      //       a.location.latitude,
+      //       a.location.longitude
+      //     );
+      //     const distanceB = calculateDistance(
+      //       userLocation.latitude,
+      //       userLocation.longitude,
+      //       b.location.latitude,
+      //       b.location.longitude
+      //     );
+      //     return distanceA - distanceB;
+      //   });
+      // }
 
       setDeals(dealsData);
       setLoadingPage(false);

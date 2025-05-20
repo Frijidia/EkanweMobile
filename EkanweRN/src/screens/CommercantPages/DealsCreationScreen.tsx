@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, /*useEffect*/ } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator, Alert
 } from 'react-native';
@@ -9,8 +9,8 @@ import {
   collection, addDoc, serverTimestamp, getDocs, query, where, writeBatch, doc
 } from 'firebase/firestore';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MapView, { Marker, MapPressEvent } from 'react-native-maps';
-import * as Location from 'expo-location';
+// import MapView, { Marker, MapPressEvent } from 'react-native-maps';
+// import * as Location from 'expo-location';
 import { RootStackParamList } from '../../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -25,17 +25,17 @@ export const DealsCreationScreen = () => {
   const [validUntil, setValidUntil] = useState('');
   const [conditions, setConditions] = useState('');
   const [imageUri, setImageUri] = useState('');
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationName, setLocationName] = useState('');
+  // const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+  // const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [region, setRegion] = useState({
-    latitude: 5.35,
-    longitude: -4.01,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  // const [region, setRegion] = useState({
+  //   latitude: 5.35,
+  //   longitude: -4.01,
+  //   latitudeDelta: 0.05,
+  //   longitudeDelta: 0.05,
+  // });
+  // const [searchQuery, setSearchQuery] = useState('');
+  // const [isSearching, setIsSearching] = useState(false);
 
   const availableInterests = ["Mode", "Cuisine", "Voyage", "Beauté", "Sport", "Technologie", "Gaming"];
   const availableTypes = ["Post Instagram", "Story Instagram", "Vidéo TikTok", "Autre"];
@@ -48,20 +48,20 @@ export const DealsCreationScreen = () => {
     }
   };
 
-  const handleMapPress = async (e: MapPressEvent) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setPosition({ lat: latitude, lng: longitude });
-    setLocationName(await getLocationName(latitude, longitude));
-  };
+  // const handleMapPress = async (e: MapPressEvent) => {
+  //   const { latitude, longitude } = e.nativeEvent.coordinate;
+  //   setPosition({ lat: latitude, lng: longitude });
+  //   setLocationName(await getLocationName(latitude, longitude));
+  // };
 
-  const getLocationName = async (latitude: number, longitude: number) => {
-    let result = await Location.reverseGeocodeAsync({ latitude, longitude });
-    if (result.length > 0) {
-      const place = result[0];
-      return `${place.city}, ${place.country}`;
-    }
-    return "Inconnu";
-  };
+  // const getLocationName = async (latitude: number, longitude: number) => {
+  //   let result = await Location.reverseGeocodeAsync({ latitude, longitude });
+  //   if (result.length > 0) {
+  //     const place = result[0];
+  //     return `${place.city}, ${place.country}`;
+  //   }
+  //   return "Inconnu";
+  // };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({ base64: true });
@@ -71,7 +71,7 @@ export const DealsCreationScreen = () => {
   };
 
   const handleSubmit = async () => {
-    if (!title || !description || !validUntil || !conditions || !imageUri || !position || selectedInterests.length === 0 || selectedTypes.length === 0) {
+    if (!title || !description || !validUntil || !conditions || !imageUri || /*!position || */selectedInterests.length === 0 || selectedTypes.length === 0) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs requis.');
       return;
     }
@@ -87,8 +87,8 @@ export const DealsCreationScreen = () => {
         interests: selectedInterests,
         typeOfContent: selectedTypes,
         imageUrl: imageUri,
-        locationCoords: { lat: position.lat, lng: position.lng },
-        locationName,
+        // locationCoords: { lat: position.lat, lng: position.lng },
+        // locationName,
         merchantId: auth.currentUser?.uid,
         status: 'active',
         candidatures: [],
@@ -121,50 +121,50 @@ export const DealsCreationScreen = () => {
     }
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  // const handleSearch = async () => {
+  //   if (!searchQuery.trim()) return;
     
-    setIsSearching(true);
-    try {
-      const results = await Location.geocodeAsync(searchQuery);
-      if (results.length > 0) {
-        const { latitude, longitude } = results[0];
-        setRegion({
-          latitude,
-          longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        });
-        setPosition({ lat: latitude, lng: longitude });
-        setLocationName(await getLocationName(latitude, longitude));
-      } else {
-        Alert.alert('Erreur', 'Adresse non trouvée');
-      }
-    } catch (error) {
-      console.error('Erreur de recherche:', error);
-      Alert.alert('Erreur', 'Impossible de trouver cette adresse');
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  //   setIsSearching(true);
+  //   try {
+  //     const results = await Location.geocodeAsync(searchQuery);
+  //     if (results.length > 0) {
+  //       const { latitude, longitude } = results[0];
+  //       setRegion({
+  //         latitude,
+  //         longitude,
+  //         latitudeDelta: 0.05,
+  //         longitudeDelta: 0.05,
+  //       });
+  //       setPosition({ lat: latitude, lng: longitude });
+  //       setLocationName(await getLocationName(latitude, longitude));
+  //     } else {
+  //       Alert.alert('Erreur', 'Adresse non trouvée');
+  //     }
+  //   } catch (error) {
+  //     console.error('Erreur de recherche:', error);
+  //     Alert.alert('Erreur', 'Impossible de trouver cette adresse');
+  //   } finally {
+  //     setIsSearching(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'La permission de localisation est nécessaire pour utiliser la carte.');
-        return;
-      }
+  // useEffect(() => {
+  //   (async () => {
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== 'granted') {
+  //       Alert.alert('Permission refusée', 'La permission de localisation est nécessaire pour utiliser la carte.');
+  //       return;
+  //     }
 
-      let location = await Location.getCurrentPositionAsync({});
-      setRegion({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      });
-    })();
-  }, []);
+  //     let location = await Location.getCurrentPositionAsync({});
+  //     setRegion({
+  //       latitude: location.coords.latitude,
+  //       longitude: location.coords.longitude,
+  //       latitudeDelta: 0.05,
+  //       longitudeDelta: 0.05,
+  //     });
+  //   })();
+  // }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -242,7 +242,7 @@ export const DealsCreationScreen = () => {
         multiline
       />
 
-      <Text style={styles.label}>Localisation</Text>
+      {/* <Text style={styles.label}>Localisation</Text>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -291,7 +291,7 @@ export const DealsCreationScreen = () => {
         ) : (
           <Text style={styles.locationText}>Touchez la carte ou recherchez une adresse</Text>
         )}
-      </View>
+      </View> */}
 
       <TouchableOpacity onPress={handleSubmit} disabled={loading} style={styles.submit}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>EXÉCUTER</Text>}
