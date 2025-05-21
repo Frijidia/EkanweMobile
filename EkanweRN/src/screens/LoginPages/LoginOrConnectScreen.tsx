@@ -7,34 +7,21 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'LoginOrConnect'>;
-type RouteProps = RouteProp<RootStackParamList, 'LoginOrConnect'>;
 
 const { width } = Dimensions.get('window');
 
 export const LoginOrConnectScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<RouteProps>();
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (route.params?.error) {
-      setError(route.params.error);
-    }
-  }, [route.params]);
+
 
   return (
     <View style={styles.container}>
-      {error !== '' && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
       <Text style={styles.introText}>
         Une communauté qui offre ensemble une visibilité qui circule.{"\n"}
         Rejoins le mouvement EKANWE.

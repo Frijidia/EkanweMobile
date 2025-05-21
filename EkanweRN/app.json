@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "EkanweRN",
-    "slug": "EkanweRN",
+    "name": "ekanwe-app",
+    "slug": "ekanwe-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,20 +13,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "13",
       "supportsTablet": true,
-      "bundleIdentifier": "com.ekanwe.ekanwe",
+      "bundleIdentifier": "com.duzhakn.ekanwe",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSLocationWhenInUseUsageDescription": "Cette app utilise votre position pour afficher des lieux sur la carte.",
-        "NSLocationAlwaysUsageDescription": "Cette app a besoin de votre localisation même en arrière-plan.",
-        "CFBundleURLTypes": [
-          {
-            "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.177322625777-eh52hote181cnjkls0enpltjh2rtfu8j"
-            ]
-          }
-        ]
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -40,20 +32,24 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "83da3058-68e5-4ca9-9312-2b7f575d25c2"
-      }
-    },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin",
       [
         "expo-build-properties",
         {
           "ios": {
-            "useModularHeaders": true
+            "useFrameworks": "static",
+            "iosUrlScheme": "177322625777-eh52hote181cnjkls0enpltjh2rtfu8j.apps.googleusercontent.com"
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6213365b-b8cb-4b05-a4f4-32be74bd8398"
+      }
+    }
   }
 }

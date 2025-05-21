@@ -7,14 +7,16 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth, db } from '../../firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { AppleAuthProvider } from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -69,9 +71,94 @@ export const LoginScreen = () => {
   };
 
   const handleGoogleLogin = async () => {
-    Alert.alert('Non disponible', 'La connexion avec Google sera disponible prochainement.');
-    // Tu pourras lier @react-native-google-signin ou firebase/auth si tu configures bien le projet natif
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const signInResult = await GoogleSignin.signIn();
+
+    const idToken = signInResult.data?.idToken;
+    if (!idToken) {
+      throw new Error('No ID token found');
+    }
+
+    const googleCredential = GoogleAuthProvider.credential(signInResult.data?.idToken);
+
+    const cred = await signInWithCredential(auth, googleCredential);
+    const userRef = doc(db, 'users', cred.user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const { role, inscription } = userSnap.data();
+
+      switch (inscription) {
+        case '1':
+          navigation.replace('RegistrationStepOne');
+          break;
+        case '2':
+          navigation.replace('InterestStep');
+          break;
+        case '3':
+          navigation.replace('SocialConnect');
+          break;
+        case '4':
+          navigation.replace('PortfolioStep');
+          break;
+        case 'Terminé':
+          if (role === 'commerçant') navigation.replace('DealsCommercant');
+          else if (role === 'influenceur') navigation.replace('DealsInfluenceur');
+          else setError('Rôle inconnu. Veuillez contacter l\'administrateur.');
+          break;
+        default:
+          navigation.replace('LoginOrConnect');
+      }
+    } else {
+      setError('Compte introuvable dans la base de données.');
+    }
   };
+
+  const handleAppleLogin = async () => {
+    const appleAuthRequestResponse = await appleAuth.performRequest({
+      requestedOperation: appleAuth.Operation.LOGIN,
+      requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+    });
+
+    if (!appleAuthRequestResponse.identityToken) {
+      throw new Error('Apple Sign-In failed - no identify token returned');
+    }
+
+    const { identityToken, nonce } = appleAuthRequestResponse;
+    const appleCredential = AppleAuthProvider.credential(identityToken, nonce);
+
+    const cred = await signInWithCredential(auth, appleCredential);
+    const userRef = doc(db, 'users', cred.user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const { role, inscription } = userSnap.data();
+
+      switch (inscription) {
+        case '1':
+          navigation.replace('RegistrationStepOne');
+          break;
+        case '2':
+          navigation.replace('InterestStep');
+          break;
+        case '3':
+          navigation.replace('SocialConnect');
+          break;
+        case '4':
+          navigation.replace('PortfolioStep');
+          break;
+        case 'Terminé':
+          if (role === 'commerçant') navigation.replace('DealsCommercant');
+          else if (role === 'influenceur') navigation.replace('DealsInfluenceur');
+          else setError('Rôle inconnu. Veuillez contacter l\'administrateur.');
+          break;
+        default:
+          navigation.replace('LoginOrConnect');
+      }
+    } else {
+      setError('Compte introuvable dans la base de données.');
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -119,6 +206,14 @@ export const LoginScreen = () => {
           style={styles.googleIcon}
         />
         <Text style={styles.googleText}>Continuer avec Google</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.googleBtn} onPress={handleAppleLogin}>
+        <Image
+          source={{ uri: 'https://www.apple.com/favicon.ico' }}
+          style={styles.googleIcon}
+        />
+        <Text style={styles.googleText}>Continuer avec Apple</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('LoginOrConnect')} style={styles.retour}>

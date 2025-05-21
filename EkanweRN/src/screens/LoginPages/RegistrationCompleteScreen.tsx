@@ -57,15 +57,6 @@ export const RegistrationCompleteScreen = () => {
           Félicitations ! Votre compte a été créé avec succès. Vous allez être redirigé vers votre espace personnel dans quelques secondes.
         </Text>
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.replace('Splash')}>
-          <Text style={styles.buttonText}>CONTINUER</Text>
-        </TouchableOpacity>
-
-        <View style={styles.pagination}>
-          <View style={[styles.dot, { backgroundColor: '#FF6B2E' }]} />
-          <View style={[styles.dot, { opacity: 0.5 }]} />
-          <View style={[styles.dot, { opacity: 0.5 }]} />
-        </View>
       </View>
     </View>
   );

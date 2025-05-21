@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityInd
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../firebase/firebase';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -20,11 +22,18 @@ export const ForgotPasswordScreen = () => {
 
     setLoading(true);
     try {
-      // TODO: Implémenter la réinitialisation du mot de passe
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      //navigation.navigate('Login');
-    } catch (err) {
-      setError('Une erreur est survenue lors de la réinitialisation du mot de passe');
+      await sendPasswordResetEmail(auth, email);
+      alert("Un lien de réinitialisation a été envoyé à votre adresse email.");
+      navigation.navigate('Login');
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === "auth/user-not-found") {
+        alert("Aucun compte n'est associé à cet email.");
+      } else if (err.code === "auth/invalid-email") {
+        alert("L'email fourni n'est pas valide.");
+      } else {
+        alert("Une erreur s'est produite. Veuillez réessayer.");
+      }
     } finally {
       setLoading(false);
     }

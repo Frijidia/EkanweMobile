@@ -53,4 +53,4 @@ export type RootStackParamList = {
     photoURL?: string;
   };
   ProfilPublic: { userId: string }
-}; 
+};

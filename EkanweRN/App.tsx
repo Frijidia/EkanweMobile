@@ -6,7 +6,6 @@ import { SplashScreen } from './src/screens/SplashScreen';
 import { ConnectionScreen } from './src/screens/LoginPages/ConnectionScreen';
 import { WelcomeInfluenceurScreen } from './src/screens/EkanwePages/WelcomeInfluenceurScreen';
 import { WelcomeCommercantScreen } from './src/screens/EkanwePages/WelcomeCommercantScreen';
-import { AppNavigator } from './src/navigation/AppNavigator';
 import { CreatorTypeInfluenceurScreen } from './src/screens/EkanwePages/CreatorTypeInfluenceurScreen';
 import { ConceptInfluenceurScreen } from './src/screens/EkanwePages/ConceptInfluenceurScreen';
 import { LoginOrConnectScreen } from './src/screens/LoginPages/LoginOrConnectScreen';
@@ -30,7 +29,6 @@ import { ConceptCommercantScreen } from './src/screens/EkanwePages/ConceptCommer
 import { CreatorCommercantScreen } from './src/screens/EkanwePages/CreatorCommercantScreen';
 import { DealsPageCommercantScreen } from './src/screens/CommercantPages/DealsCommercantScreen';
 import { ForgotPasswordScreen } from './src/screens/LoginPages/ForgotPasswordScreen';
-import { configureStatusBar } from './src/utils/capacitorUtils';
 import { UserProvider } from './src/context/UserContext';
 import { DealsCreationScreen } from './src/screens/CommercantPages/DealsCreationScreen';
 import { ProfileCommercantScreen } from './src/screens/CommercantPages/ProfileCommercantScreen';
