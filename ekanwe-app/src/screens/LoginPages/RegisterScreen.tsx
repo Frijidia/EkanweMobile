@@ -138,13 +138,19 @@ export const RegisterScreen = () => {
 
     try {
       setLoading(true);
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      let cred = null;
+      try {
+        cred = await createUserWithEmailAndPassword(auth, email, password);
+      } catch (errr) {
+        setError('Une erreur est survenue lors de l\'inscription. Cet adresse est déjà utilisée. Veuillez vous connecter.');
+        return;
+      }
       await sendEmailVerification(cred.user);
 
       const userRef = doc(db, 'users', cred.user.uid);
       await setDoc(userRef, {
         email,
-        role: userData?.role || null, // À modifier selon ton contexte
+        role: userData?.role || null,
         dateCreation: new Date(),
         inscription: '1',
       });
@@ -152,7 +158,7 @@ export const RegisterScreen = () => {
       navigation.replace('ValidateInscription');
     } catch (err: any) {
       console.error('Erreur d\'inscription :', err);
-      setError('Une erreur est survenue : ' + err.message);
+      setError('Une erreur est survenue lors de l\'inscription. Veuillez essayer à nouveau');
     } finally {
       setLoading(false);
     }

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
 import { auth, db } from '../../firebase/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,7 +14,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const ProfileCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<any>(null);
   const [pseudonyme, setPseudonyme] = useState('');
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
@@ -23,8 +24,9 @@ export const ProfileCommercantScreen = () => {
   const [tiktok, setTiktok] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
   const [bio, setBio] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [loading, setLoading] = useState<any>(false);
+  const [message, setMessage] = useState<any>(null);
+  const MAX_BASE64_SIZE = 1024 * 1024;
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -55,7 +57,10 @@ export const ProfileCommercantScreen = () => {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 1 });
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      const base64Image = result.assets[0].base64!;
+      const mimeType = result.assets[0].type || 'image/jpeg';
+      const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+      setProfileImage(fullBase64);
     }
   };
 
@@ -67,6 +72,11 @@ export const ProfileCommercantScreen = () => {
     setMessage(null);
 
     try {
+      let imageBase64 = null;
+
+      if (profileImage && profileImage.startsWith('file://')) {
+        imageBase64 = await getBase64FromUri(profileImage);
+      }
       await updateDoc(doc(db, 'users', user.uid), {
         pseudonyme,
         prenom,
@@ -77,7 +87,7 @@ export const ProfileCommercantScreen = () => {
         tiktok,
         portfolioLink,
         bio,
-        photoURL: profileImage || '',
+        photoURL: imageBase64 || profileImage || '',
       });
       setMessage('Profil mis à jour avec succès !');
     } catch (error) {
@@ -91,11 +101,116 @@ export const ProfileCommercantScreen = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
     } catch (error) {
       console.error('Erreur de déconnexion :', error);
       Alert.alert('Erreur', 'Erreur de déconnexion.');
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Confirmer la suppression",
+      "Es-tu sûr de vouloir supprimer ton compte ? Cette action est irréversible.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) return;
+              await deleteDoc(doc(db, "users", user.uid));
+              await user.delete();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Splash' }],
+              });
+            } catch (error) {
+              Alert.alert("Demande de suppression envoyé à l'admin. Votre demande peut prendre entre 3 - 4 jours !");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleImageClick = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.3,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
+          Alert.alert(
+            "Image trop lourde",
+            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
+          );
+        } else {
+          const base64Image = result.assets[0].base64!;
+          const mimeType = result.assets[0].type || 'image/jpeg';
+          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+          setProfileImage(fullBase64);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la prise de photo:", error);
+      setMessage("Erreur lors de la prise de photo");
+    }
+  };
+
+  const handleGalleryClick = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.3,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
+          Alert.alert(
+            "Image trop lourde",
+            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
+          );
+        } else {
+          const base64Image = result.assets[0].base64!;
+          const mimeType = result.assets[0].type || 'image/jpeg';
+          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+          setProfileImage(fullBase64);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sélection de l'image:", error);
+      setMessage("Erreur lors de la sélection de l'image");
+    }
+  };
+
+  const getBase64FromUri = async (uri: string): Promise<string> => {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return `data:image/jpeg;base64,${base64}`;
   };
 
   return (
@@ -117,19 +232,33 @@ export const ProfileCommercantScreen = () => {
         </View>
       </View>
 
-      <View style={styles.profileImageContainer}>
-        <TouchableOpacity onPress={pickImage} style={styles.imagePickerButton}>
-          <Image 
-            //source={{ uri: profileImage || 'https://via.placeholder.com/150' }}
-            //style={styles.profileImage}
-            source={profileImage ? { uri: profileImage } : require('../../assets/profile.png')} 
-            style={styles.profileImage} 
-          />
-          <View style={styles.editIconContainer}>
-            <Ionicons name="camera" size={20} color="white" />
-          </View>
-        </TouchableOpacity>
-        <Text style={styles.changePhotoText}>Changer la photo</Text>
+      <View style={styles.imageContainer}>
+        <View style={styles.profileImageContainer}>
+          {profileImage ? (
+            <Image
+              source={{ uri: profileImage }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <View style={styles.placeholderImage}>
+              <Ionicons name="camera" size={30} color="#FF6B2E" />
+            </View>
+          )}
+        </View>
+        <View style={styles.imageButtonsContainer}>
+          <TouchableOpacity
+            style={styles.cameraButton}
+            onPress={handleImageClick}
+          >
+            <Ionicons name="camera" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.galleryButton}
+            onPress={handleGalleryClick}
+          >
+            <Ionicons name="images" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.inputContainer}>
@@ -164,6 +293,9 @@ export const ProfileCommercantScreen = () => {
       >
         <Text style={styles.buttonText}>Déconnexion</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
+        <Text style={styles.deleteButtonText}>Supprimer mon compte</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -191,11 +323,22 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     padding: 10
   },
-  header: { 
-    padding: 16, 
+  header: {
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
+  },
+  deleteButton: {
+    backgroundColor: '#FF3B30',
+    padding: 12,
+    marginTop: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#1A2C24',
+    fontWeight: 'bold',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -204,6 +347,13 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     gap: 16,
+  },
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#FFF3E0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backButton: {
     marginRight: 8,
@@ -218,19 +368,40 @@ const styles = StyleSheet.create({
     height: 24,
   },
   profileImageContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2,
+    borderColor: '#FF6B2E',
+    overflow: 'hidden',
+    marginBottom: 16,
   },
   imagePickerButton: {
     position: 'relative',
     marginBottom: 8,
   },
+  imageButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#1A2C24',
+    width: '100%',
+    height: '100%',
+  },
+  cameraButton: {
+    backgroundColor: '#FF6B2E',
+    padding: 12,
+    borderRadius: 24,
+  },
+  galleryButton: {
+    backgroundColor: '#1A2C24',
+    padding: 12,
+    borderRadius: 24,
   },
   editIconContainer: {
     position: 'absolute',

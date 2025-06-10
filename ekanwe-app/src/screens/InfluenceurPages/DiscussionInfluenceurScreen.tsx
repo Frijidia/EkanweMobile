@@ -40,7 +40,7 @@ interface ChatItem {
 
 export const DiscussionInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [chats, setChats] = useState<ChatItem[]>([]);
+  const [chats, setChats] = useState<any>([]);
   const [input, setInput] = useState("");
   const [addMode, setAddMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,7 +59,7 @@ export const DiscussionInfluenceurScreen = () => {
 
         const items = data.chats as ChatItem[];
 
-        const promises = items.map(async (item) => {
+        const promises = items.map(async (item: any) => {
           // Get user info
           const userDoc = await getDoc(doc(db, "users", item.receiverId));
           let user = null;
@@ -97,13 +97,13 @@ export const DiscussionInfluenceurScreen = () => {
     return () => unsub();
   }, []);
 
-  const handleSelect = async (chat: ChatItem) => {
+  const handleSelect = async (chat: any) => {
     const user = auth.currentUser;
     if (!user) return;
 
     try {
       const userChatsRef = doc(db, "userchats", user.uid);
-      const updatedChats = chats.map((item) => {
+      const updatedChats = chats.map((item: any) => {
         const { user, ...rest } = item;
         return item.chatId === chat.chatId ? { ...rest, read: true } : rest;
       });
@@ -114,13 +114,15 @@ export const DiscussionInfluenceurScreen = () => {
         chatId: chat.chatId,
         pseudonyme: chat.user?.pseudonyme,
         photoURL: chat.user?.photoURL,
+        receiverId: chat.receiverId,
+        role: 'influenceur'
       });
     } catch (err) {
       console.error("Erreur lors de la mise à jour du chat :", err);
     }
   };
 
-  const filteredChats = chats.filter((chat) =>
+  const filteredChats = chats.filter((chat: any) =>
     chat.user?.pseudonyme.toLowerCase().includes(input.toLowerCase())
   );
 
@@ -178,7 +180,7 @@ export const DiscussionInfluenceurScreen = () => {
             <Text style={styles.addUserText}>Composant AddUser à implémenter</Text>
           </View>
         ) : filteredChats.length > 0 ? (
-          filteredChats.map((chat) => (
+          filteredChats.map((chat: any) => (
             <TouchableOpacity
               key={chat.chatId}
               style={styles.chatItem}

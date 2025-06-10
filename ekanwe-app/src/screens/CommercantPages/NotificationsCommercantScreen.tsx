@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, StyleSheet, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { collection, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
@@ -17,6 +17,7 @@ interface Notification {
   createdAt: number;
   targetRoute?: string;
   dealId?: string;
+  chatId?: string;
   influenceurId?: string;
   type: 'message' | 'deal' | 'system';
 }
@@ -64,12 +65,11 @@ export const NotificationsCommercantScreen = () => {
 
       if (notif.targetRoute) {
         const route = notif.targetRoute;
-        if (route in navigation.getState().routes) {
-          navigation.navigate(route as any, {
-            dealId: notif.dealId,
-            influenceurId: notif.influenceurId
-          });
-        }
+        const params: any = {};
+        if (notif.dealId) params.dealId = notif.dealId;
+        if (notif.influenceurId) params.influenceurId = notif.influenceurId;
+        if (notif.chatId) params.chatId = notif.chatId;
+        navigation.navigate(route as any, params);
       }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de la notification :", error);
@@ -92,7 +92,7 @@ export const NotificationsCommercantScreen = () => {
   const formatTimestamp = (timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
-    
+
     if (diff < 60000) return 'À l\'instant';
     if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)} min`;
     if (diff < 86400000) return `Il y a ${Math.floor(diff / 3600000)}h`;
@@ -129,8 +129,8 @@ export const NotificationsCommercantScreen = () => {
           )}
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-          <Image 
-            source={require('../../assets/ekanwesign.png')} 
+          <Image
+            source={require('../../assets/ekanwesign.png')}
             style={styles.headerLogo}
           />
         </TouchableOpacity>
@@ -145,7 +145,7 @@ export const NotificationsCommercantScreen = () => {
             Toutes
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterButton, filter === 'unread' && styles.activeFilter]}
           onPress={() => setFilter('unread')}
         >
@@ -180,10 +180,10 @@ export const NotificationsCommercantScreen = () => {
               onPress={() => handleNotificationClick(notif)}
             >
               <View style={styles.notificationHeader}>
-                <Ionicons 
-                  name={getNotificationIcon(notif.type)} 
-                  size={24} 
-                  color="#FF6B2E" 
+                <Ionicons
+                  name={getNotificationIcon(notif.type)}
+                  size={24}
+                  color="#FF6B2E"
                   style={styles.notificationIcon}
                 />
                 <Text style={styles.timestamp}>

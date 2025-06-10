@@ -101,7 +101,7 @@ export const InterestStepScreen = () => {
 
       <Text style={styles.sub}>
         Tu ne vois pas ce que tu cherches ?{' '}
-        <Text style={{ fontWeight: 'bold', color: 'white' }}>Ajoute ton propre centre d’intérêt</Text>
+        <Text style={{ fontWeight: 'bold', color: 'white' }}>Ajoute ton propre centre d'intérêt</Text>
       </Text>
 
       <TextInput

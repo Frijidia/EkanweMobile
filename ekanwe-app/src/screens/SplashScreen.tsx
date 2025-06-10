@@ -3,6 +3,9 @@ import { View, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase/firebase';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -10,12 +13,45 @@ export const SplashScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.navigate('Connection');
-    }, 2000);
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
 
-    return () => clearTimeout(timer);
-  }, [navigation]);
+        if (userSnap.exists()) {
+          const { role, inscription } = userSnap.data();
+
+          if (inscription === "1") {
+            navigation.navigate("RegistrationStepOne");
+          } else if (inscription === "2") {
+            navigation.navigate("InterestStep");
+          } else if (inscription === "3") {
+            navigation.navigate("SocialConnect");
+          } else if (inscription === "4") {
+            navigation.navigate("PortfolioStep");
+          } else if (inscription === "Terminé") {
+            if (role === "commerçant") {
+              navigation.navigate("DealsCommercant");
+            } else if (role === "influenceur") {
+              navigation.navigate("DealsInfluenceur");
+            }
+          }
+        } else {
+          navigation.navigate("Connection");
+        }
+      } catch (e) {
+        console.error("Erreur lors de la récupération de l'utilisateur :", e);
+        navigation.navigate("Connection");
+      }
+    } else {
+      navigation.navigate("Connection");
+    }
+  });
+
+  return () => unsubscribe();
+}, [navigation]);
+
 
   return (
     <View style={styles.container}>

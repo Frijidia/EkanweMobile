@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { NavigationContainer, NavigationContainerRef, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { RootStackParamList } from './src/types/navigation';
@@ -43,19 +43,91 @@ import { ChatScreen } from './src/screens/ChatScreen';
 import { ReviewCommercantScreen } from './src/screens/CommercantPages/ReviewCommercantScreen';
 import { ReviewInfluenceurScreen } from './src/screens/InfluenceurPages/ReviewInfluenceurScreen';
 import { ProfilPublicScreen } from './src/screens/CommercantPages/ProfilPublicScreen';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from './src/firebase/firebase';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+async function registerForPushNotificationsAsync(): Promise<string | undefined> {
+  let token;
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      return;
+    }
+
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log('Expo Push Token:', token);
+  }
+
+  if (Platform.OS === 'ios') {
+    await Notifications.setNotificationCategoryAsync('default', []);
+  }
+
+  return token;
+}
+
 export default function App() {
+  const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+  useEffect(() => {
+    const registerForPushNotificationsAsync = async () => {
+      if (!Device.isDevice) {
+        return;
+      }
+
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        return;
+      }
+
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log('Expo Push Token:', token);
+
+      if (Platform.OS === 'ios') {
+        await Notifications.setNotificationCategoryAsync('default', []);
+      }
+
+      if (auth.currentUser) {
+        await setDoc(
+          doc(db, 'users', auth.currentUser.uid),
+          { expoPushToken: token },
+          { merge: true }
+        );
+      }
+    };
+
+    registerForPushNotificationsAsync();
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      if (navigationRef.current) {
+        navigationRef.current.navigate('Splash');
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   return (
     <UserProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
+      <NavigationContainer ref={navigationRef}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Connection" component={ConnectionScreen} />
           <Stack.Screen name="WelcomeInfluenceur" component={WelcomeInfluenceurScreen} />
@@ -78,7 +150,7 @@ export default function App() {
           <Stack.Screen name='SaveDealsInfluenceur' component={SaveDealsInfluenceurScreen} />
           <Stack.Screen name='ProfileInfluenceur' component={ProfileInfluenceurScreen} />
           {/* <Stack.Screen name='ChatInfluenceur' component={ChatInfluenceurScreen} />*/}
-          <Stack.Screen name='DealDetailsInfluenceur' component={DealDetailsInfluenceurScreen} />
+          <Stack.Screen name='DealsDetailsInfluenceur' component={DealDetailsInfluenceurScreen} />
           <Stack.Screen name='DealsSeeMoreInfluenceur' component={DealsSeeMoreInfluenceurScreen} />
           <Stack.Screen name='ConceptCommercant' component={ConceptCommercantScreen} />
           <Stack.Screen name='CreatorCommercant' component={CreatorCommercantScreen} />

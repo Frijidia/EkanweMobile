@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,6 +17,7 @@ import { auth, db } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from './BottomNavbar';
 import { RootStackParamList } from '../../types/navigation';
+import { Timestamp } from "firebase/firestore";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -25,8 +27,11 @@ interface NotificationType {
   targetRoute?: string;
   read: boolean;
   type: 'message' | 'deal' | 'system';
-  createdAt: number;
+  createdAt: Timestamp;
   data?: any;
+  dealId?: string;
+  chatId?: string;
+  influenceurId?: string;
 }
 
 export const NotificationInfluenceurScreen = () => {
@@ -76,9 +81,11 @@ export const NotificationInfluenceurScreen = () => {
 
       if (notif.targetRoute) {
         const route = notif.targetRoute;
-        if (route in navigation.getState().routes) {
-          navigation.navigate(route as any, notif.data);
-        }
+        const params: any = {};
+        if (notif.dealId) params.dealId = notif.dealId;
+        if (notif.influenceurId) params.influenceurId = notif.influenceurId;
+        if (notif.chatId) params.chatId = notif.chatId;
+        navigation.navigate(route as any, params);
       }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de la notification :", error);
@@ -98,15 +105,18 @@ export const NotificationInfluenceurScreen = () => {
     }
   };
 
-  const formatTimestamp = (timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    
+  const formatTimestamp = (timestamp: Timestamp | null | undefined) => {
+    if (!timestamp || !timestamp.toDate) return '';
+
+    const jsDate = timestamp.toDate(); // convertit Firebase Timestamp en JS Date
+    const diff = Date.now() - jsDate.getTime();
+
     if (diff < 60000) return 'À l\'instant';
     if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)} min`;
     if (diff < 86400000) return `Il y a ${Math.floor(diff / 3600000)}h`;
-    return new Date(timestamp).toLocaleDateString('fr-FR');
+    return jsDate.toLocaleDateString('fr-FR');
   };
+
 
   const filteredNotifications = notifications
     .filter(notif => {
@@ -138,8 +148,8 @@ export const NotificationInfluenceurScreen = () => {
           )}
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('DealsInfluenceur')}>
-          <Image 
-            source={require('../../assets/ekanwesign.png')} 
+          <Image
+            source={require('../../assets/ekanwesign.png')}
             style={styles.headerLogo}
           />
         </TouchableOpacity>
@@ -154,7 +164,7 @@ export const NotificationInfluenceurScreen = () => {
             Toutes
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterButton, filter === 'unread' && styles.activeFilter]}
           onPress={() => setFilter('unread')}
         >
@@ -189,10 +199,10 @@ export const NotificationInfluenceurScreen = () => {
               onPress={() => handleNotificationClick(notif)}
             >
               <View style={styles.notificationHeader}>
-                <Ionicons 
-                  name={getNotificationIcon(notif.type)} 
-                    size={24} 
-                    color="#FF6B2E" 
+                <Ionicons
+                  name={getNotificationIcon(notif.type)}
+                  size={24}
+                  color="#FF6B2E"
                   style={styles.notificationIcon}
                 />
                 <Text style={styles.timestamp}>

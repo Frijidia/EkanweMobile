@@ -21,8 +21,7 @@ export const LoginOrConnectScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.introText}>
-        Une communauté qui offre ensemble une visibilité qui circule.{"\n"}
-        Rejoins le mouvement EKANWE.
+        Rejoignez le mouvement et transformez vos contenus en opportunités.
       </Text>
 
       <View style={styles.card}>

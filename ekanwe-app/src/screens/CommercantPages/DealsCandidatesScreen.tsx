@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator, Ale
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { doc, getDoc, updateDoc, getDocs, collection } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
-import { sendNotification } from "../../hooks/sendNotifications";
+import { sendNotification, sendNotificationToToken } from "../../hooks/sendNotifications";
 import { Navbar } from "./Navbar";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../../types/navigation";
@@ -24,33 +24,42 @@ export const DealCandidatesPageCommercant = () => {
   const [buttonLoading, setButtonLoading] = useState<string | null>(null);
   const [averageRatings, setAverageRatings] = useState<Record<string, number>>({});
 
+  async function getAllDeals() {
+    const snapshot = await getDocs(collection(db, "deals"));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+  function calculateAverageRatings(deals: any[]) {
+    const ratingMap: Record<string, { total: number; count: number }> = {};
+    deals.forEach((deal) => {
+      deal.candidatures?.forEach((cand: any) => {
+        const uid = cand.influenceurId;
+        const rating = cand.influreview?.rating;
+        if (uid && typeof rating === "number") {
+          if (!ratingMap[uid]) {
+            ratingMap[uid] = { total: rating, count: 1 };
+          } else {
+            ratingMap[uid].total += rating;
+            ratingMap[uid].count += 1;
+          }
+        }
+      });
+    });
+    const averageMap: Record<string, number> = {};
+    for (const uid in ratingMap) {
+      averageMap[uid] = ratingMap[uid].total / ratingMap[uid].count;
+    }
+    return averageMap;
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!dealId) return;
         const dealRef = doc(db, "deals", dealId);
         const dealSnap = await getDoc(dealRef);
-        const deals = await getDocs(collection(db, "deals"));
-
-        // Calcule la moyenne
-        const ratingMap: Record<string, { total: number; count: number }> = {};
-        deals.forEach(doc => {
-          const data = doc.data();
-          data.candidatures?.forEach((cand: any) => {
-            const uid = cand.influenceurId;
-            const rating = cand.influreview?.rating;
-            if (uid && typeof rating === "number") {
-              if (!ratingMap[uid]) ratingMap[uid] = { total: 0, count: 0 };
-              ratingMap[uid].total += rating;
-              ratingMap[uid].count += 1;
-            }
-          });
-        });
-
-        const avgMap: Record<string, number> = {};
-        Object.keys(ratingMap).forEach(uid => {
-          avgMap[uid] = ratingMap[uid].total / ratingMap[uid].count;
-        });
-        setAverageRatings(avgMap);
+        const deals = await getAllDeals();
+        const averages = calculateAverageRatings(deals);
+        setAverageRatings(averages);
 
         if (dealSnap.exists()) {
           const data = dealSnap.data();
@@ -97,41 +106,25 @@ export const DealCandidatesPageCommercant = () => {
         toUserId: id,
         message: `Votre candidature a été ${status === "Accepté" ? "acceptée" : "refusée"}.`,
         relatedDealId: dealId,
-        targetRoute: `/dealdetailinfluenceur/${dealId}`,
+        targetRoute: 'DealsDetailsInfluenceur',
         fromUserId: auth.currentUser?.uid || "",
         type: "status_update",
+        dealId: dealId,
+        receiverId: id,
       });
+      const userSnap = await getDoc(doc(db, "users", id));
+      const userToken = userSnap.exists() ? userSnap.data()?.expoPushToken : null;
+
+      if (userToken) {
+        await sendNotificationToToken(userToken,
+          "Mise à jour de votre candidature",
+          `Votre candidature a été ${status === "Accepté" ? "acceptée" : "refusée"}.`,
+        );
+      }
 
       setCandidates(prev => prev.map(c => (c.influenceurId === id ? { ...c, status } : c)));
     } catch (e) {
       console.error("updateStatus error:", e);
-    } finally {
-      setButtonLoading(null);
-    }
-  };
-
-  const cancelContract = async (id: string) => {
-    setButtonLoading(id + "cancel");
-    try {
-      const ref = doc(db, "deals", dealId);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return;
-
-      const updated = snap.data().candidatures.filter((c: any) => c.influenceurId !== id);
-      await updateDoc(ref, { candidatures: updated });
-
-      await sendNotification({
-        toUserId: id,
-        message: "Votre contrat a été résilié.",
-        relatedDealId: dealId,
-        targetRoute: `/dealdetailinfluenceur/${dealId}`,
-        fromUserId: auth.currentUser?.uid || "",
-        type: "contract_cancelled",
-      });
-
-      setCandidates(prev => prev.filter(c => c.influenceurId !== id));
-    } catch (e) {
-      console.error("cancelContract error:", e);
     } finally {
       setButtonLoading(null);
     }
@@ -191,7 +184,7 @@ export const DealCandidatesPageCommercant = () => {
               candidates.map((cand) => (
                 <TouchableOpacity
                   key={cand.influenceurId}
-                  onPress={() => navigation.navigate("ProfilPublicCommercant", { userId: cand.influenceurId })}
+                  onPress={() => navigation.navigate("ProfilPublic", { userId: cand.influenceurId })}
                   style={styles.candidateCard}
                 >
                   <View style={styles.candidateContent}>
@@ -231,18 +224,21 @@ export const DealCandidatesPageCommercant = () => {
                       {cand.status === "Accepté" && (
                         <>
                           <Text style={styles.statusText}>EN COURS</Text>
-                          <TouchableOpacity
-                            onPress={() => cancelContract(cand.influenceurId)}
-                            disabled={buttonLoading === cand.influenceurId + "cancel"}
-                          >
-                            <Text style={styles.cancelText}>
-                              {buttonLoading === cand.influenceurId + "cancel" ? "..." : "RÉSILIER"}
-                            </Text>
-                          </TouchableOpacity>
                         </>
                       )}
                       {cand.status === "Refusé" && (
-                        <Text style={styles.refusedText}>REFUSÉ</Text>
+                        <>
+                          <Text style={styles.refusedText}>REFUSÉ</Text>
+                          <TouchableOpacity
+                            style={styles.acceptButton}
+                            onPress={() => updateStatus(cand.influenceurId, "Accepté")}
+                            disabled={buttonLoading === cand.influenceurId + "Accepté"}
+                          >
+                            <Text style={styles.acceptButtonText}>
+                              {buttonLoading === cand.influenceurId + "Accepté" ? "..." : "Vous avez changé d'avis? Accepté le deal ;)"}
+                            </Text>
+                          </TouchableOpacity>
+                        </>
                       )}
                     </View>
                   </View>
@@ -274,8 +270,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
     color: '#14210F'
   },
-  header: { 
-    padding: 16, 
+  header: {
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'

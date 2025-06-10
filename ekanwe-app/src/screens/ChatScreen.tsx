@@ -20,7 +20,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, getDoc } from 'firebase/firesto
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { sendNotification } from '../hooks/sendNotifications';
+import { sendNotification, sendNotificationToToken } from '../hooks/sendNotifications';
 import * as ImagePicker from 'expo-image-picker';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -42,7 +42,7 @@ interface Message {
   img?: string;
 }
 
-const MAX_BASE64_SIZE = 1370000;
+const MAX_BASE64_SIZE = 1024 * 1024;
 
 export const ChatScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -68,8 +68,9 @@ export const ChatScreen = () => {
           data.messages.map((msg: any) => ({
             ...msg,
             createdAt: msg.createdAt?.toDate ? msg.createdAt.toDate() : new Date(),
+            img: msg.img || null,
           }))
-        );
+        )
       }
       setIsLoading(false);
     });
@@ -96,6 +97,7 @@ export const ChatScreen = () => {
     };
 
     try {
+      console.log("TOKEN RÉCUPÉRÉ:", receiverId);
       await updateDoc(chatRef, {
         messages: arrayUnion(newMsg),
       });
@@ -134,7 +136,9 @@ export const ChatScreen = () => {
         fromUserId: senderId,
         message: 'Vous avez un nouveau message.',
         relatedDealId: '',
-        targetRoute: `/chat/${chatId}`,
+        targetRoute: 'Chat',
+        receiverId: receiverId,
+        chatId: chatId,
         type: 'new_message',
       });
     } catch (err) {
@@ -143,36 +147,62 @@ export const ChatScreen = () => {
 
     setNewMessage('');
     setImagePreview(null);
+    let receiverToken = '';
+    try {
+      const receiverDoc = await getDoc(doc(db, 'users', receiverId));
+      if (receiverDoc.exists()) {
+        receiverToken = receiverDoc.data()?.expoPushToken || '';
+        console.log("TOKEN RÉCUPÉRÉ:", receiverToken);
+      }
+      if (typeof receiverToken === 'string' && receiverToken.length > 0) {
+        await sendNotificationToToken(receiverToken,
+          "Nouveau message",
+          `${pseudonyme} vous a envoyé un message.`,
+        );
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du token FCM :", error);
+    }
   };
 
   const handleImagePick = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Alert.alert("Permission refusée", "Tu dois autoriser l'accès à la galerie.");
-      return null;
+      return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       base64: true,
-      quality: 0.5,
+      quality: 0.3,
+      allowsEditing: true,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
     });
-    if (result.canceled) {
+
+    if (result.canceled || !result.assets || result.assets.length === 0) {
       Alert.alert("Aucune image sélectionnée");
-      return null;
+      return;
     }
-    const base64Image = result.assets[0].base64;
-    if (base64Image!.length > MAX_BASE64_SIZE) {
+
+    const base64Image = result.assets[0].base64!;
+    const mimeType = result.assets[0].type || 'image/jpeg';
+    const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+
+    if (fullBase64.length * 0.75 > MAX_BASE64_SIZE) {
       Alert.alert(
         "Image trop lourde",
         "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
       );
       setImagePreview(null);
+      return;
     }
-    setImagePreview(base64Image!);
+
+    setImagePreview(fullBase64);
   };
+
 
   const renderMessage = (message: Message, index: number) => {
     const isOwnMessage = message.senderId === auth.currentUser?.uid;
-
     return (
       <View
         key={index}
@@ -272,7 +302,7 @@ export const ChatScreen = () => {
 
       {/* Input */}
       <View style={styles.inputContainer}>
-        <TouchableOpacity onPress={handleImagePick} style={styles.attachButton}>
+        <TouchableOpacity onPress={handleImagePick} disabled={!!imagePreview} style={styles.attachButton}>
           <Icon name="paperclip" size={24} color="#14210F" />
         </TouchableOpacity>
         <TextInput
@@ -387,10 +417,10 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   messageImage: {
-    width: '100%',
+    width: 200,
     height: 200,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 5,
   },
   imagePreviewContainer: {
     padding: 16,

@@ -12,7 +12,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DiscussionCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [chats, setChats] = useState([]);
+  const [chats, setChats] = useState<any>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +30,7 @@ export const DiscussionCommercantScreen = () => {
       }
 
       const items = data.chats;
-      const promises = items.map(async (item) => {
+      const promises = items.map(async (item: any) => {
         const userDoc = await getDoc(doc(db, 'users', item.receiverId));
         const user = userDoc.exists() ? userDoc.data() : null;
 
@@ -49,11 +49,11 @@ export const DiscussionCommercantScreen = () => {
     return () => unsub();
   }, [currentUser?.uid]);
 
-  const handleSelect = async (chat) => {
+  const handleSelect = async (chat: any) => {
     if (!currentUser) return;
     const userChatsRef = doc(db, 'userchats', currentUser.uid);
     try {
-      const updatedChats = chats.map((item) => {
+      const updatedChats = chats.map((item: any) => {
         const { user, ...rest } = item;
         if (item.chatId === chat.chatId) {
           return { ...rest, read: true };
@@ -63,9 +63,9 @@ export const DiscussionCommercantScreen = () => {
       await updateDoc(userChatsRef, { chats: updatedChats });
       navigation.navigate('Chat', {
         chatId: chat.chatId,
-        receiverId: chat.receiverId,
         pseudonyme: chat.user?.pseudonyme,
         photoURL: chat.user?.photoURL,
+        receiverId: chat.receiverId,
         role: 'commerçant'
       });
     } catch (error) {
@@ -73,7 +73,7 @@ export const DiscussionCommercantScreen = () => {
     }
   };
 
-  const filteredChats = chats.filter((chat) =>
+  const filteredChats = chats.filter((chat: any) =>
     chat.user?.pseudonyme.toLowerCase().includes(input.toLowerCase())
   );
 
@@ -109,7 +109,7 @@ export const DiscussionCommercantScreen = () => {
       <View style={styles.mainContainer}>
         <ScrollView style={styles.chatList}>
           {filteredChats.length > 0 ? (
-            filteredChats.map((chat) => (
+            filteredChats.map((chat: any) => (
               <TouchableOpacity
                 key={chat.chatId}
                 onPress={() => handleSelect(chat)}

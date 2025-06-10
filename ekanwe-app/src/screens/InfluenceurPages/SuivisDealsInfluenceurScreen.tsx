@@ -106,7 +106,7 @@ export const SuivisDealsInfluenceurScreen = () => {
     return (
       <TouchableOpacity
         style={styles.dealCard}
-        onPress={() => navigation.navigate('DealDetailsInfluenceur', { dealId: candidature.dealId })}
+        onPress={() => navigation.navigate('DealsDetailsInfluenceur', { dealId: candidature.dealId, influenceurId: auth.currentUser?.uid! })}
       >
         <Image
           source={candidature.dealInfo?.imageUrl ? { uri: candidature.dealInfo.imageUrl } : require('../../assets/profile.png')}
@@ -153,6 +153,8 @@ export const SuivisDealsInfluenceurScreen = () => {
                       chatId: [auth.currentUser?.uid, candidature.dealInfo?.merchantId].sort().join(""),
                       pseudonyme: userData?.displayName ?? 'Utilisateur introuvable',
                       photoURL: userData?.photoURL ?? '',
+                      receiverId: userData?.uid,
+                      role: 'influenceur'
                     })
                   }
                 }}

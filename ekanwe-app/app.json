@@ -18,7 +18,11 @@
       "bundleIdentifier": "com.ekanwe.ekanwe",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Cette application utilise la caméra pour permettre aux utilisateurs de prendre des photos ou des vidéos pour leurs publications ou leurs preuves de deals.",
+        "NSLocationWhenInUseUsageDescription": "Cette app a besoin de votre position pour localiser le deal.",
+        "NSPhotoLibraryUsageDescription": "Cette application a besoin d'accéder à votre galerie pour permettre l'importation d'images ou de vidéos.",
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {

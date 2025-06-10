@@ -15,8 +15,6 @@ import { useUserData } from '../../context/UserContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const { width } = Dimensions.get('window');
-
 export const ConnectionScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const {setRole} = useUserData();
@@ -51,7 +49,7 @@ export const ConnectionScreen = () => {
           resizeMode="cover"
         />
         <TouchableOpacity style={styles.button} onPress={handleInfluenceur}>
-          <Text style={styles.buttonText}>INFLUENCEUR</Text>
+          <Text style={styles.buttonText}>CREATEUR</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

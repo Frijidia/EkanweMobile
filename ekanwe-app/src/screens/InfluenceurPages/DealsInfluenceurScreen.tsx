@@ -7,12 +7,11 @@ import {
   ScrollView,
   TextInput,
   Image,
-  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { collection, query, doc, updateDoc, setDoc, arrayUnion, getDoc, getDocs, where } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
-import { sendNotification } from "../../hooks/sendNotifications";
+import { sendNotification, sendNotificationToToken } from "../../hooks/sendNotifications";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
 import { BottomNavbar } from "./BottomNavbar";
@@ -43,7 +42,7 @@ interface Deal {
 
 export const DealsInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedFilter, setSelectedFilter] = useState("Tous");
   const [deals, setDeals] = useState<Deal[]>([]);
   const [savedDeals, setSavedDeals] = useState<string[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
@@ -79,7 +78,7 @@ export const DealsInfluenceurScreen = () => {
       const dealsRef = collection(db, "deals");
       const q = query(dealsRef, where("status", "==", "active"));
       const querySnapshot = await getDocs(q);
-      
+
       const dealsData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -115,11 +114,11 @@ export const DealsInfluenceurScreen = () => {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
@@ -153,8 +152,8 @@ export const DealsInfluenceurScreen = () => {
     }
   };
 
-  const filters = ["All", ...Array.from(new Set(deals.map((d) => d.interests).filter((interests): interests is string => interests !== undefined)))];
-  const filteredDeals = selectedFilter === "All" ? deals : deals.filter((d) => d.interests === selectedFilter);
+  const filters = ["Tous", ...Array.from(new Set(deals.flatMap((deal) => deal.interests)))];
+  const filteredDeals = selectedFilter === "Tous" ? deals : deals.filter((d) => d.interests!.includes(selectedFilter));
   const sortedByPopularity = [...filteredDeals].sort((a, b) => (b.candidatures?.length || 0) - (a.candidatures?.length || 0));
   const popularDeals = sortedByPopularity.slice(0, 5);
   const otherDeals = sortedByPopularity.slice(5);
@@ -304,9 +303,19 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
         message: "Un influenceur a postulé à votre deal !",
         type: "application",
         relatedDealId: deal.id,
-        targetRoute: `/dealcandidatescommercant/${deal.id}`,
+        targetRoute: 'DealCandidatesCommercant',
+        dealId: deal.id,
+        receiverId: deal.merchantId,
       });
+      const userSnap = await getDoc(doc(db, "users", deal.merchantId));
+      const userToken = userSnap.exists() ? userSnap.data()?.expoPushToken : null;
 
+      if (userToken) {
+        await sendNotificationToToken(userToken,
+          "Nouvelle candidature !",
+          `Un influenceur a postulé à votre deal !`,
+        );
+      }
       const chatId = [user.uid, deal.merchantId].sort().join("");
       const message = {
         senderId: user.uid,
@@ -354,7 +363,7 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
     const user = auth.currentUser;
     if (!user) return alert("Veuillez vous connecter.");
     if (status) {
-      navigation.navigate('DealDetailsInfluenceur', { dealId: deal.id });
+      navigation.navigate('DealsDetailsInfluenceur', { dealId: deal.id, influenceurId: user.uid });
     } else {
       navigation.navigate('DealsSeeMoreInfluenceur', { dealId: deal.id });
     }
@@ -389,6 +398,7 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
                 status === "Terminé" && styles.completedButton,
                 status === "Approbation" && styles.pendingButton
               ]}
+              onPress={()=>{const user = auth.currentUser; navigation.navigate('DealsDetailsInfluenceur', {dealId: deal.id, influenceurId: user?.uid!})}}
             >
               <Text style={styles.statusButtonText}>{status}</Text>
             </TouchableOpacity>
@@ -536,7 +546,7 @@ const styles = StyleSheet.create({
   },
   dealImageContainer: {
     position: 'relative',
-    aspectRatio: 16/9,
+    aspectRatio: 16 / 9,
   },
   dealImage: {
     width: '100%',

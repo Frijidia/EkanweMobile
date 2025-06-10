@@ -12,7 +12,7 @@ import { db, auth } from "../../firebase/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import { Heart, Share, MoreHorizontal } from "lucide-react-native";
-import {Navbar} from "./Navbar";
+import { Navbar } from "./Navbar";
 import { RootStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -20,8 +20,17 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DashboardCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [reviews, setReviews] = useState([]);
-  const [savedItems, setSavedItems] = useState({});
+  const [reviews, setReviews] = useState<{
+    userId: any;
+    username: any;
+    avatar: any;
+    rating: any;
+    comment: any;
+    likes: any;
+    shares: any;
+    dealId: string;
+    influenceurId: any;
+  }[]>([]);
   const [stats, setStats] = useState({
     totalLikes: 0,
     totalShares: 0,
@@ -29,6 +38,7 @@ export const DashboardCommercantScreen = () => {
     averageRating: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [savedItems, setSavedItems] = useState<{ [key: number]: boolean }>({});
 
   const toggleSave = (index: number) => {
     setSavedItems((prev) => ({
@@ -57,7 +67,7 @@ export const DashboardCommercantScreen = () => {
         for (const c of candidatures) {
           if (c.status === "Terminé") completedDeals++;
           if (c.proofs && Array.isArray(c.proofs)) {
-            c.proofs.forEach((proof) => {
+            c.proofs.forEach((proof: { likes: any; shares: any; }) => {
               likes += proof.likes || 0;
               shares += proof.shares || 0;
             });
@@ -71,9 +81,9 @@ export const DashboardCommercantScreen = () => {
               rating: c.review.rating || 0,
               comment: c.review.comment || "",
               likes:
-                c.proofs?.reduce((acc, p) => acc + (p.likes || 0), 0) || 0,
+                c.proofs?.reduce((acc: any, p: { likes: any; }) => acc + (p.likes || 0), 0) || 0,
               shares:
-                c.proofs?.reduce((acc, p) => acc + (p.shares || 0), 0) || 0,
+                c.proofs?.reduce((acc: any, p: { shares: any; }) => acc + (p.shares || 0), 0) || 0,
               dealId: deal.id,
               influenceurId: c.influenceurId,
             });
@@ -120,13 +130,13 @@ export const DashboardCommercantScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Dashboard</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
-              <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
-              <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
-            </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
+            <Image source={require('../../assets/clochenotification.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('DealsCommercant')}>
+            <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -159,7 +169,7 @@ export const DashboardCommercantScreen = () => {
           reviews.map((review, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => navigation.navigate("DealDetailCommercant", {
+              onPress={() => navigation.navigate("DealsDetailsCommercant", {
                 dealId: review.dealId,
                 influenceurId: review.influenceurId,
               })}

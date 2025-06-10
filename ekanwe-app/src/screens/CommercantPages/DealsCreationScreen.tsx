@@ -13,12 +13,13 @@ import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { RootStackParamList } from '../../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { sendNotificationToToken } from '../../hooks/sendNotifications';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsCreation'>;
 
-const MAX_BASE64_SIZE = 1370000;
 
 export const DealsCreationScreen = () => {
+  const MAX_BASE64_SIZE = 1024 * 1024;
   const navigation = useNavigation<NavigationProp>();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -39,8 +40,11 @@ export const DealsCreationScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  const availableInterests = ["Mode", "Cuisine", "Voyage", "Beauté", "Sport", "Technologie", "Gaming"];
-  const availableTypes = ["Post Instagram", "Story Instagram", "Vidéo TikTok", "Autre"];
+  const availableInterests = ["Mode", "Cuisine", "Voyage", "Beauté", "Sport", "Technologie", "Gaming",
+    "Musique", "Cinéma", "Fitness", "Développement personnel", "Finance",
+    "Photographie", "Lecture", "Art", "Éducation", "Animaux", "Nature", "Business"
+  ];
+  const availableTypes = ["Post Instagram", "Story Instagram", "Vidéo TikTok", "Vidéo Youtube", "Publication Facebook", "Autre"];
 
   const toggleSelection = (item: string, list: string[], setter: (val: string[]) => void) => {
     if (list.includes(item)) {
@@ -56,6 +60,21 @@ export const DealsCreationScreen = () => {
     setLocationName(await getLocationName(latitude, longitude));
   };
 
+  const getInfluenceursTokens = async (): Promise<string[]> => {
+    const q = query(collection(db, "users"), where("role", "==", "influenceur"));
+    const snapshot = await getDocs(q);
+    const tokens: string[] = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.expoPushToken) {
+        tokens.push(data.expoPushToken);
+      }
+    });
+
+    return tokens;
+  };
+
   const getLocationName = async (latitude: number, longitude: number) => {
     let result = await Location.reverseGeocodeAsync({ latitude, longitude });
     if (result.length > 0) {
@@ -66,16 +85,26 @@ export const DealsCreationScreen = () => {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ base64: true });
-    if (!result.canceled && result.assets?.[0]) {
-      if (result.assets?.[0].base64!.length > MAX_BASE64_SIZE) {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.3,
+    });
+
+    if (!result.canceled) {
+      if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
         Alert.alert(
           "Image trop lourde",
           "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
         );
         setImageUri('');
-      } else
-        setImageUri(`data:image/jpeg;base64,${result.assets[0].base64}`);
+      } else {
+        const base64Image = result.assets[0].base64!;
+        const mimeType = result.assets[0].type || 'image/jpeg';
+        const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+        setImageUri(fullBase64);
+      }
     }
   };
 
@@ -114,13 +143,24 @@ export const DealsCreationScreen = () => {
           type: 'new_deal',
           fromUserId: auth.currentUser?.uid,
           relatedDealId: docRef.id,
-          targetRoute: `/dealsseemoreinfluenceur/${docRef.id}`,
+          targetRoute: 'DealsSeeMoreInfluenceur',
+          dealId: docRef.id,
           read: false,
           createdAt: serverTimestamp(),
         });
       });
 
       await batch.commit();
+      const tokens = await getInfluenceursTokens();
+
+      for (const token of tokens) {
+        await sendNotificationToToken(
+          token,
+          "Nouveau deal disponible 🎉",
+          "Un commerçant a publié une nouvelle opportunité !",
+          { screen: "DealsSeeMoreInfluenceur" }
+        );
+      }
       navigation.navigate('DealsCommercant' as never);
     } catch (err) {
       console.error(err);

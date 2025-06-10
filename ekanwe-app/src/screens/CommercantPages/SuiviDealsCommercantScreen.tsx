@@ -12,7 +12,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { collection, doc, getDoc, onSnapshot, updateDoc, where, query } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
-import { MessageCircle } from "lucide-react-native";
+import { Feather } from '@expo/vector-icons';
 import { Navbar } from "./Navbar";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
@@ -27,6 +27,7 @@ interface Candidature {
   candidatureIndex: number;
   influenceurId: string;
   dealInfo?: {
+    merchantId: string;
     imageUrl?: string;
     title?: string;
     description?: string;
@@ -117,9 +118,9 @@ export const SuiviDealsCommercantScreen = () => {
       </View>
 
       <View style={styles.filtersContainer}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterScrollContent}
         >
           {filters.map((item) => (
@@ -139,8 +140,8 @@ export const SuiviDealsCommercantScreen = () => {
           ))}
         </ScrollView>
       </View>
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.contentScroll}
         contentContainerStyle={styles.contentScrollContent}
       >
@@ -148,12 +149,12 @@ export const SuiviDealsCommercantScreen = () => {
           <Text style={styles.emptyText}>Aucune candidature trouvée</Text>
         ) : (
           filtered.map((c, index) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={index}
-              onPress={() => navigation.navigate("DealsDetailsCommercant" as never, { 
-                dealId: c.dealId, 
-                influenceurId: c.influenceurId 
-              } as never)}
+              onPress={() => navigation.navigate("DealsDetailsCommercant", {
+                dealId: c.dealId,
+                influenceurId: c.influenceurId
+              })}
             >
               <View style={styles.card}>
                 <Image source={{ uri: c.dealInfo?.imageUrl }} style={styles.cardImage} />
@@ -164,6 +165,32 @@ export const SuiviDealsCommercantScreen = () => {
                     <View style={styles.actionButtons}>
                       {c.status === "Envoyé" ? (
                         <>
+                          <TouchableOpacity
+                            style={{
+                              backgroundColor: '#FF6B2E',
+                              padding: 8,
+                              borderRadius: 999,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            onPress={async () => {
+                              const chatId = [c.dealInfo?.merchantId, c.influenceurId].sort().join("");
+                              const userRef = doc(db, "users", c.influenceurId);
+                              const userSnap = await getDoc(userRef);
+                              if (userSnap.exists()) {
+                                const userData = userSnap.data();
+                                navigation.navigate('Chat', {
+                                  chatId: chatId,
+                                  pseudonyme: userData.pseudonyme || "",
+                                  photoURL: userData.photoURL || "",
+                                  receiverId: userData.uid,
+                                  role: userData.role,
+                                });
+                              }
+                            }}
+                          >
+                            <Feather name="message-circle" size={16} color="white" />
+                          </TouchableOpacity>
                           <TouchableOpacity
                             style={styles.acceptButton}
                             onPress={(e) => {

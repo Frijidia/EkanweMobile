@@ -77,7 +77,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="SaveDealsInfluenceur" component={SaveDealsInfluenceurScreen} />
       <Stack.Screen name="ProfileInfluenceur" component={ProfileInfluenceurScreen} />
       {/* <Stack.Screen name="ChatInfluenceur" component={ChatInfluenceurScreen} /> */}
-      <Stack.Screen name="DealDetailsInfluenceur" component={DealDetailsInfluenceurScreen} />
+      <Stack.Screen name="DealsDetailsInfluenceur" component={DealDetailsInfluenceurScreen} />
       <Stack.Screen name="DealsSeeMoreInfluenceur" component={DealsSeeMoreInfluenceurScreen} />
       <Stack.Screen name="ConceptCommercant" component={ConceptCommercantScreen} />
       <Stack.Screen name="CreatorCommercant" component={CreatorCommercantScreen} />

@@ -17,7 +17,7 @@ import { auth, db } from '../../firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavbar } from './BottomNavbar';
 import { RootStackParamList } from '../../types/navigation';
-import { sendNotification } from '../../hooks/sendNotifications';
+import { sendNotification, sendNotificationToToken } from '../../hooks/sendNotifications';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -96,8 +96,19 @@ export const SaveDealsInfluenceurScreen = () => {
         message: "Un influenceur a postulé à votre deal !",
         type: "application",
         relatedDealId: deal.id,
-        targetRoute: `/dealcandidatescommercant/${deal.id}`,
+        targetRoute: 'DealCandidatesCommercant',
+        dealId: deal.id,
+        receiverId: deal.merchantId,
       });
+      const userSnap = await getDoc(doc(db, "users", deal.merchantId));
+      const userToken = userSnap.exists() ? userSnap.data()?.expoPushToken : null;
+
+      if (userToken) {
+        await sendNotificationToToken(userToken,
+          "Nouvelle candidature !",
+          `Un influenceur a postulé à votre deal !`,
+        );
+      }
 
       const chatId = [user.uid, deal.merchantId].sort().join("");
       const message = {
@@ -237,7 +248,7 @@ export const SaveDealsInfluenceurScreen = () => {
                   <View style={styles.dealActions}>
                     <TouchableOpacity
                       style={styles.viewMoreButton}
-                      onPress={() => navigation.navigate('DealsSeeMoreInfluenceur', { dealId: deal.id })}
+                      onPress={()=>{const user = auth.currentUser; navigation.navigate('DealsDetailsInfluenceur', {dealId: deal.id, influenceurId: user?.uid!})}}
                     >
                       <Text style={styles.viewMoreText}>Voir plus</Text>
                     </TouchableOpacity>
@@ -337,7 +348,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    aspectRatio: 16/9,
+    aspectRatio: 16 / 9,
   },
   dealImage: {
     width: '100%',

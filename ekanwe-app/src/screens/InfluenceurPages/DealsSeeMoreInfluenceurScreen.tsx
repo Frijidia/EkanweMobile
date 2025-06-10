@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomNavbar } from './BottomNavbar';
 import { auth, db } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
-import { sendNotification } from '../../hooks/sendNotifications';
+import { sendNotification, sendNotificationToToken } from '../../hooks/sendNotifications';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DealsSeeMoreRouteProp = RouteProp<RootStackParamList, 'DealsSeeMoreInfluenceur'>;
@@ -85,8 +85,19 @@ export const DealsSeeMoreInfluenceurScreen = () => {
         message: "Un influenceur a postulé à votre deal !",
         type: "application",
         relatedDealId: deal.id,
-        targetRoute: `/dealcandidatescommercant/${deal.id}`,
+        targetRoute: 'DealCandidatesCommercant',
+        dealId: deal.id,
+        receiverId: deal.merchantId,
       });
+      const userSnap = await getDoc(doc(db, "users", deal.merchantId));
+      const userToken = userSnap.exists() ? userSnap.data()?.expoPushToken : null;
+
+      if (userToken) {
+        await sendNotificationToToken(userToken,
+          "Nouvelle candidature !",
+          `Un influenceur a postulé à votre deal !`,
+        );
+      }
 
       const chatId = [user.uid, deal.merchantId].sort().join("");
       const chatRef = doc(db, "chats", chatId);
@@ -161,12 +172,12 @@ export const DealsSeeMoreInfluenceurScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView>
-      <View style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="#FF6B2E" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Deals</Text>
-      </View>
+            <Icon name="arrow-left" size={24} color="#FF6B2E" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Deals</Text>
+        </View>
 
         <View style={styles.dealCard}>
           <View style={styles.imageContainer}>
@@ -212,13 +223,13 @@ export const DealsSeeMoreInfluenceurScreen = () => {
             </View>
 
             <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Intérêts</Text>
-            <View style={styles.interestsContainer}>
+              <Text style={styles.sectionTitle}>Intérêts</Text>
+              <View style={styles.interestsContainer}>
                 {deal.interests && deal.interests.length > 0 ? (
                   deal.interests.map((interest: string, index: number) => (
-                <View key={index} style={styles.interestTag}>
-                  <Text style={styles.interestText}>{interest}</Text>
-                </View>
+                    <View key={index} style={styles.interestTag}>
+                      <Text style={styles.interestText}>{interest}</Text>
+                    </View>
                   ))
                 ) : (
                   <Text style={styles.noInterestText}>Aucun intérêt défini</Text>
@@ -242,7 +253,7 @@ export const DealsSeeMoreInfluenceurScreen = () => {
             </View>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => navigation.navigate('DealsInfluenceur')}
               >
@@ -317,7 +328,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    aspectRatio: 16/9,
+    aspectRatio: 16 / 9,
   },
   dealImage: {
     width: '100%',

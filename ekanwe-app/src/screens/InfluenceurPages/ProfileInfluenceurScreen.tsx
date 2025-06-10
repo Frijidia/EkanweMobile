@@ -17,8 +17,10 @@ import { auth, db } from '../../firebase/firebase';
 import { signOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { BottomNavbar } from './BottomNavbar';
 import { RootStackParamList } from '../../types/navigation';
+import { deleteDoc } from 'firebase/firestore';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -35,8 +37,8 @@ const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 
     <Text style={styles.inputLabel}>{label}</Text>
     <View style={styles.inputWrapper}>
       {icon && (
-        <Image 
-          source={{ uri: icon }} 
+        <Image
+          source={{ uri: icon }}
           style={styles.inputIcon}
         />
       )}
@@ -77,6 +79,7 @@ export const ProfileInfluenceurScreen = () => {
   const [tiktok, setTiktok] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
   const [bio, setBio] = useState('');
+  const MAX_BASE64_SIZE = 1024 * 1024;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<null | string>(null);
 
@@ -106,6 +109,34 @@ export const ProfileInfluenceurScreen = () => {
     fetchUserInfo();
   }, []);
 
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Confirmer la suppression",
+      "Es-tu sûr de vouloir supprimer ton compte ? Cette action est irréversible.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) return;
+              await deleteDoc(doc(db, "users", user.uid));
+              await user.delete();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Splash' }],
+              });
+            } catch (error) {
+              Alert.alert("Demande de suppression envoyé à l'admin. Votre demande peut prendre entre 3 - 4 jours !");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleImageClick = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -118,11 +149,22 @@ export const ProfileInfluenceurScreen = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.5,
+        quality: 0.3,
+        base64: true,
       });
 
       if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
+          Alert.alert(
+            "Image trop lourde",
+            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
+          );
+        } else {
+          const base64Image = result.assets[0].base64!;
+          const mimeType = result.assets[0].type || 'image/jpeg';
+          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+          setProfileImage(fullBase64);
+        }
       }
     } catch (error) {
       console.error("Erreur lors de la prise de photo:", error);
@@ -142,16 +184,34 @@ export const ProfileInfluenceurScreen = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.5,
+        quality: 0.3,
+        base64: true,
       });
 
       if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
+          Alert.alert(
+            "Image trop lourde",
+            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
+          );
+        } else {
+          const base64Image = result.assets[0].base64!;
+          const mimeType = result.assets[0].type || 'image/jpeg';
+          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+          setProfileImage(fullBase64);
+        }
       }
     } catch (error) {
       console.error("Erreur lors de la sélection de l'image:", error);
       setMessage("Erreur lors de la sélection de l'image");
     }
+  };
+
+  const getBase64FromUri = async (uri: string): Promise<string> => {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return `data:image/jpeg;base64,${base64}`;
   };
 
   const handleSave = async () => {
@@ -162,6 +222,12 @@ export const ProfileInfluenceurScreen = () => {
     setMessage(null);
 
     try {
+      let imageBase64 = null;
+
+      if (profileImage && profileImage.startsWith('file://')) {
+        imageBase64 = await getBase64FromUri(profileImage);
+      }
+
       await updateDoc(doc(db, "users", user.uid), {
         pseudonyme,
         prenom,
@@ -172,7 +238,7 @@ export const ProfileInfluenceurScreen = () => {
         tiktok,
         portfolioLink,
         bio,
-        photoURL: profileImage || '',
+        photoURL: imageBase64 || profileImage || '',
       });
 
       setMessage("Profil mis à jour avec succès !");
@@ -201,7 +267,7 @@ export const ProfileInfluenceurScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mon Profil</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={async () => {
             const userRef = doc(db, "users", auth.currentUser?.uid || "");
             const snap = await getDoc(userRef);
@@ -209,8 +275,8 @@ export const ProfileInfluenceurScreen = () => {
             navigation.navigate(role === "influenceur" ? 'DealsInfluenceur' : 'DealsCommercant');
           }}
         >
-          <Image 
-            source={require('../../assets/ekanwesign.png')} 
+          <Image
+            source={require('../../assets/ekanwesign.png')}
             style={styles.headerLogo}
           />
         </TouchableOpacity>
@@ -221,8 +287,8 @@ export const ProfileInfluenceurScreen = () => {
           <View style={styles.imageContainer}>
             <View style={styles.profileImageContainer}>
               {profileImage ? (
-                <Image 
-                  source={{ uri: profileImage }} 
+                <Image
+                  source={{ uri: profileImage }}
                   style={styles.profileImage}
                 />
               ) : (
@@ -232,13 +298,13 @@ export const ProfileInfluenceurScreen = () => {
               )}
             </View>
             <View style={styles.imageButtonsContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.cameraButton}
                 onPress={handleImageClick}
               >
                 <Ionicons name="camera" size={20} color="#FFFFFF" />
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.galleryButton}
                 onPress={handleGalleryClick}
               >
@@ -253,16 +319,16 @@ export const ProfileInfluenceurScreen = () => {
             <InputField label="Nom" value={nom} onChange={setNom} />
             <InputField label="Date de Naissance" value={dateNaissance} onChange={setDateNaissance} type="date" />
             <InputField label="Téléphone" value={phone} onChange={setPhone} />
-            <InputField 
-              label="Instagram" 
-              value={instagram} 
-              onChange={setInstagram} 
+            <InputField
+              label="Instagram"
+              value={instagram}
+              onChange={setInstagram}
               icon="https://cdn-icons-png.flaticon.com/512/174/174855.png"
             />
-            <InputField 
-              label="TikTok" 
-              value={tiktok} 
-              onChange={setTiktok} 
+            <InputField
+              label="TikTok"
+              value={tiktok}
+              onChange={setTiktok}
               icon="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"
             />
             <InputField label="Lien de Portfolio" value={portfolioLink} onChange={setPortfolioLink} />
@@ -295,6 +361,11 @@ export const ProfileInfluenceurScreen = () => {
             >
               <Text style={styles.logoutButtonText}>Déconnexion</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
+              <Text style={styles.deleteButtonText}>Supprimer mon compte</Text>
+            </TouchableOpacity>
+
           </View>
         </View>
       </ScrollView>
@@ -310,6 +381,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
     paddingBottom: 20,
+  },
+  deleteButton: {
+    backgroundColor: '#FF3B30',
+    padding: 12,
+    marginTop: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#1A2C24',
+    fontWeight: 'bold',
   },
   header: {
     flexDirection: 'row',

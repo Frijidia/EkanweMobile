@@ -3,14 +3,10 @@ import { View, Text, Image, TouchableOpacity, ScrollView, Linking, ActivityIndic
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase/firebase";
-import { sendNotification } from "../../hooks/sendNotifications";
+import { sendNotification, sendNotificationToToken } from "../../hooks/sendNotifications";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
-
-//import profile from "../../assets/profile.png";
-//import sign from "../../assets/ekanwesign.png";
-
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -21,6 +17,7 @@ export const DealsDetailsCommercantScreen = () => {
 
   const [deal, setDeal] = useState<any>(null);
   const [candidature, setCandidature] = useState<any>(null);
+  const [influenceur, setInfluenceur] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -30,15 +27,21 @@ export const DealsDetailsCommercantScreen = () => {
     const fetchData = async () => {
       try {
         if (!dealId) return;
-
         const dealRef = doc(db, "deals", dealId);
         const dealSnap = await getDoc(dealRef);
+        if (influenceurId) {
+          const influRef = doc(db, "users", influenceurId);
+          const influSnap = await getDoc(influRef);
+          if (influSnap.exists()) {
+            const influData = influSnap.data();
+            setInfluenceur({ id: influSnap.id, ...influData });
+          }
+        }
 
         if (dealSnap.exists()) {
           const dealData = dealSnap.data();
           setDeal({ id: dealSnap.id, ...dealData });
 
-          // Si un influenceurId est fourni, chercher sa candidature
           if (influenceurId) {
             const cand = dealData.candidatures?.find((c: any) => c.influenceurId === influenceurId);
             if (cand) {
@@ -78,9 +81,20 @@ export const DealsDetailsCommercantScreen = () => {
         fromUserId: auth.currentUser?.uid!,
         message: `Votre prestation a été validée par le commerçant.`,
         relatedDealId: dealId,
-        targetRoute: `/dealdetailinfluenceur/${dealId}`,
+        dealId: dealId,
+        targetRoute: 'DealsDetailsInfluenceur',
         type: "deal_approved",
+        receiverId: influenceurId,
       });
+      const userSnap = await getDoc(doc(db, "users", influenceurId));
+      const userToken = userSnap.exists() ? userSnap.data()?.expoPushToken : null;
+
+      if (userToken) {
+        await sendNotificationToToken(userToken,
+          "Prestation validée",
+          `Votre prestation a été validée par le commerçant.`,
+        );
+      }
 
       setCandidature((prev: any) => ({ ...prev, status: "Terminé" }));
     } catch (error) {
@@ -110,10 +124,19 @@ export const DealsDetailsCommercantScreen = () => {
         fromUserId: auth.currentUser?.uid!,
         message: `Votre candidature a été résiliée par le commerçant.`,
         relatedDealId: dealId,
-        targetRoute: `/suivisdealsinfluenceur`,
+        targetRoute: 'SuiviDealsCommercant',
         type: "deal_cancelled",
+        receiverId: influenceurId,
       });
+      const userSnap = await getDoc(doc(db, "users", influenceurId));
+      const userToken = userSnap.exists() ? userSnap.data()?.expoPushToken : null;
 
+      if (userToken) {
+        await sendNotificationToToken(userToken,
+          "Candidature refusée",
+          `Votre candidature a été résiliée par le commerçant.`,
+        );
+      }
       navigation.goBack();
     } catch (error) {
       console.error("Erreur lors de la résiliation :", error);
@@ -155,7 +178,7 @@ export const DealsDetailsCommercantScreen = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#14210F" />
           </TouchableOpacity>
-          <Text style={styles.title}>Détails du Deal</Text>
+          <Text style={styles.title}>Détails du Deal {deal.title}</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity onPress={() => navigation.navigate('NotificationsCommercant')}>
@@ -198,7 +221,7 @@ export const DealsDetailsCommercantScreen = () => {
           <View style={styles.tagContainer}>
             {(deal.interests || []).map((item: string, idx: number) => (
               <View key={idx} style={styles.tag}>
-                <Text>{item}</Text>
+                <Text>{item} </Text>
               </View>
             ))}
           </View>
@@ -209,7 +232,7 @@ export const DealsDetailsCommercantScreen = () => {
           <View style={styles.tagContainer}>
             {(deal.typeOfContent || []).map((item: string, idx: number) => (
               <View key={idx} style={styles.tag}>
-                <Text>{item}</Text>
+                <Text>{item} </Text>
               </View>
             ))}
           </View>
@@ -219,6 +242,7 @@ export const DealsDetailsCommercantScreen = () => {
         {candidature && (
           <>
             {/* Progress Ribbon */}
+            <Text style={styles.title}>Candidature de {influenceur.pseudonyme}</Text>
             <View style={{ marginBottom: 16 }}>
               <ProgressRibbon currentStatus={candidature.status} />
             </View>

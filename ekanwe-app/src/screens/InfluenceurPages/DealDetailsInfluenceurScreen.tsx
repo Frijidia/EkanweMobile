@@ -12,7 +12,7 @@ import { Linking } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type DealDetailsRouteProp = RouteProp<RootStackParamList, 'DealDetailsInfluenceur'>;
+type DealDetailsRouteProp = RouteProp<RootStackParamList, 'DealsDetailsInfluenceur'>;
 
 interface Upload {
   image: string;
@@ -147,18 +147,29 @@ export const DealDetailsInfluenceurScreen = () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
-        quality: 1,
+        quality: 0.3,
+        base64: true,
       });
 
       if (!result.canceled) {
         const newUploads = [...uploads];
         for (const asset of result.assets) {
-          newUploads.push({
-            image: asset.uri,
-            likes: 0,
-            shares: 0,
-            isValidated: true
-          });
+          if (asset.base64!.length * 0.75 > 1024 * 1024) {
+            Alert.alert(
+              "Image trop lourde",
+              "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
+            );
+          } else {
+            const base64Image = asset.base64!;
+            const mimeType = asset.type || 'image/jpeg';
+            const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+            newUploads.push({
+              image: fullBase64,
+              likes: 0,
+              shares: 0,
+              isValidated: true
+            });
+          }
         }
         setUploads(newUploads);
         await syncProofsToFirestore(newUploads);
@@ -224,8 +235,9 @@ export const DealDetailsInfluenceurScreen = () => {
         fromUserId: userId,
         message: "L'influenceur a terminé sa mission et attend votre validation.",
         relatedDealId: deal.id,
-        targetRoute: "/suividealscommercant",
+        targetRoute: "SuiviDealsCommercant",
         type: "approval_request",
+        receiverId: deal.merchantId,
       });
 
       setStatus("Approbation");
@@ -288,7 +300,9 @@ export const DealDetailsInfluenceurScreen = () => {
         message: "Un influenceur a postulé à votre deal !",
         type: "application",
         relatedDealId: deal.id,
-        targetRoute: `/dealcandidatescommercant/${deal.id}`,
+        targetRoute: 'DealCandidatesCommercant',
+        dealId: deal.id,
+        receiverId: deal.merchantId,
       });
 
       const chatId = [user.uid, deal.merchantId].sort().join("");
@@ -332,7 +346,7 @@ export const DealDetailsInfluenceurScreen = () => {
       await updateUserChats(user.uid, deal.merchantId, true);
       await updateUserChats(deal.merchantId, user.uid, false);
 
-    setAlreadyApplied(true);
+      setAlreadyApplied(true);
       Alert.alert("Succès", "Votre candidature a été envoyée avec succès !");
     } catch (error) {
       console.error("Erreur lors de la candidature :", error);
@@ -360,15 +374,15 @@ export const DealDetailsInfluenceurScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView>
-      <View style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="#FF6B2E" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Deals</Text>
-      </View>
+            <Icon name="arrow-left" size={24} color="#FF6B2E" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Deals</Text>
+        </View>
 
         <View style={styles.dealCard}>
-        <View style={styles.imageContainer}>
+          <View style={styles.imageContainer}>
             <Image
               source={deal.imageUrl ? { uri: deal.imageUrl } : require('../../assets/profile.png')}
               style={styles.dealImage}
@@ -378,16 +392,16 @@ export const DealDetailsInfluenceurScreen = () => {
               <Image
                 source={saved ? require('../../assets/fullsave.png') : require('../../assets/save.png')}
                 style={styles.saveIcon}
-            />
-          </TouchableOpacity>
-        </View>
+              />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.dealContent}>
             <View style={styles.titleContainer}>
-            <View>
+              <View>
                 <Text style={styles.dealTitle}>{deal.title}</Text>
-              <View style={styles.locationContainer}>
-                <Icon name="map-marker" size={16} color="#FF6B2E" />
+                <View style={styles.locationContainer}>
+                  <Icon name="map-marker" size={16} color="#FF6B2E" />
                   <View>
                     {deal.locationName && (
                       <Text style={styles.locationName}>{deal.locationName}</Text>
@@ -400,19 +414,19 @@ export const DealDetailsInfluenceurScreen = () => {
                       </TouchableOpacity>
                     )}
                   </View>
+                </View>
               </View>
+              <Text style={styles.dealId}>#{deal.id}</Text>
             </View>
-            <Text style={styles.dealId}>#{deal.id}</Text>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.description}>{deal.description}</Text>
-          </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Description</Text>
+              <Text style={styles.description}>{deal.description}</Text>
+            </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Intérêts</Text>
-            <View style={styles.interestsContainer}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Intérêts</Text>
+              <View style={styles.interestsContainer}>
                 {deal.interests ? (
                   <View style={styles.interestTag}>
                     <Text style={styles.interestText}>{deal.interests}</Text>
@@ -420,197 +434,197 @@ export const DealDetailsInfluenceurScreen = () => {
                 ) : (
                   <Text style={styles.noInterestText}>Aucun intérêt défini</Text>
                 )}
+              </View>
             </View>
-          </View>
 
             <View style={styles.infoContainer}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Type de Contenu</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Type de Contenu</Text>
                 <Text style={styles.infoValue}>{deal.typeOfContent || "Non spécifié"}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Date de Validité</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Date de Validité</Text>
                 <Text style={styles.infoValue}>{deal.validUntil || "Non spécifiée"}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Conditions</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Conditions</Text>
                 <Text style={styles.infoValue}>{deal.conditions || "Aucune condition"}</Text>
               </View>
             </View>
 
-        </View>
+          </View>
 
-        <View style={styles.statusSection}>
-          <Text style={styles.statusTitle}>État de la candidature</Text>
-          <ProgressRibbon currentStep={getCurrentStep()} status={status} />
-        </View>
+          <View style={styles.statusSection}>
+            <Text style={styles.statusTitle}>État de la candidature</Text>
+            <ProgressRibbon currentStep={getCurrentStep()} status={status} />
+          </View>
 
-        {status === "Accepté" && (
-          <View style={styles.proofsSection}>
-            <Text style={styles.proofsTitle}>Preuves de réalisation</Text>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={handleImageUpload}
-            >
-              <Text style={styles.uploadButtonText}>Ajouter des images</Text>
-            </TouchableOpacity>
+          {status === "Accepté" && (
+            <View style={styles.proofsSection}>
+              <Text style={styles.proofsTitle}>Preuves de réalisation</Text>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={handleImageUpload}
+              >
+                <Text style={styles.uploadButtonText}>Ajouter des images</Text>
+              </TouchableOpacity>
 
-            {uploads.map((upload, i) => {
-              const isValid = upload.likes > 0 && upload.shares > 0 && upload.image;
+              {uploads.map((upload, i) => {
+                const isValid = upload.likes > 0 && upload.shares > 0 && upload.image;
 
-              return (
-                <View key={i} style={styles.uploadContainer}>
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={{ uri: upload.image }}
-                      style={styles.uploadImage}
-                      resizeMode="cover"
-                    />
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => handleDeleteUpload(i)}
-                    >
-                      <Icon name="delete" size={20} color="#FF6B2E" />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.statsContainer}>
-                    <View style={styles.statInput}>
-                      <Text style={styles.statLabel}>Nombre de likes</Text>
-                      <TextInput
-                        style={styles.statInputField}
-                        keyboardType="numeric"
-                        value={upload.likes.toString()}
-                        onChangeText={(value) => handleUpdateField(i, "likes", parseInt(value) || 0)}
+                return (
+                  <View key={i} style={styles.uploadContainer}>
+                    <View style={styles.imageContainer}>
+                      <Image
+                        source={{ uri: upload.image }}
+                        style={styles.uploadImage}
+                        resizeMode="cover"
                       />
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => handleDeleteUpload(i)}
+                      >
+                        <Icon name="delete" size={20} color="#FF6B2E" />
+                      </TouchableOpacity>
                     </View>
-                    <View style={styles.statInput}>
-                      <Text style={styles.statLabel}>Nombre de partages</Text>
-                      <TextInput
-                        style={styles.statInputField}
-                        keyboardType="numeric"
-                        value={upload.shares.toString()}
-                        onChangeText={(value) => handleUpdateField(i, "shares", parseInt(value) || 0)}
-                      />
+
+                    <View style={styles.statsContainer}>
+                      <View style={styles.statInput}>
+                        <Text style={styles.statLabel}>Nombre de likes</Text>
+                        <TextInput
+                          style={styles.statInputField}
+                          keyboardType="numeric"
+                          value={upload.likes.toString()}
+                          onChangeText={(value) => handleUpdateField(i, "likes", parseInt(value) || 0)}
+                        />
+                      </View>
+                      <View style={styles.statInput}>
+                        <Text style={styles.statLabel}>Nombre de partages</Text>
+                        <TextInput
+                          style={styles.statInputField}
+                          keyboardType="numeric"
+                          value={upload.shares.toString()}
+                          onChangeText={(value) => handleUpdateField(i, "shares", parseInt(value) || 0)}
+                        />
+                      </View>
                     </View>
-                  </View>
 
-                  {!isValid && !upload.isValidated && (
-                    <Text style={styles.validationError}>
-                      Veuillez remplir tous les champs pour valider.
-                    </Text>
-                  )}
-
-                  {isValid && !upload.isValidated && (
-                    <TouchableOpacity
-                    style={[styles.validateButton, upload.loading && styles.disabledButton]}
-                    onPress={() => handleValidateUpload(i)}
-                    disabled={upload.loading}
-                    >
-                      <Text style={styles.validateButtonText}>
-                        {upload.loading ? "Validation..." : "Valider cet upload"}
+                    {!isValid && !upload.isValidated && (
+                      <Text style={styles.validationError}>
+                        Veuillez remplir tous les champs pour valider.
                       </Text>
-                    </TouchableOpacity>
-                  )}
+                    )}
 
-                  {upload.isValidated && (
-                    <Text style={styles.validatedText}>Upload validé ✅</Text>
-                  )}
+                    {isValid && !upload.isValidated && (
+                      <TouchableOpacity
+                        style={[styles.validateButton, upload.loading && styles.disabledButton]}
+                        onPress={() => handleValidateUpload(i)}
+                        disabled={upload.loading}
+                      >
+                        <Text style={styles.validateButtonText}>
+                          {upload.loading ? "Validation..." : "Valider cet upload"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {upload.isValidated && (
+                      <Text style={styles.validatedText}>Upload validé ✅</Text>
+                    )}
+                  </View>
+                );
+              })}
+
+              <TouchableOpacity
+                style={[styles.doneButton, loading && styles.disabledButton]}
+                onPress={handleMarkAsDone}
+                disabled={loading}
+              >
+                <Text style={styles.doneButtonText}>
+                  {loading ? "Envoi..." : "Marquer comme terminé"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {status === "Approbation" && (
+            <View style={styles.approvalSection}>
+              <TouchableOpacity
+                style={styles.pendingButton}
+                disabled
+              >
+                <Text style={styles.pendingButtonText}>En attente d'approbation</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.undoButton}
+                onPress={handleUndoMarkAsDone}
+                disabled={loading}
+              >
+                <Text style={styles.undoButtonText}>
+                  {loading ? "Retour..." : "Marquer comme non terminé"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {status === "Refusé" && (
+            <View style={styles.refusedSection}>
+              <TouchableOpacity
+                style={styles.refusedButton}
+                disabled
+              >
+                <Text style={styles.refusedButtonText}>Candidature Refusée</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {status === "Terminé" && candidature?.influreview && (
+            <View style={styles.reviewSection}>
+              <Text style={styles.reviewTitle}>Avis laissé</Text>
+              <Text style={styles.reviewText}>"{candidature.influreview.comment}"</Text>
+            </View>
+          )}
+
+          {status === "Terminé" && (
+            <View style={styles.reviewButtonSection}>
+              <TouchableOpacity
+                style={[styles.reviewButton, hasReviewed && styles.disabledButton]}
+                onPress={() => !hasReviewed && navigation.navigate('ReviewInfluenceur', { dealId: deal.id })}
+                disabled={hasReviewed}
+              >
+                <Text style={styles.reviewButtonText}>
+                  {hasReviewed ? "Déjà évalué" : "Noter le commerçant"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.timelineSection}>
+            <Text style={styles.timelineTitle}>Historique</Text>
+            <View style={styles.timelineContainer}>
+              {timeline.map((event, index) => (
+                <View key={index} style={styles.timelineItem}>
+                  <View style={styles.timelineDot} />
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineText}>{event.text}</Text>
+                    <Text style={styles.timelineDate}>{event.date}</Text>
+                  </View>
                 </View>
-              );
-            })}
-
+              ))}
+            </View>
+          </View>
+          <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.doneButton, loading && styles.disabledButton]}
-              onPress={handleMarkAsDone}
-              disabled={loading}
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
             >
-              <Text style={styles.doneButtonText}>
-                {loading ? "Envoi..." : "Marquer comme terminé"}
-              </Text>
+              <Text style={styles.backButtonText}>RETOUR</Text>
             </TouchableOpacity>
-          </View>
-        )}
-
-        {status === "Approbation" && (
-          <View style={styles.approvalSection}>
-            <TouchableOpacity 
-              style={styles.pendingButton}
-              disabled
-            >
-              <Text style={styles.pendingButtonText}>En attente d'approbation</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.undoButton}
-              onPress={handleUndoMarkAsDone}
-              disabled={loading}
-            >
-              <Text style={styles.undoButtonText}>
-                {loading ? "Retour..." : "Marquer comme non terminé"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {status === "Refusé" && (
-          <View style={styles.refusedSection}>
             <TouchableOpacity
-              style={styles.refusedButton}
-              disabled
-            >
-              <Text style={styles.refusedButtonText}>Candidature Refusée</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {status === "Terminé" && candidature?.influreview && (
-          <View style={styles.reviewSection}>
-            <Text style={styles.reviewTitle}>Avis laissé</Text>
-            <Text style={styles.reviewText}>"{candidature.influreview.comment}"</Text>
-          </View>
-        )}
-
-        {status === "Terminé" && (
-          <View style={styles.reviewButtonSection}>
-            <TouchableOpacity
-              style={[styles.reviewButton, hasReviewed && styles.disabledButton]}
-              onPress={() => !hasReviewed && navigation.navigate('ReviewInfluenceur', { dealId: deal.id })}
-              disabled={hasReviewed}
-            >
-              <Text style={styles.reviewButtonText}>
-                {hasReviewed ? "Déjà évalué" : "Noter le commerçant"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.timelineSection}>
-          <Text style={styles.timelineTitle}>Historique</Text>
-          <View style={styles.timelineContainer}>
-            {timeline.map((event, index) => (
-              <View key={index} style={styles.timelineItem}>
-                <View style={styles.timelineDot} />
-                <View style={styles.timelineContent}>
-                  <Text style={styles.timelineText}>{event.text}</Text>
-                  <Text style={styles.timelineDate}>{event.date}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>RETOUR</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.applyButton, alreadyApplied && styles.disabledButton]}
+              style={[styles.applyButton, alreadyApplied && styles.disabledButton]}
               onPress={handleCandidature}
               disabled={alreadyApplied}
             >
-            <Text style={styles.applyButtonText}>
+              <Text style={styles.applyButtonText}>
                 {alreadyApplied ? "Candidature envoyée" : "EXÉCUTER"}
               </Text>
             </TouchableOpacity>
@@ -673,7 +687,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    aspectRatio: 16/9,
+    aspectRatio: 16 / 9,
   },
   dealImage: {
     width: '100%',

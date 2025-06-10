@@ -125,7 +125,7 @@ export const ProfilPublicScreen = () => {
       const inflSnap = await getDoc(inflChatsRef);
       if (inflSnap.exists()) {
         const chats = inflSnap.data().chats || [];
-        if (!chats.find(c => c.chatId === chatId)) {
+        if (!chats.find((c: { chatId: string; }) => c.chatId === chatId)) {
           chats.push(inflChat);
           await updateDoc(inflChatsRef, { chats });
         }
@@ -135,8 +135,10 @@ export const ProfilPublicScreen = () => {
 
       navigation.navigate('Chat', {
         chatId,
-        pseudonyme: userData.pseudonyme,
-        photoURL: userData.photoURL,
+        pseudonyme: userData?.pseudonyme,
+        photoURL: userData?.photoURL,
+        receiverId: userData?.uid,
+        role: 'commerçant'
       });
     } catch (err) {
       console.error('Erreur contact :', err);
