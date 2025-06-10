@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 60,
   },
   loadingContainer: {
     flex: 1,
