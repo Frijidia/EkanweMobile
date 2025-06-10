@@ -35,6 +35,7 @@ interface Deal {
     longitude: number;
   };
   status: string;
+  country?: string;
   candidatures?: Array<{
     influenceurId: string;
     status: string;
