@@ -225,8 +225,11 @@ export const DealsSeeMoreInfluenceurScreen = () => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Intérêts</Text>
               <View style={styles.interestsContainer}>
-                {deal.interests && deal.interests.length > 0 ? (
-                  deal.interests.map((interest: string, index: number) => (
+                {deal.interests ? (
+                  (typeof deal.interests === 'string' ? 
+                    deal.interests.split(/(?=[A-Z])/).filter(Boolean) : 
+                    Array.isArray(deal.interests) ? deal.interests : []
+                  ).map((interest: string, index: number) => (
                     <View key={index} style={styles.interestTag}>
                       <Text style={styles.interestText}>{interest}</Text>
                     </View>

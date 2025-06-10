@@ -85,26 +85,38 @@ export const DealsCreationScreen = () => {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.3,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.3,
+        base64: true
+      });
 
-    if (!result.canceled) {
-      if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
-        Alert.alert(
-          "Image trop lourde",
-          "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-        );
-        setImageUri('');
-      } else {
-        const base64Image = result.assets[0].base64!;
-        const mimeType = result.assets[0].type || 'image/jpeg';
-        const fullBase64 = `data:${mimeType};base64,${base64Image}`;
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        if (!asset.base64) {
+          Alert.alert("Erreur", "Impossible de récupérer l'image en base64");
+          return;
+        }
+
+        if (asset.base64.length * 0.75 > MAX_BASE64_SIZE) {
+          Alert.alert(
+            "Image trop lourde",
+            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
+          );
+          setImageUri('');
+          return;
+        }
+
+        const mimeType = asset.mimeType || 'image/jpeg';
+        const fullBase64 = `data:${mimeType};base64,${asset.base64}`;
         setImageUri(fullBase64);
       }
+    } catch (error) {
+      console.error('Erreur lors de la sélection de l\'image:', error);
+      Alert.alert("Erreur", "Une erreur est survenue lors de la sélection de l'image");
     }
   };
 

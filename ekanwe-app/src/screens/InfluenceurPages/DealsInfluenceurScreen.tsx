@@ -23,32 +23,26 @@ interface Deal {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  status: string;
-  candidatures?: Array<{
-    influenceurId: string;
-    status: string;
-    review?: {
-      rating: number | string;
-    };
-  }>;
-  merchantId: string;
   interests?: string;
+  locationName?: string;
+  candidatures?: any[];
+  status: string;
+  imageUrl?: string;
+  merchantId: string;
+  validUntil: string;
+  typeOfContent: string[];
+  conditions: string;
 }
 
 export const DealsInfluenceurScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState("Tous");
+  const [selectedCountry, setSelectedCountry] = useState("Tous");
   const [deals, setDeals] = useState<Deal[]>([]);
   const [savedDeals, setSavedDeals] = useState<string[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
-  // const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const user = auth.currentUser;
+  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     // fetchUserLocation();
@@ -78,82 +72,115 @@ export const DealsInfluenceurScreen = () => {
       const dealsRef = collection(db, "deals");
       const q = query(dealsRef, where("status", "==", "active"));
       const querySnapshot = await getDocs(q);
-
+      
       const dealsData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Deal[];
 
-      // if (userLocation) {
-      //   dealsData.sort((a, b) => {
-      //     const distanceA = calculateDistance(
-      //       userLocation.latitude,
-      //       userLocation.longitude,
-      //       a.location.latitude,
-      //       a.location.longitude
-      //     );
-      //     const distanceB = calculateDistance(
-      //       userLocation.latitude,
-      //       userLocation.longitude,
-      //       b.location.latitude,
-      //       b.location.longitude
-      //     );
-      //     return distanceA - distanceB;
-      //   });
-      // }
-
       setDeals(dealsData);
       setLoadingPage(false);
     } catch (error) {
-      console.error("Erreur lors de la récupération des deals:", error);
+      console.error('Erreur lors du chargement des deals:', error);
       setLoadingPage(false);
     }
   };
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  useEffect(() => {
-    if (!user) return;
-    const fetchSaved = async () => {
-      const ref = doc(db, "saveDeal", user.uid);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        setSavedDeals(snap.data()?.deals || []);
-      }
-    };
-    fetchSaved();
-  }, [user]);
-
   const toggleSave = async (dealId: string) => {
     if (!user) return;
-    const ref = doc(db, "saveDeal", user.uid);
-    const isSaved = savedDeals.includes(dealId);
-    const updated = isSaved
-      ? savedDeals.filter((id) => id !== dealId)
-      : [...savedDeals, dealId];
-    setSavedDeals(updated);
 
-    const data = { deals: updated };
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      await updateDoc(ref, data);
-    } else {
-      await setDoc(ref, data);
+    const ref = doc(db, 'users', user.uid);
+    const data = { savedDeals: savedDeals.includes(dealId) 
+      ? savedDeals.filter(id => id !== dealId)
+      : [...savedDeals, dealId]
+    };
+
+    try {
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        await updateDoc(ref, data);
+      } else {
+        await setDoc(ref, data);
+      }
+      setSavedDeals(data.savedDeals);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
     }
   };
 
-  const filters = ["Tous", ...Array.from(new Set(deals.flatMap((deal) => deal.interests)))];
-  const filteredDeals = selectedFilter === "Tous" ? deals : deals.filter((d) => d.interests!.includes(selectedFilter));
+  // Fonction de normalisation des noms de pays
+  const normalizeCountryName = (name: string) => {
+    return name
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Enlève les accents
+      .replace(/\s+/g, ' ') // Normalise les espaces
+      .replace(/^\w/, c => c.toUpperCase()); // Première lettre en majuscule
+  };
+
+  // Get unique list of interests and ensure they are strings
+  // Fonction pour extraire les intérêts quel que soit le format
+  const extractInterests = (interests: any): string[] => {
+    if (!interests) return [];
+    
+    // Si c'est une chaîne de caractères
+    if (typeof interests === 'string') {
+      // Essayer de parser comme JSON au cas où c'est une chaîne JSON
+      try {
+        const parsed = JSON.parse(interests);
+        if (Array.isArray(parsed)) return parsed;
+        if (typeof parsed === 'string') return [parsed];
+      } catch (e) {
+        // Si ce n'est pas du JSON valide, traiter comme une chaîne simple
+        return interests.split(/(?=[A-Z])|,|\s+/).filter(Boolean).map(s => s.trim());
+      }
+    }
+    
+    // Si c'est un tableau
+    if (Array.isArray(interests)) {
+      return interests.map(i => String(i).trim()).filter(Boolean);
+    }
+    
+    return [];
+  };
+
+  const allInterests = deals.reduce((acc: string[], deal) => {
+    console.log('Processing deal:', deal.id, deal.interests);
+    const dealInterests = extractInterests(deal.interests);
+    console.log('Extracted interests:', dealInterests);
+    return [...acc, ...dealInterests];
+  }, []);
+
+// Obtenir la liste unique des intérêts et ajouter "Tous" au début
+  const interests = ["Tous", ...Array.from(new Set(allInterests))].filter(Boolean);
+
+  // Get unique list of countries and normalize country names, without "Tous"
+  const countries = Array.from(new Set(deals.map(deal => {
+    if (!deal.locationName) return "Non spécifié";
+    const parts = deal.locationName.split(", ");
+    const country = parts.length > 1 ? parts[1] : parts[0];
+    return normalizeCountryName(country);
+  }).filter(Boolean))).sort();
+
+  // Add "Tous" back at the beginning of the sorted list
+  const countriesWithTous = ["Tous", ...countries];
+
+  // Filter deals by both interest and country
+  const filteredDeals = deals.filter(deal => {
+    const dealInterests = extractInterests(deal.interests);
+    console.log('Filtering deal:', deal.id, 'interests:', dealInterests, 'selected:', selectedFilter);
+    const matchesInterest = selectedFilter === "Tous" || dealInterests.includes(selectedFilter);
+    
+    const dealCountry = deal.locationName ? 
+      normalizeCountryName(deal.locationName.split(", ").pop() || "") : 
+      "Non spécifié";
+    const matchesCountry = selectedCountry === "Tous" || dealCountry === selectedCountry;
+    
+    return matchesInterest && matchesCountry;
+  });
+
+  // Sort by popularity and split into sections
   const sortedByPopularity = [...filteredDeals].sort((a, b) => (b.candidatures?.length || 0) - (a.candidatures?.length || 0));
   const popularDeals = sortedByPopularity.slice(0, 5);
   const otherDeals = sortedByPopularity.slice(5);
@@ -190,28 +217,60 @@ export const DealsInfluenceurScreen = () => {
           </View>
         </View>
 
+        <Text style={styles.filterLabel}>Filtres par intérêts</Text>
+        <View style={styles.filterRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {interests.map((interest, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.filterButton,
+                  selectedFilter === interest && styles.filterButtonActive,
+                ]}
+                onPress={() => setSelectedFilter(interest)}
+              >
+                <Text style={[
+                  styles.filterButtonText,
+                  selectedFilter === interest && styles.filterButtonTextActive,
+                ]}>
+                  {interest}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <Text style={styles.filterLabel}>Filtres par pays</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
-          {filters.map((item) => (
+          {countriesWithTous.map((country) => (
             <TouchableOpacity
-              key={item}
-              onPress={() => setSelectedFilter(item)}
+              key={country}
               style={[
                 styles.filterButton,
-                selectedFilter === item && styles.filterButtonActive
+                selectedCountry === country && styles.filterButtonActive
               ]}
+              onPress={() => setSelectedCountry(country)}
             >
               <Text style={[
                 styles.filterText,
-                selectedFilter === item && styles.filterTextActive
+                selectedCountry === country && styles.filterTextActive
               ]}>
-                {item}
+                {country}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        <Section title="Populaire" deals={popularDeals} savedDeals={savedDeals} toggleSave={toggleSave} />
-        <Section title="Autres deals" deals={otherDeals} savedDeals={savedDeals} toggleSave={toggleSave} />
+        {filteredDeals.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Aucun deal disponible pour ces filtres</Text>
+          </View>
+        ) : (
+          <>
+            <Section title="Populaire" deals={popularDeals} savedDeals={savedDeals} toggleSave={toggleSave} />
+            <Section title="Autres deals" deals={otherDeals} savedDeals={savedDeals} toggleSave={toggleSave} />
+          </>
+        )}
       </ScrollView>
       <BottomNavbar />
     </View>
@@ -222,7 +281,7 @@ interface SectionProps {
   title: string;
   deals: Deal[];
   savedDeals: string[];
-  toggleSave: (dealId: string) => void;
+  toggleSave: (dealId: string) => Promise<void>;
 }
 
 const Section = ({ title, deals, savedDeals, toggleSave }: SectionProps) => {
@@ -362,11 +421,7 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
   const handleNavigation = async () => {
     const user = auth.currentUser;
     if (!user) return alert("Veuillez vous connecter.");
-    if (status) {
-      navigation.navigate('DealsDetailsInfluenceur', { dealId: deal.id, influenceurId: user.uid });
-    } else {
-      navigation.navigate('DealsSeeMoreInfluenceur', { dealId: deal.id });
-    }
+    navigation.navigate('DealsSeeMoreInfluenceur', { dealId: deal.id });
   };
 
   return (
@@ -438,7 +493,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5E7',
+    backgroundColor: '#14210F',
   },
   loadingImage: {
     width: 64,
@@ -446,7 +501,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    color: '#14210F',
+    color: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -494,24 +549,44 @@ const styles = StyleSheet.create({
     height: 24,
     marginLeft: 8,
   },
-  filtersContainer: {
+  filtersSection: {
     paddingHorizontal: 16,
     marginBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#14210F',
+    marginLeft: 16,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  content: {
+    flex: 1,
+  },
+  filtersContainer: {
+    marginTop: 10,
+    paddingHorizontal: 16,
   },
   filterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    marginRight: 8,
+    marginRight: 16,
+    marginLeft: 5,
     borderWidth: 1,
     borderColor: '#14210F',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 8,
+    // borderWidth: 1,
+    // borderColor: '#1A2C24',
   },
   filterButtonActive: {
     backgroundColor: '#1A2C24',
   },
   filterText: {
     color: '#14210F',
+    fontSize: 14,
   },
   filterTextActive: {
     color: '#FFFFFF',
@@ -622,5 +697,26 @@ const styles = StyleSheet.create({
   dealButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  emptyContainer: {
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  filterRow: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  filterButtonText: {
+    color: '#14210F',
+    fontSize: 14,
+  },
+  filterButtonTextActive: {
+    color: '#FFFFFF',
   },
 });

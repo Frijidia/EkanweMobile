@@ -4,14 +4,15 @@
     "slug": "EkanweMobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/ekanwe-logo.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#14210F",
     "newArchEnabled": true,
     "scheme": "ekanwe",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/ekanwe-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#14210F"
     },
     "ios": {
       "supportsTablet": true,
@@ -22,15 +23,18 @@
         "NSCameraUsageDescription": "Cette application utilise la caméra pour permettre aux utilisateurs de prendre des photos ou des vidéos pour leurs publications ou leurs preuves de deals.",
         "NSLocationWhenInUseUsageDescription": "Cette app a besoin de votre position pour localiser le deal.",
         "NSPhotoLibraryUsageDescription": "Cette application a besoin d'accéder à votre galerie pour permettre l'importation d'images ou de vidéos.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#14210F"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ekanwe.ekanwe"
     },
     "web": {
       "favicon": "./assets/favicon.png"
