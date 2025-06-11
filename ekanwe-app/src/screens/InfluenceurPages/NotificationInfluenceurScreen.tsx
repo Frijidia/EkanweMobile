@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
-    paddingBottom: 50,
+    paddingBottom: 70,
   },
   loadingContainer: {
     flex: 1,

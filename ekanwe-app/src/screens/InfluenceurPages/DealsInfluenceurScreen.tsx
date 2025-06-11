@@ -40,6 +40,7 @@ export const DealsInfluenceurScreen = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [savedDeals, setSavedDeals] = useState<string[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const user = auth.currentUser;
   const navigation = useNavigation<NavigationProp>();
@@ -166,10 +167,15 @@ export const DealsInfluenceurScreen = () => {
   // Add "Tous" back at the beginning of the sorted list
   const countriesWithTous = ["Tous", ...countries];
 
-  // Filter deals by both interest and country
+  // Filter deals by search query, interest and country
   const filteredDeals = deals.filter(deal => {
+    // Filtre par recherche
+    const matchesSearch = searchQuery === "" || 
+      deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deal.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Filtre par intérêts
     const dealInterests = extractInterests(deal.interests);
-    console.log('Filtering deal:', deal.id, 'interests:', dealInterests, 'selected:', selectedFilter);
     const matchesInterest = selectedFilter === "Tous" || dealInterests.includes(selectedFilter);
     
     const dealCountry = deal.locationName ? 
@@ -177,7 +183,7 @@ export const DealsInfluenceurScreen = () => {
       "Non spécifié";
     const matchesCountry = selectedCountry === "Tous" || dealCountry === selectedCountry;
     
-    return matchesInterest && matchesCountry;
+    return matchesSearch && matchesInterest && matchesCountry;
   });
 
   // Sort by popularity and split into sections
@@ -212,7 +218,13 @@ export const DealsInfluenceurScreen = () => {
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <Image source={require('../../assets/loupe.png')} style={styles.searchIcon} />
-            <TextInput placeholder="Recherche" placeholderTextColor="#999" style={styles.searchInput} />
+            <TextInput 
+              placeholder="Recherche" 
+              placeholderTextColor="#999" 
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
             <Image source={require('../../assets/menu.png')} style={styles.menuIcon} />
           </View>
         </View>
@@ -240,7 +252,7 @@ export const DealsInfluenceurScreen = () => {
           </ScrollView>
         </View>
 
-        <Text style={styles.filterLabel}>Filtres par pays</Text>
+        <Text style={styles.filterLabel}>Filtres par pays </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
           {countriesWithTous.map((country) => (
             <TouchableOpacity
@@ -487,7 +499,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 50,
   },
   loadingContainer: {
     flex: 1,
@@ -543,6 +555,8 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     color: '#14210F',
+    fontSize: 16,
+    paddingVertical: 8,
   },
   menuIcon: {
     width: 24,
@@ -551,22 +565,22 @@ const styles = StyleSheet.create({
   },
   filtersSection: {
     paddingHorizontal: 16,
-    marginBottom: 16,
+    //marginBottom: 8,
   },
   filterLabel: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#14210F',
     marginLeft: 16,
-    marginTop: 16,
+    //marginTop: 24,
     marginBottom: 8,
   },
   content: {
     flex: 1,
   },
   filtersContainer: {
-    marginTop: 10,
     paddingHorizontal: 16,
+    //marginBottom: 32,
   },
   filterButton: {
     paddingHorizontal: 16,
@@ -577,7 +591,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#14210F',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    marginBottom: 8,
+    // marginBottom: 8,
     // borderWidth: 1,
     // borderColor: '#1A2C24',
   },
@@ -592,7 +606,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   section: {
-    marginBottom: 24,
+    marginTop: 16,
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -710,7 +725,7 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   filterButtonText: {
     color: '#14210F',

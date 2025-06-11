@@ -70,7 +70,7 @@ export const BottomNavbar = () => {
 const styles = StyleSheet.create({
   navbar: {
     position: 'absolute',
-    bottom: 8,
+    bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: '#1A2C24',
@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    paddingBottom: 30,
   },
   icon: {
     width: 24,
