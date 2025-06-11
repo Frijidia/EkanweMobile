@@ -32,39 +32,68 @@ export const SuivisDealsInfluenceurScreen = () => {
   const [selectedFilter, setSelectedFilter] = useState("Tous");
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const filters = ["Tous", "Envoyé", "Accepté", "Refusé", "Terminé"];
-
 
   useEffect(() => {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      setError("Veuillez vous connecter pour voir vos candidatures");
+      setLoading(false);
+      return;
+    }
 
     const dealsRef = collection(db, "deals");
+    let unsubscribe: (() => void) | undefined;
 
-    const unsubscribe = onSnapshot(dealsRef, (snapshot) => {
-      const myCandidatures: Candidature[] = [];
+    const fetchCandidatures = async () => {
+      try {
+        unsubscribe = onSnapshot(dealsRef, 
+          (snapshot) => {
+            const myCandidatures: Candidature[] = [];
 
-      snapshot.forEach((docSnap) => {
-        const deal = docSnap.data();
-        const dealId = docSnap.id;
-        const allCandidatures = deal.candidatures || [];
+            snapshot.forEach((docSnap) => {
+              const deal = docSnap.data();
+              const dealId = docSnap.id;
+              const allCandidatures = deal.candidatures || [];
 
-        allCandidatures.forEach((candidature: any, index: number) => {
-          if (candidature.influenceurId === user.uid) {
-            myCandidatures.push({
-              ...candidature,
-              dealId,
-              dealInfo: deal,
-              candidatureIndex: index,
+              allCandidatures.forEach((candidature: any, index: number) => {
+                if (candidature.influenceurId === user.uid) {
+                  myCandidatures.push({
+                    ...candidature,
+                    dealId,
+                    dealInfo: deal,
+                    candidatureIndex: index,
+                  });
+                }
+              });
             });
+
+            setCandidatures(myCandidatures);
+            setLoading(false);
+            setError(null);
+          },
+          (error) => {
+            console.error("Erreur lors de la récupération des candidatures:", error);
+            setError("Erreur lors du chargement des candidatures");
+            setLoading(false);
           }
-        });
-      });
+        );
+      } catch (error) {
+        console.error("Erreur lors de la configuration de l'écouteur:", error);
+        setError("Erreur lors du chargement des candidatures");
+        setLoading(false);
+      }
+    };
 
-      setCandidatures(myCandidatures);
-    });
+    fetchCandidatures();
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const getProgressStyles = (status: string) => {
@@ -249,7 +278,15 @@ export const SuivisDealsInfluenceurScreen = () => {
         </ScrollView>
       </View>
 
-      {filteredCandidatures.length === 0 ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Chargement en cours...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : filteredCandidatures.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Aucun deal trouvé</Text>
         </View>
@@ -421,5 +458,26 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF6B2E',
+    textAlign: 'center',
   },
 });

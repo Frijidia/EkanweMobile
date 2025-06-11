@@ -8,12 +8,17 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { auth, db } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'RegistrationStepOne'>;
 
@@ -28,6 +33,8 @@ export const RegistrationStepOneScreen = () => {
   });
   const [pseudoError, setPseudoError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -40,10 +47,24 @@ export const RegistrationStepOneScreen = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
+          let dateNaissance = null;
+          if (data.dateNaissance) {
+            try {
+              // S'assurer que la date est valide
+              const date = new Date(data.dateNaissance);
+              if (!isNaN(date.getTime())) {
+                dateNaissance = date;
+              }
+            } catch (error) {
+              console.error('Erreur de format de date:', error);
+            }
+          }
+          
+          setSelectedDate(dateNaissance);
           setFormData({
             nom: data.nom || '',
             prenoms: data.prenom || '',
-            naissance: data.dateNaissance || '',
+            naissance: dateNaissance ? format(dateNaissance, 'yyyy-MM-dd') : '',
             pseudo: data.pseudonyme || '',
             telephone: data.phone || '',
           });
@@ -68,6 +89,38 @@ export const RegistrationStepOneScreen = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (field === 'pseudo') checkPseudoUnique(value.trim());
+  };
+
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (date) {
+      try {
+        setSelectedDate(date);
+        setFormData(prev => ({
+          ...prev,
+          naissance: format(date, 'yyyy-MM-dd')
+        }));
+      } catch (error) {
+        console.error('Erreur lors du changement de date:', error);
+      }
+    }
+  };
+
+  const handleDateConfirm = () => {
+    if (selectedDate) {
+      try {
+        setFormData(prev => ({
+          ...prev,
+          naissance: format(selectedDate, 'yyyy-MM-dd')
+        }));
+      } catch (error) {
+        console.error('Erreur lors de la confirmation de la date:', error);
+      }
+    }
+    setShowDatePicker(false);
   };
 
   const handleSubmit = async () => {
@@ -125,13 +178,58 @@ export const RegistrationStepOneScreen = () => {
       />
       {pseudoError ? <Text style={styles.error}>{pseudoError}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Date de naissance (AAAA-MM-JJ)"
-        placeholderTextColor="#ccc"
-        value={formData.naissance}
-        onChangeText={(text) => handleChange('naissance', text)}
-      />
+      <TouchableOpacity 
+        style={styles.input} 
+        onPress={() => setShowDatePicker(true)}
+      >
+        <Text style={[styles.dateText, !formData.naissance && { color: '#ccc' }]}>
+          {formData.naissance || 'Date de naissance (AAAA-MM-JJ)'}
+        </Text>
+      </TouchableOpacity>
+
+      {Platform.OS === 'ios' ? (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.modalButton}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDateConfirm}>
+                  <Text style={styles.modalButton}>OK</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={selectedDate || new Date()}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                maximumDate={new Date()}
+                minimumDate={new Date(1900, 0, 1)}
+                locale="fr-FR"
+                style={styles.datePicker}
+              />
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={selectedDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+            minimumDate={new Date(1900, 0, 1)}
+            locale="fr-FR"
+          />
+        )
+      )}
+
       <TextInput
         style={styles.input}
         placeholder="Téléphone"
@@ -216,5 +314,36 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  dateText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#1A2C24',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalButton: {
+    color: '#FF6B2E',
+    fontSize: 16,
+    fontWeight: '600',
+    padding: 8,
+  },
+  datePicker: {
+    height: 200,
+    backgroundColor: '#1A2C24',
   },
 });

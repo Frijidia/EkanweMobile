@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator, Alert
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Image, ActivityIndicator, Alert, Platform, Modal
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +14,8 @@ import * as Location from 'expo-location';
 import { RootStackParamList } from '../../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { sendNotificationToToken } from '../../hooks/sendNotifications';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsCreation'>;
 
@@ -39,6 +41,8 @@ export const DealsCreationScreen = () => {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const availableInterests = ["Mode", "Cuisine", "Voyage", "Beauté", "Sport", "Technologie", "Gaming",
     "Musique", "Cinéma", "Fitness", "Développement personnel", "Finance",
@@ -209,6 +213,30 @@ export const DealsCreationScreen = () => {
     }
   };
 
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (date) {
+      try {
+        setSelectedDate(date);
+        setValidUntil(format(date, 'yyyy-MM-dd'));
+      } catch (error) {
+        console.error('Erreur lors du changement de date:', error);
+      }
+    }
+  };
+
+  const handleDateConfirm = () => {
+    try {
+      setValidUntil(format(selectedDate, 'yyyy-MM-dd'));
+    } catch (error) {
+      console.error('Erreur lors de la confirmation de la date:', error);
+    }
+    setShowDatePicker(false);
+  };
+
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -292,7 +320,55 @@ export const DealsCreationScreen = () => {
       </View>
 
       <Text style={styles.label}>Date de validité</Text>
-      <TextInput style={styles.input} value={validUntil} onChangeText={setValidUntil} placeholder="YYYY-MM-DD" />
+      <TouchableOpacity 
+        style={styles.dateInput} 
+        onPress={() => setShowDatePicker(true)}
+      >
+        <Text style={validUntil ? styles.dateText : styles.datePlaceholder}>
+          {validUntil || 'Sélectionner une date'}
+        </Text>
+      </TouchableOpacity>
+
+      {Platform.OS === 'ios' ? (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.modalButton}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDateConfirm}>
+                  <Text style={styles.modalButton}>OK</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+                locale="fr-FR"
+                style={styles.datePicker}
+              />
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={new Date()}
+            locale="fr-FR"
+          />
+        )
+      )}
 
       <Text style={styles.label}>Conditions</Text>
       <TextInput
@@ -513,5 +589,45 @@ const styles = StyleSheet.create({
     color: '#1A2C24',
     marginTop: 8,
     textAlign: 'center',
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 6,
+  },
+  dateText: {
+    color: '#1A2C24',
+  },
+  datePlaceholder: {
+    color: '#999',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalButton: {
+    color: '#FF6B2E',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  datePicker: {
+    height: 200,
   },
 });
