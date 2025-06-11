@@ -18,6 +18,7 @@ export const DealsPageCommercantScreen = () => {
   const [deals, setDeals] = useState<any[]>([]);
   const [influencers, setInfluencers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleSave = (id: string) => {
     setSavedItems(prev => ({ ...prev, [id]: !prev[id] }));
@@ -68,6 +69,45 @@ export const DealsPageCommercantScreen = () => {
     fetchData();
   }, []);
 
+  // Filtrer les deals et influenceurs en fonction de la recherche
+  const filteredDeals = React.useMemo(() => {
+    console.log('Searching deals with query:', searchQuery);
+    console.log('Total deals:', deals.length);
+    
+    if (!searchQuery.trim()) {
+      return deals;
+    }
+
+    const filtered = deals.filter(deal => {
+      const titleMatch = deal.title?.toLowerCase().includes(searchQuery.toLowerCase());
+      const descMatch = deal.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      console.log('Deal:', deal.title, 'Title match:', titleMatch, 'Desc match:', descMatch);
+      return titleMatch || descMatch;
+    });
+
+    console.log('Filtered deals:', filtered.length);
+    return filtered;
+  }, [deals, searchQuery]);
+
+  const filteredInfluencers = React.useMemo(() => {
+    console.log('Searching influencers with query:', searchQuery);
+    console.log('Total influencers:', influencers.length);
+    
+    if (!searchQuery.trim()) {
+      return influencers;
+    }
+
+    const filtered = influencers.filter(influencer => {
+      const pseudoMatch = influencer.pseudonyme?.toLowerCase().includes(searchQuery.toLowerCase());
+      const bioMatch = influencer.bio?.toLowerCase().includes(searchQuery.toLowerCase());
+      console.log('Influencer:', influencer.pseudonyme, 'Pseudo match:', pseudoMatch, 'Bio match:', bioMatch);
+      return pseudoMatch || bioMatch;
+    });
+
+    console.log('Filtered influencers:', filtered.length);
+    return filtered;
+  }, [influencers, searchQuery]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -91,7 +131,16 @@ export const DealsPageCommercantScreen = () => {
           </View>
         </View>
         <View style={styles.searchContainer}>
-          <TextInput placeholder="Recherche" placeholderTextColor="#999" style={styles.input} />
+          <View style={styles.searchBar}>
+            <Image source={require('../../assets/loupe.png')} style={styles.searchIcon} />
+            <TextInput 
+              placeholder="Recherche" 
+              placeholderTextColor="#999" 
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
         </View>
 
         <View style={styles.filterContainer}>
@@ -114,40 +163,49 @@ export const DealsPageCommercantScreen = () => {
               <Text style={styles.createDealText}>Faire un deal</Text>
             </TouchableOpacity>
 
-            {deals.map((deal) => (
-              <View key={deal.id} style={styles.card}>
-                <Image source={{ uri: deal.imageUrl || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
-                <View style={styles.cardContent}>
-                  <Text style={styles.dealTitle}>{deal.title || 'Sans titre'}</Text>
-                  <Text style={styles.dealDesc}>{deal.description || '-'}</Text>
-                  {renderStars(calculateAverageRating(deal.candidatures))}
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('DealsDetailsCommercant', { 
-                      dealId: deal.id,
-                      influenceurId: auth.currentUser?.uid || ''
-                    })}
-                    style={styles.button}
-                  >
-                    <Text style={styles.buttonText}>Voir plus</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+            {filteredDeals.length === 0 ? (
+              <Text style={styles.noResultsText}>Aucun résultat trouvé</Text>
+            ) : (
+              filteredDeals.map((deal) => (
+                <TouchableOpacity
+                  key={deal.id}
+                  onPress={() => navigation.navigate('DealsDetailsCommercant', { 
+                    dealId: deal.id,
+                    influenceurId: auth.currentUser?.uid || ''
+                  })}
+                  style={styles.card}
+                >
+                  <Image source={{ uri: deal.imageUrl || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
+                  <View style={styles.cardContent}>
+                    <Text style={styles.dealTitle}>{deal.title || 'Sans titre'}</Text>
+                    <Text style={styles.dealDesc}>{deal.description || '-'}</Text>
+                    {renderStars(calculateAverageRating(deal.candidatures))}
+                    <View style={styles.button}>
+                      <Text style={styles.buttonText}>Voir plus</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </>
         ) : (
           <>
-            {influencers.map((inf) => (
-              <TouchableOpacity
-                key={inf.id}
-                onPress={() => navigation.navigate('ProfilPublic', { userId: inf.id })}
-                style={styles.card}
-              >
-                <Image source={{ uri: inf.photoURL || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
-                <View style={styles.cardContent}>
-                  <Text style={styles.dealTitle}>{inf.pseudonyme || 'Influenceur'}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {filteredInfluencers.length === 0 ? (
+              <Text style={styles.noResultsText}>Aucun résultat trouvé</Text>
+            ) : (
+              filteredInfluencers.map((inf) => (
+                <TouchableOpacity
+                  key={inf.id}
+                  onPress={() => navigation.navigate('ProfilPublic', { userId: inf.id })}
+                  style={styles.card}
+                >
+                  <Image source={{ uri: inf.photoURL || 'https://via.placeholder.com/150' }} style={styles.dealImage} />
+                  <View style={styles.cardContent}>
+                    <Text style={styles.dealTitle}>{inf.pseudonyme || 'Influenceur'}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </>
         )}
       </ScrollView>
@@ -177,13 +235,25 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: 'bold', color: '#14210F' },
   searchContainer: { paddingHorizontal: 16 },
-  input: {
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ddd',
+    paddingHorizontal: 12,
     marginBottom: 12,
+  },
+  searchIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    color: '#14210F',
   },
   filterContainer: { 
     flexDirection: 'row',
@@ -234,5 +304,11 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
+  },
+  noResultsText: {
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 20,
+    fontSize: 16,
   },
 });

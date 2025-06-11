@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   Image,
+  Modal,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { collection, query, doc, updateDoc, setDoc, arrayUnion, getDoc, getDocs, where } from "firebase/firestore";
@@ -15,6 +16,7 @@ import { sendNotification, sendNotificationToToken } from "../../hooks/sendNotif
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
 import { BottomNavbar } from "./BottomNavbar";
+import { Ionicons } from '@expo/vector-icons';
 // import * as Location from 'expo-location';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -41,6 +43,8 @@ export const DealsInfluenceurScreen = () => {
   const [savedDeals, setSavedDeals] = useState<string[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showInterestsModal, setShowInterestsModal] = useState(false);
+  const [showCountriesModal, setShowCountriesModal] = useState(false);
 
   const user = auth.currentUser;
   const navigation = useNavigation<NavigationProp>();
@@ -229,49 +233,103 @@ export const DealsInfluenceurScreen = () => {
           </View>
         </View>
 
-        <Text style={styles.filterLabel}>Filtres par intérêts</Text>
-        <View style={styles.filterRow}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {interests.map((interest, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.filterButton,
-                  selectedFilter === interest && styles.filterButtonActive,
-                ]}
-                onPress={() => setSelectedFilter(interest)}
-              >
-                <Text style={[
-                  styles.filterButtonText,
-                  selectedFilter === interest && styles.filterButtonTextActive,
-                ]}>
-                  {interest}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+        <View style={styles.filtersContainer}>
+          <TouchableOpacity 
+            style={styles.filterSelector} 
+            onPress={() => setShowInterestsModal(true)}
+          >
+            <Text style={styles.filterLabel}>Intérêts: {selectedFilter}</Text>
+            <Ionicons name="chevron-down" size={20} color="#14210F" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.filterSelector} 
+            onPress={() => setShowCountriesModal(true)}
+          >
+            <Text style={styles.filterLabel}>Pays: {selectedCountry}</Text>
+            <Ionicons name="chevron-down" size={20} color="#14210F" />
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.filterLabel}>Filtres par pays </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
-          {countriesWithTous.map((country) => (
-            <TouchableOpacity
-              key={country}
-              style={[
-                styles.filterButton,
-                selectedCountry === country && styles.filterButtonActive
-              ]}
-              onPress={() => setSelectedCountry(country)}
-            >
-              <Text style={[
-                styles.filterText,
-                selectedCountry === country && styles.filterTextActive
-              ]}>
-                {country}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <Modal
+          visible={showInterestsModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowInterestsModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Sélectionner un intérêt</Text>
+                <TouchableOpacity onPress={() => setShowInterestsModal(false)}>
+                  <Text style={styles.closeButton}>Fermer</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScroll}>
+                {interests.map((interest, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.modalOption,
+                      selectedFilter === interest && styles.modalOptionSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedFilter(interest);
+                      setShowInterestsModal(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.modalOptionText,
+                      selectedFilter === interest && styles.modalOptionTextSelected
+                    ]}>
+                      {interest}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={showCountriesModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowCountriesModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Sélectionner un pays</Text>
+                <TouchableOpacity onPress={() => setShowCountriesModal(false)}>
+                  <Text style={styles.closeButton}>Fermer</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScroll}>
+                {countriesWithTous.map((country, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.modalOption,
+                      selectedCountry === country && styles.modalOptionSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedCountry(country);
+                      setShowCountriesModal(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.modalOptionText,
+                      selectedCountry === country && styles.modalOptionTextSelected
+                    ]}>
+                      {country}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
 
         {filteredDeals.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -437,14 +495,20 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
   };
 
   return (
-    <View style={styles.dealCard}>
+    <TouchableOpacity style={styles.dealCard} onPress={handleNavigation}>
       <View style={styles.dealImageContainer}>
         <Image
           source={deal.imageUrl ? { uri: deal.imageUrl } : require('../../assets/profile.png')}
           style={styles.dealImage}
           resizeMode="cover"
         />
-        <TouchableOpacity style={styles.saveButton} onPress={() => onSave(deal.id)}>
+        <TouchableOpacity 
+          style={styles.saveButton} 
+          onPress={(e) => {
+            e.stopPropagation();
+            onSave(deal.id);
+          }}
+        >
           <Image
             source={saved ? require('../../assets/fullsave.png') : require('../../assets/save.png')}
             style={styles.saveIcon}
@@ -465,7 +529,11 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
                 status === "Terminé" && styles.completedButton,
                 status === "Approbation" && styles.pendingButton
               ]}
-              onPress={()=>{const user = auth.currentUser; navigation.navigate('DealsDetailsInfluenceur', {dealId: deal.id, influenceurId: user?.uid!})}}
+              onPress={(e) => {
+                e.stopPropagation();
+                const user = auth.currentUser;
+                navigation.navigate('DealsDetailsInfluenceur', {dealId: deal.id, influenceurId: user?.uid!});
+              }}
             >
               <Text style={styles.statusButtonText}>{status}</Text>
             </TouchableOpacity>
@@ -473,14 +541,20 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.seeMoreButton}
-                onPress={handleNavigation}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleNavigation();
+                }}
               >
                 <Text style={styles.seeMoreButtonText}>Voir plus</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 disabled={loading}
                 style={styles.dealButton}
-                onPress={handleApplyToDeal}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleApplyToDeal();
+                }}
               >
                 <Text style={styles.dealButtonText}>
                   {loading ? "Envoi..." : "Dealer"}
@@ -490,7 +564,7 @@ const DealCard = ({ deal, saved, onSave }: DealCardProps) => {
           )}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -545,7 +619,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000',
     borderRadius: 8,
-    padding: 8,
+    padding: 5,
   },
   searchIcon: {
     width: 24,
@@ -563,46 +637,73 @@ const styles = StyleSheet.create({
     height: 24,
     marginLeft: 8,
   },
-  filtersSection: {
+  filtersContainer: {
     paddingHorizontal: 16,
-    //marginBottom: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  filterSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#14210F',
   },
   filterLabel: {
     fontSize: 16,
+    fontWeight: 'semibold',
+    color: '#14210F',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#F5F5E7',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 16,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#14210F',
+  },
+  modalTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#14210F',
-    marginLeft: 16,
-    //marginTop: 24,
-    marginBottom: 8,
   },
-  content: {
-    flex: 1,
+  closeButton: {
+    color: '#FF6B2E',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  filtersContainer: {
-    paddingHorizontal: 16,
-    //marginBottom: 32,
+  modalScroll: {
+    maxHeight: '80%',
   },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginRight: 16,
-    marginLeft: 5,
-    borderWidth: 1,
-    borderColor: '#14210F',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    // marginBottom: 8,
-    // borderWidth: 1,
-    // borderColor: '#1A2C24',
+  modalOption: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 33, 15, 0.1)',
   },
-  filterButtonActive: {
-    backgroundColor: '#1A2C24',
+  modalOptionSelected: {
+    backgroundColor: '#14210F',
   },
-  filterText: {
+  modalOptionText: {
+    fontSize: 16,
     color: '#14210F',
-    fontSize: 14,
   },
-  filterTextActive: {
+  modalOptionTextSelected: {
     color: '#FFFFFF',
   },
   section: {
@@ -722,16 +823,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-  },
-  filterRow: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  filterButtonText: {
-    color: '#14210F',
-    fontSize: 14,
-  },
-  filterButtonTextActive: {
-    color: '#FFFFFF',
   },
 });

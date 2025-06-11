@@ -34,6 +34,29 @@ interface InputFieldProps {
   icon?: string;
 }
 
+interface TextAreaFieldProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+}
+
+const TextAreaField: React.FC<TextAreaFieldProps> = ({ label, value, onChange }) => (
+  <View style={styles.inputContainer}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <View style={styles.inputWrapper}>
+      <TextInput
+        style={[styles.input, styles.textArea]}
+        value={value}
+        onChangeText={onChange}
+        placeholderTextColor="#666666"
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+      />
+    </View>
+  </View>
+);
+
 const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 'text', icon }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [date, setDate] = useState(() => {
@@ -82,7 +105,7 @@ const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 
         >
           {icon && <Image source={{ uri: icon }} style={styles.inputIcon} />}
           <Text style={styles.dateText}>
-            {date.toLocaleDateString('fr-FR')}
+            {value || date.toLocaleDateString('fr-FR')}
           </Text>
         </TouchableOpacity>
         {showDatePicker && (
@@ -113,20 +136,6 @@ const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 
     </View>
   );
 };
-
-const TextAreaField: React.FC<InputFieldProps> = ({ label, value, onChange }) => (
-  <View style={styles.inputContainer}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <TextInput
-      style={[styles.input, styles.textArea]}
-      value={value}
-      onChangeText={onChange}
-      multiline
-      numberOfLines={3}
-      placeholderTextColor="#666666"
-    />
-  </View>
-);
 
 export const ProfileInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -581,6 +590,7 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+    paddingTop: 12,
   },
   messageContainer: {
     padding: 12,

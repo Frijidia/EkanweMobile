@@ -12,15 +12,15 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const ProfilPublicScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
-  const { userId } = route.params;
+  const { userId } = route.params as { userId: string };
 
-  const [userData, setUserData] = useState(null);
-  const [dealsApplied, setDealsApplied] = useState(0);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [completedDealsData, setCompletedDealsData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingContact, setLoadingContact] = useState(false);
-  const [averageRatings, setAverageRatings] = useState({});
+  const [userData, setUserData] = useState<any>(null);
+  const [dealsApplied, setDealsApplied] = useState<number>(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [completedDealsData, setCompletedDealsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingContact, setLoadingContact] = useState<boolean>(false);
+  const [averageRatings, setAverageRatings] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -36,17 +36,17 @@ export const ProfilPublicScreen = () => {
 
         const snapshot = await getDocs(collection(db, 'deals'));
         let count = 0;
-        let completed = [];
-        let ratings = {};
+        let completed: any[] = [];
+        let ratings: any = {};
 
-        snapshot.forEach(docSnap => {
+        snapshot.forEach((docSnap: any) => {
           const deal = docSnap.data();
-          (deal.candidatures || []).forEach(c => {
+          (deal.candidatures || []).forEach((c: any) => {
             if (c.influenceurId === userId && c.status === 'Terminé') {
               count++;
               let likes = 0;
               let shares = 0;
-              (c.proofs || []).forEach(p => {
+              (c.proofs || []).forEach((p: any) => {
                 likes += p.likes || 0;
                 shares += p.shares || 0;
               });
@@ -63,7 +63,7 @@ export const ProfilPublicScreen = () => {
         setDealsApplied(count);
         setCompletedDealsData(completed);
 
-        const avg = {};
+        const avg: any = {};
         for (let uid in ratings) {
           avg[uid] = ratings[uid].total / ratings[uid].count;
         }
@@ -125,7 +125,7 @@ export const ProfilPublicScreen = () => {
       const inflSnap = await getDoc(inflChatsRef);
       if (inflSnap.exists()) {
         const chats = inflSnap.data().chats || [];
-        if (!chats.find((c: { chatId: string; }) => c.chatId === chatId)) {
+        if (!chats.find((c: any) => c.chatId === chatId)) {
           chats.push(inflChat);
           await updateDoc(inflChatsRef, { chats });
         }
@@ -251,6 +251,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     padding: 24,
+    paddingTop: 40,
     paddingBottom: 80,
   },
   loadingContainer: {

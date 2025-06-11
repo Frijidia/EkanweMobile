@@ -31,6 +31,7 @@ export const SuivisDealsInfluenceurScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState("Tous");
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const filters = ["Tous", "Envoyé", "Accepté", "Refusé", "Terminé"];
 
 
@@ -96,9 +97,17 @@ export const SuivisDealsInfluenceurScreen = () => {
     }
   };
 
-  const filteredCandidatures = selectedFilter === "Tous"
-    ? candidatures
-    : candidatures.filter((c) => c.status === selectedFilter);
+  const filteredCandidatures = candidatures
+    .filter((c) => selectedFilter === "Tous" || c.status === selectedFilter)
+    .filter((c) => {
+      if (!searchQuery) return true;
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        c.dealInfo?.title?.toLowerCase().includes(searchLower) ||
+        c.dealInfo?.description?.toLowerCase().includes(searchLower) ||
+        c.dealId.toLowerCase().includes(searchLower)
+      );
+    });
 
   const renderCandidature = ({ item: candidature }: { item: Candidature }) => {
     const progressStyles = getProgressStyles(candidature.status);
@@ -198,13 +207,19 @@ export const SuivisDealsInfluenceurScreen = () => {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Recherche"
+            placeholder="Rechercher un deal..."
             placeholderTextColor="#666666"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-          <Image
-            source={require('../../assets/menu.png')}
-            style={styles.menuIcon}
-          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity 
+              onPress={() => setSearchQuery("")}
+              style={styles.clearButton}
+            >
+              <Icon name="close-circle" size={20} color="#14210F" />
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView
@@ -257,7 +272,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 70,
   },
   header: {
     flexDirection: 'row',
@@ -403,5 +418,8 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666666',
+  },
+  clearButton: {
+    padding: 4,
   },
 });

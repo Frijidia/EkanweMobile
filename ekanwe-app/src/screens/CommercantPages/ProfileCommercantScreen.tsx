@@ -398,7 +398,7 @@ const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 
         >
           {icon && <Image source={{ uri: icon }} style={styles.inputIcon} />}
           <Text style={styles.dateText}>
-            {date.toLocaleDateString('fr-FR')}
+            {value || date.toLocaleDateString('fr-FR')}
           </Text>
         </TouchableOpacity>
         {showDatePicker && (
@@ -418,13 +418,18 @@ const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 
     <View style={styles.inputContainer}>
       <Text style={styles.inputLabel}>{label}</Text>
       <View style={styles.inputWrapper}>
+        {icon && (
+          <Image 
+            source={{ uri: icon }} 
+            style={styles.inputIcon}
+          />
+        )}
         <TextInput
-          style={[styles.input, multiline && { height: 100, textAlignVertical: 'top' }]}
+          style={[styles.input, multiline && styles.textArea]}
           value={value}
           onChangeText={onChange}
           placeholderTextColor="#666666"
           multiline={multiline}
-          numberOfLines={multiline ? 4 : 1}
         />
       </View>
     </View>
@@ -613,5 +618,9 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     marginRight: 8,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
   },
 });

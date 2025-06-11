@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
-    paddingBottom: 6
+    paddingBottom: 20
   },
   mainContainer: {
     flex: 1,
