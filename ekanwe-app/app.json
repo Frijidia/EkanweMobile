@@ -1,6 +1,7 @@
 {
   "expo": {
-    "name": "Bienvenue sur Ekanwe",
+    "name": "EkanweMobile",
+    "slug": "EkanweMobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/ekanwe-logo.png",
