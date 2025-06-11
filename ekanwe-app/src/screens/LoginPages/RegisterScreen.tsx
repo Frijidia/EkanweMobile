@@ -8,7 +8,9 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
@@ -32,10 +34,22 @@ export const RegisterScreen = () => {
   const [formData, setFormData] = useState({ email: '', password: '', confirmation: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [birthDate, setBirthDate] = useState(new Date());
   const { userData } = useUserData();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || birthDate;
+    setShowDatePicker(Platform.OS === 'ios');
+    setBirthDate(currentDate);
+  };
+
+  const showDatePickerModal = () => {
+    setShowDatePicker(true);
   };
 
   // const handleGoogleSignUp = async () => {
@@ -152,6 +166,7 @@ export const RegisterScreen = () => {
         email,
         role: userData?.role || null,
         dateCreation: new Date(),
+        dateNaissance: birthDate,
         inscription: '1',
       });
 
@@ -218,6 +233,23 @@ export const RegisterScreen = () => {
         value={formData.confirmation}
         onChangeText={(text) => handleInputChange('confirmation', text)}
       />
+
+      <TouchableOpacity onPress={showDatePickerModal} style={styles.datePickerBtn}>
+        <Text style={styles.datePickerText}>
+          Date de naissance : {birthDate.toLocaleDateString('fr-FR')}
+        </Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={birthDate}
+          mode="date"
+          is24Hour={true}
+          display="default"
+          onChange={onDateChange}
+          style={styles.datePicker}
+        />
+      )}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -323,5 +355,23 @@ const styles = StyleSheet.create({
   },
   retour: {
     marginTop: 24,
+  },
+  datePickerBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    width: '100%',
+  },
+  datePickerText: {
+    color: '#ccc',
+    fontSize: 16,
+    textAlign: 'left',
+  },
+  datePicker: {
+    width: '100%',
+    backgroundColor: '#fff',
   },
 });

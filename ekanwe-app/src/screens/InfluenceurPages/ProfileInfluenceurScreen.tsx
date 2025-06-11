@@ -9,7 +9,9 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -32,26 +34,85 @@ interface InputFieldProps {
   icon?: string;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 'text', icon }) => (
-  <View style={styles.inputContainer}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={styles.inputWrapper}>
-      {icon && (
-        <Image
-          source={{ uri: icon }}
-          style={styles.inputIcon}
+const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 'text', icon }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(() => {
+    if (!value) return new Date();
+    try {
+      // Si la date est au format français (DD/MM/YYYY)
+      if (value.includes('/')) {
+        const [day, month, year] = value.split('/').map(Number);
+        const parsedDate = new Date(year, month - 1, day);
+        if (isNaN(parsedDate.getTime())) {
+          return new Date();
+        }
+        return parsedDate;
+      }
+      // Si la date est au format ISO ou autre
+      const parsedDate = new Date(value);
+      if (isNaN(parsedDate.getTime())) {
+        return new Date();
+      }
+      return parsedDate;
+    } catch {
+      return new Date();
+    }
+  });
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDate(selectedDate);
+      const formattedDate = selectedDate.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      onChange(formattedDate);
+    }
+  };
+
+  if (type === 'date') {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <TouchableOpacity
+          style={[styles.inputWrapper, styles.dateInput]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          {icon && <Image source={{ uri: icon }} style={styles.inputIcon} />}
+          <Text style={styles.dateText}>
+            {date.toLocaleDateString('fr-FR')}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+            maximumDate={new Date()}
+          />
+        )}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <View style={styles.inputWrapper}>
+        {icon && <Image source={{ uri: icon }} style={styles.inputIcon} />}
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChange}
+          placeholderTextColor="#666666"
         />
-      )}
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChange}
-        placeholderTextColor="#666666"
-        keyboardType={type === 'date' ? 'numeric' : 'default'}
-      />
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 const TextAreaField: React.FC<InputFieldProps> = ({ label, value, onChange }) => (
   <View style={styles.inputContainer}>
@@ -153,18 +214,20 @@ export const ProfileInfluenceurScreen = () => {
         base64: true,
       });
 
-      if (!result.canceled) {
-        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
+      if (!result.canceled && result.assets[0].base64) {
+        if (result.assets[0].base64.length * 0.75 > MAX_BASE64_SIZE) {
           Alert.alert(
             "Image trop lourde",
             "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
           );
         } else {
-          const base64Image = result.assets[0].base64!;
+          const base64Image = result.assets[0].base64;
           const mimeType = result.assets[0].type || 'image/jpeg';
           const fullBase64 = `data:${mimeType};base64,${base64Image}`;
           setProfileImage(fullBase64);
         }
+      } else {
+        Alert.alert("Erreur", "Impossible de récupérer l'image. Veuillez réessayer.");
       }
     } catch (error) {
       console.error("Erreur lors de la prise de photo:", error);
@@ -188,30 +251,25 @@ export const ProfileInfluenceurScreen = () => {
         base64: true,
       });
 
-      if (!result.canceled) {
-        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
+      if (!result.canceled && result.assets[0].base64) {
+        if (result.assets[0].base64.length * 0.75 > MAX_BASE64_SIZE) {
           Alert.alert(
             "Image trop lourde",
             "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
           );
         } else {
-          const base64Image = result.assets[0].base64!;
+          const base64Image = result.assets[0].base64;
           const mimeType = result.assets[0].type || 'image/jpeg';
           const fullBase64 = `data:${mimeType};base64,${base64Image}`;
           setProfileImage(fullBase64);
         }
+      } else {
+        Alert.alert("Erreur", "Impossible de récupérer l'image. Veuillez réessayer.");
       }
     } catch (error) {
       console.error("Erreur lors de la sélection de l'image:", error);
       setMessage("Erreur lors de la sélection de l'image");
     }
-  };
-
-  const getBase64FromUri = async (uri: string): Promise<string> => {
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    return `data:image/jpeg;base64,${base64}`;
   };
 
   const handleSave = async () => {
@@ -222,24 +280,56 @@ export const ProfileInfluenceurScreen = () => {
     setMessage(null);
 
     try {
-      let imageBase64 = null;
-
-      if (profileImage && profileImage.startsWith('file://')) {
-        imageBase64 = await getBase64FromUri(profileImage);
+      // Si l'image est déjà au format base64, on l'utilise directement
+      const photoURLToSave = profileImage || '';
+      
+      // S'assurer que la date est au format correct (DD/MM/YYYY)
+      let formattedDate = dateNaissance;
+      if (dateNaissance && !dateNaissance.includes('/')) {
+        try {
+          const date = new Date(dateNaissance);
+          if (!isNaN(date.getTime())) {
+            formattedDate = date.toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+          }
+        } catch {
+          // En cas d'erreur, garder la valeur originale
+          formattedDate = dateNaissance;
+        }
       }
 
-      await updateDoc(doc(db, "users", user.uid), {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
         pseudonyme,
         prenom,
         nom,
         phone,
-        dateNaissance,
+        dateNaissance: formattedDate || '',
         instagram,
         tiktok,
         portfolioLink,
         bio,
-        photoURL: imageBase64 || profileImage || '',
+        photoURL: photoURLToSave,
       });
+
+      // Récupérer les données mises à jour immédiatement
+      const updatedSnap = await getDoc(userRef);
+      if (updatedSnap.exists()) {
+        const data = updatedSnap.data();
+        setPseudonyme(data.pseudonyme || '');
+        setPrenom(data.prenom || '');
+        setNom(data.nom || '');
+        setPhone(data.phone || '');
+        setDateNaissance(data.dateNaissance || '');
+        setInstagram(data.instagram || '');
+        setTiktok(data.tiktok || '');
+        setPortfolioLink(data.portfolioLink || '');
+        setBio(data.bio || '');
+        setProfileImage(data.photoURL || null);
+      }
 
       setMessage("Profil mis à jour avec succès !");
     } catch (error) {
@@ -380,7 +470,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5E7',
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 70,
   },
   deleteButton: {
     backgroundColor: '#FF3B30',
@@ -534,5 +624,13 @@ const styles = StyleSheet.create({
     color: '#1A2C24',
     fontSize: 16,
     fontWeight: '600',
+  },
+  dateInput: {
+    height: 44,
+    justifyContent: 'center',
+  },
+  dateText: {
+    color: '#000000',
+    fontSize: 16,
   },
 });

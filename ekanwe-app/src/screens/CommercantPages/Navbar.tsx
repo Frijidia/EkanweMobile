@@ -69,7 +69,7 @@ export const Navbar = () => {
 const styles = StyleSheet.create({
   navbar: {
     position: 'absolute',
-    bottom: 5,
+    bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: '#1A2C24',

@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  Image, 
+  ActivityIndicator, 
+  Alert, 
+  StyleSheet,
+  Platform 
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
@@ -10,10 +22,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const ProfileCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [profileImage, setProfileImage] = useState<any>(null);
   const [pseudonyme, setPseudonyme] = useState('');
   const [prenom, setPrenom] = useState('');
@@ -72,23 +86,57 @@ export const ProfileCommercantScreen = () => {
     setMessage(null);
 
     try {
-      let imageBase64 = null;
-
-      if (profileImage && profileImage.startsWith('file://')) {
-        imageBase64 = await getBase64FromUri(profileImage);
+      // Utiliser directement l'image en base64
+      const photoURLToSave = profileImage || '';
+      
+      // S'assurer que la date est au format correct (DD/MM/YYYY)
+      let formattedDate = dateNaissance;
+      if (dateNaissance && !dateNaissance.includes('/')) {
+        try {
+          const date = new Date(dateNaissance);
+          if (!isNaN(date.getTime())) {
+            formattedDate = date.toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+          }
+        } catch {
+          // En cas d'erreur, garder la valeur originale
+          formattedDate = dateNaissance;
+        }
       }
-      await updateDoc(doc(db, 'users', user.uid), {
+      
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
         pseudonyme,
         prenom,
         nom,
         phone,
-        dateNaissance,
+        dateNaissance: formattedDate || '',
         instagram,
         tiktok,
         portfolioLink,
         bio,
-        photoURL: imageBase64 || profileImage || '',
+        photoURL: photoURLToSave,
       });
+      
+      // Récupérer les données mises à jour immédiatement
+      const updatedSnap = await getDoc(userRef);
+      if (updatedSnap.exists()) {
+        const data = updatedSnap.data();
+        setPseudonyme(data.pseudonyme || '');
+        setPrenom(data.prenom || '');
+        setNom(data.nom || '');
+        setPhone(data.phone || '');
+        setDateNaissance(data.dateNaissance || '');
+        setInstagram(data.instagram || '');
+        setTiktok(data.tiktok || '');
+        setPortfolioLink(data.portfolioLink || '');
+        setBio(data.bio || '');
+        setProfileImage(data.photoURL || null);
+      }
+      
       setMessage('Profil mis à jour avec succès !');
     } catch (error) {
       console.error('Erreur de mise à jour du profil :', error);
@@ -206,13 +254,6 @@ export const ProfileCommercantScreen = () => {
     }
   };
 
-  const getBase64FromUri = async (uri: string): Promise<string> => {
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    return `data:image/jpeg;base64,${base64}`;
-  };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -262,15 +303,15 @@ export const ProfileCommercantScreen = () => {
       </View>
 
       <View style={styles.inputContainer}>
-        <Input label="Pseudonyme" value={pseudonyme} setValue={setPseudonyme} />
-        <Input label="Prénom" value={prenom} setValue={setPrenom} />
-        <Input label="Nom" value={nom} setValue={setNom} />
-        <Input label="Date de Naissance" value={dateNaissance} setValue={setDateNaissance} />
-        <Input label="Téléphone" value={phone} setValue={setPhone} />
-        <Input label="Instagram" value={instagram} setValue={setInstagram} />
-        <Input label="TikTok" value={tiktok} setValue={setTiktok} />
-        <Input label="Lien de Portfolio" value={portfolioLink} setValue={setPortfolioLink} />
-        <Input label="Bio" value={bio} setValue={setBio} multiline />
+        <InputField label="Pseudonyme" value={pseudonyme} onChange={setPseudonyme} />
+        <InputField label="Prénom" value={prenom} onChange={setPrenom} />
+        <InputField label="Nom" value={nom} onChange={setNom} />
+        <InputField label="Date de Naissance" value={dateNaissance} onChange={setDateNaissance} type="date" />
+        <InputField label="Téléphone" value={phone} onChange={setPhone} />
+        <InputField label="Instagram" value={instagram} onChange={setInstagram} />
+        <InputField label="TikTok" value={tiktok} onChange={setTiktok} />
+        <InputField label="Lien de Portfolio" value={portfolioLink} onChange={setPortfolioLink} />
+        <InputField label="Bio" value={bio} onChange={setBio} multiline />
       </View>
 
       {message && (
@@ -300,27 +341,102 @@ export const ProfileCommercantScreen = () => {
   );
 }
 
-function Input({ label, value, setValue, multiline = false }) {
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  type?: 'text' | 'date';
+  icon?: string;
+  multiline?: boolean;
+}
+
+const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 'text', icon, multiline = false }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(() => {
+    if (!value) return new Date();
+    try {
+      // Si la date est au format français (DD/MM/YYYY)
+      if (value.includes('/')) {
+        const [day, month, year] = value.split('/').map(Number);
+        const parsedDate = new Date(year, month - 1, day);
+        if (isNaN(parsedDate.getTime())) {
+          return new Date();
+        }
+        return parsedDate;
+      }
+      // Si la date est au format ISO ou autre
+      const parsedDate = new Date(value);
+      if (isNaN(parsedDate.getTime())) {
+        return new Date();
+      }
+      return parsedDate;
+    } catch {
+      return new Date();
+    }
+  });
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDate(selectedDate);
+      const formattedDate = selectedDate.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      onChange(formattedDate);
+    }
+  };
+
+  if (type === 'date') {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <TouchableOpacity
+          style={[styles.inputWrapper, styles.dateInput]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          {icon && <Image source={{ uri: icon }} style={styles.inputIcon} />}
+          <Text style={styles.dateText}>
+            {date.toLocaleDateString('fr-FR')}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+            maximumDate={new Date()}
+          />
+        )}
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.inputWrapper}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={setValue}
-        style={styles.input}
-        multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
-      />
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={[styles.input, multiline && { height: 100, textAlignVertical: 'top' }]}
+          value={value}
+          onChangeText={onChange}
+          placeholderTextColor="#666666"
+          multiline={multiline}
+          numberOfLines={multiline ? 4 : 1}
+        />
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F5F5E7',
     minHeight: '100%',
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 70,
     padding: 10
   },
   header: {
@@ -423,24 +539,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   inputContainer: {
-    gap: 16,
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#14210F',
+    fontWeight: '600',
   },
   inputWrapper: {
-    marginBottom: 8,
-  },
-  label: {
-    color: '#1A2C24',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  input: {
-    width: '100%',
-    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: 'white',
-    fontSize: 14,
+  },
+  input: {
+    flex: 1,
+    padding: 12,
+    color: '#000000',
+    fontSize: 16,
   },
   message: {
     textAlign: 'center',
@@ -476,5 +595,23 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
+  },
+  dateInput: {
+    height: 44,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 12,
+  },
+  dateText: {
+    color: '#000000',
+    fontSize: 16,
+  },
+  inputIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
   },
 });
