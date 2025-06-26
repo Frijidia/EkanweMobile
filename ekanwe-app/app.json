@@ -2,9 +2,10 @@
   "expo": {
     "name": "EkanweMobile",
     "slug": "EkanweMobile",
+    "displayName": "Ekanwe",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/ekanwe-logo.png",
+    "icon": "./assets/icone_ekanwe.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "ekanwe",
@@ -19,9 +20,9 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Cette application utilise la caméra pour permettre aux utilisateurs de prendre des photos ou des vidéos pour leurs publications ou leurs preuves de deals.",
+        "NSCameraUsageDescription": "Cette application utilise la caméra pour permettre aux utilisateurs de prendre des photos ou des vidéos pour leurs publications ou leurs preuves de deals, ou encore définir un profil.",
         "NSLocationWhenInUseUsageDescription": "Cette app a besoin de votre position pour localiser le deal.",
-        "NSPhotoLibraryUsageDescription": "Cette application a besoin d'accéder à votre galerie pour permettre l'importation d'images ou de vidéos.",
+        "NSPhotoLibraryUsageDescription": "Cette application utilise votre galerie pour permettre l'ajout de photos aux deals, l'envoi d'images dans les messages, ainsi que la sélection de votre photo de profil.",
         "UIBackgroundModes": [
           "remote-notification"
         ]
@@ -33,7 +34,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.ekanwe.ekanwe"
+      "package": "com.ekanwe.ekanwe",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -6,19 +6,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
+  // Alert,
   ActivityIndicator,
-  Platform,
+  // Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  signInWithCredential,
-  GoogleAuthProvider,
+  // signInWithCredential,
+  // GoogleAuthProvider,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
@@ -34,7 +34,7 @@ export const RegisterScreen = () => {
   const [formData, setFormData] = useState({ email: '', password: '', confirmation: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  // const [showDatePicker, setShowDatePicker] = useState(false);
   const [birthDate, setBirthDate] = useState(new Date());
   const { userData } = useUserData();
 
@@ -42,15 +42,15 @@ export const RegisterScreen = () => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || birthDate;
-    setShowDatePicker(Platform.OS === 'ios');
-    setBirthDate(currentDate);
-  };
+  // const onDateChange = (event: any, selectedDate?: Date) => {
+  //   const currentDate = selectedDate || birthDate;
+  //   setShowDatePicker(Platform.OS === 'ios');
+  //   setBirthDate(currentDate);
+  // };
 
-  const showDatePickerModal = () => {
-    setShowDatePicker(true);
-  };
+  // const showDatePickerModal = () => {
+  //   setShowDatePicker(true);
+  // };
 
   // const handleGoogleSignUp = async () => {
   //   try {
@@ -166,7 +166,7 @@ export const RegisterScreen = () => {
         email,
         role: userData?.role || null,
         dateCreation: new Date(),
-        dateNaissance: birthDate,
+        // dateNaissance: birthDate,
         inscription: '1',
       });
 
@@ -234,7 +234,7 @@ export const RegisterScreen = () => {
         onChangeText={(text) => handleInputChange('confirmation', text)}
       />
 
-      <TouchableOpacity onPress={showDatePickerModal} style={styles.datePickerBtn}>
+      {/* <TouchableOpacity onPress={showDatePickerModal} style={styles.datePickerBtn}>
         <Text style={styles.datePickerText}>
           Date de naissance : {birthDate.toLocaleDateString('fr-FR')}
         </Text>
@@ -249,7 +249,7 @@ export const RegisterScreen = () => {
           onChange={onDateChange}
           style={styles.datePicker}
         />
-      )}
+      )} */}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 

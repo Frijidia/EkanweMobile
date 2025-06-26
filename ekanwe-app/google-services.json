@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "177322625777",
+    "project_id": "ekanwe-app",
+    "storage_bucket": "ekanwe-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:177322625777:android:21d2a3849809a373b13750",
+        "android_client_info": {
+          "package_name": "com.ekanwe.ekanwe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "177322625777-qb86tdtkaeukraupgk13i1s6lgcugulu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwBx0-1mvZmJOI2C3rExXdTc65BEPVA70"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "177322625777-hrbkrhgu1gh9juirkv9elsj7a58kjvlf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "177322625777-9009mhm9l91t0c981c54d4jogsm7tc48.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ekanwe.ekanwe"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

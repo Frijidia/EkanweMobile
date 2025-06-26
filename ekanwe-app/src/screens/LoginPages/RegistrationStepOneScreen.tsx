@@ -8,17 +8,17 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  Modal,
-  Platform,
+  // Modal,
+  // Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { auth, db } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+// import DateTimePicker from '@react-native-community/datetimepicker';
+// import { format } from 'date-fns';
+// import { fr } from 'date-fns/locale';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'RegistrationStepOne'>;
 
@@ -27,14 +27,14 @@ export const RegistrationStepOneScreen = () => {
   const [formData, setFormData] = useState({
     nom: '',
     prenoms: '',
-    naissance: '',
+    // naissance: '',
     pseudo: '',
     telephone: '',
   });
   const [pseudoError, setPseudoError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  // const [showDatePicker, setShowDatePicker] = useState(false);
+  // const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -47,24 +47,24 @@ export const RegistrationStepOneScreen = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          let dateNaissance = null;
-          if (data.dateNaissance) {
-            try {
-              // S'assurer que la date est valide
-              const date = new Date(data.dateNaissance);
-              if (!isNaN(date.getTime())) {
-                dateNaissance = date;
-              }
-            } catch (error) {
-              console.error('Erreur de format de date:', error);
-            }
-          }
+          // let dateNaissance = null;
+          // if (data.dateNaissance) {
+          //   try {
+          //     // S'assurer que la date est valide
+          //     const date = new Date(data.dateNaissance);
+          //     if (!isNaN(date.getTime())) {
+          //       dateNaissance = date;
+          //     }
+          //   } catch (error) {
+          //     console.error('Erreur de format de date:', error);
+          //   }
+          // }
           
-          setSelectedDate(dateNaissance);
+          // setSelectedDate(dateNaissance);
           setFormData({
             nom: data.nom || '',
             prenoms: data.prenom || '',
-            naissance: dateNaissance ? format(dateNaissance, 'yyyy-MM-dd') : '',
+            // naissance: dateNaissance ? format(dateNaissance, 'yyyy-MM-dd') : '',
             pseudo: data.pseudonyme || '',
             telephone: data.phone || '',
           });
@@ -91,41 +91,41 @@ export const RegistrationStepOneScreen = () => {
     if (field === 'pseudo') checkPseudoUnique(value.trim());
   };
 
-  const handleDateChange = (event: any, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
+  // const handleDateChange = (event: any, date?: Date) => {
+  //   if (Platform.OS === 'android') {
+  //     setShowDatePicker(false);
+  //   }
     
-    if (date) {
-      try {
-        setSelectedDate(date);
-        setFormData(prev => ({
-          ...prev,
-          naissance: format(date, 'yyyy-MM-dd')
-        }));
-      } catch (error) {
-        console.error('Erreur lors du changement de date:', error);
-      }
-    }
-  };
+  //   if (date) {
+  //     try {
+  //       setSelectedDate(date);
+  //       setFormData(prev => ({
+  //         ...prev,
+  //         naissance: format(date, 'yyyy-MM-dd')
+  //       }));
+  //     } catch (error) {
+  //       console.error('Erreur lors du changement de date:', error);
+  //     }
+  //   }
+  // };
 
-  const handleDateConfirm = () => {
-    if (selectedDate) {
-      try {
-        setFormData(prev => ({
-          ...prev,
-          naissance: format(selectedDate, 'yyyy-MM-dd')
-        }));
-      } catch (error) {
-        console.error('Erreur lors de la confirmation de la date:', error);
-      }
-    }
-    setShowDatePicker(false);
-  };
+  // const handleDateConfirm = () => {
+  //   if (selectedDate) {
+  //     try {
+  //       setFormData(prev => ({
+  //         ...prev,
+  //         naissance: format(selectedDate, 'yyyy-MM-dd')
+  //       }));
+  //     } catch (error) {
+  //       console.error('Erreur lors de la confirmation de la date:', error);
+  //     }
+  //   }
+  //   setShowDatePicker(false);
+  // };
 
   const handleSubmit = async () => {
-    const { nom, prenoms, naissance, pseudo, telephone } = formData;
-    if (!nom || !prenoms || !naissance || !pseudo || !telephone || pseudoError) {
+    const { nom, prenoms, pseudo, telephone } = formData;
+    if (!nom || !prenoms || !pseudo || !telephone || pseudoError) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs correctement.');
       return;
     }
@@ -138,7 +138,7 @@ export const RegistrationStepOneScreen = () => {
       await updateDoc(userRef, {
         nom,
         prenom: prenoms,
-        dateNaissance: naissance,
+        // dateNaissance: naissance,
         pseudonyme: pseudo,
         phone: telephone,
         inscription: '2',
@@ -178,7 +178,7 @@ export const RegistrationStepOneScreen = () => {
       />
       {pseudoError ? <Text style={styles.error}>{pseudoError}</Text> : null}
 
-      <TouchableOpacity 
+      {/* <TouchableOpacity 
         style={styles.input} 
         onPress={() => setShowDatePicker(true)}
       >
@@ -228,7 +228,7 @@ export const RegistrationStepOneScreen = () => {
             locale="fr-FR"
           />
         )
-      )}
+      )} */}
 
       <TextInput
         style={styles.input}
