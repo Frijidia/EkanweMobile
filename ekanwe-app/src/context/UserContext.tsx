@@ -8,6 +8,7 @@ interface UserData {
   uid?: string;
   role?: string;
   email?: string;
+  status?: string;
   [key: string]: any;
 }
 

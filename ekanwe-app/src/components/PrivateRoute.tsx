@@ -5,7 +5,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { auth, db } from '../firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import sign from '../assets/ekanwesign.png';
+// import sign from '../assets/ekanwesign.png';
+import { useUserData } from '../context/UserContext';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -16,7 +17,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function PrivateRoute({ children, allowedRole }: PrivateRouteProps) {
   const navigation = useNavigation<NavigationProp>();
-  const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
+  const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized' | 'pending' | 'refused'>('loading');
+  const { userData } = useUserData();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -38,7 +40,19 @@ export default function PrivateRoute({ children, allowedRole }: PrivateRouteProp
         return;
       }
 
-      setStatus('authorized');
+      if (userData.status === 'en attente') {
+        setStatus('pending');
+        return;
+      }
+      if (userData.status === 'refuse') {
+        setStatus('refused');
+        return;
+      }
+      if (userData.status === 'valide') {
+        setStatus('authorized');
+        return;
+      }
+      setStatus('unauthorized');
     };
 
     checkAuth();
@@ -46,19 +60,33 @@ export default function PrivateRoute({ children, allowedRole }: PrivateRouteProp
 
   useEffect(() => {
     if (status === 'unauthorized') {
-      navigation.replace('LoginOrSignup', {
-        error: 'Vous devez être connecté avec le bon rôle pour accéder à cette page.',
-      });
-  }
+      navigation.replace('LoginOrConnect');
+    }
+    if (status === 'pending') {
+      navigation.replace('RegistrationComplete');
+    }
+    // Si refusé, on affiche juste le message dans le composant
   }, [status, navigation]);
 
   if (status === 'loading') {
     return (
       <View style={styles.loadingContainer}>
-        <View style={styles.logoContainer}>
-          <Image source={sign} style={styles.logo} />
-        </View>
         <Text style={styles.loadingText}>Chargement en cours...</Text>
+      </View>
+    );
+  }
+
+  if (status === 'pending') {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Votre inscription est en attente de validation.</Text>
+      </View>
+    );
+  }
+  if (status === 'refused') {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Votre inscription a été refusée. Veuillez contacter le support.</Text>
       </View>
     );
   }

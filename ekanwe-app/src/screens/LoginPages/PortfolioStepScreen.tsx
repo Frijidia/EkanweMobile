@@ -35,6 +35,7 @@ export const PortfolioStepScreen = () => {
     try {
       await updateDoc(doc(db, "users", user.uid), {
         portfolioLink: portfolioLink.trim(),
+        status: "en attente",
         inscription: 'Terminé'
       });
 

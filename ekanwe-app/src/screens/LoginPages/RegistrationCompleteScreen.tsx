@@ -12,34 +12,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Registratio
 export const RegistrationCompleteScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
-  useEffect(() => {
-    const redirectUser = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const snap = await getDoc(userRef);
-
-        if (snap.exists()) {
-          const role = snap.data().role;
-
-          setTimeout(() => {
-            if (role === "influenceur") {
-              navigation.replace('DealsInfluenceur');
-            } else {
-              navigation.replace('DealsCommercant');
-            }
-          }, 5000);
-        }
-      } catch (error) {
-        console.error("Erreur de redirection :", error);
-        Alert.alert("Erreur", "Impossible de charger vos données.");
-      }
-    };
-
-    redirectUser();
-  }, [navigation]);
+  // Supprimer le useEffect de redirection
 
   return (
     <View style={styles.container}>
@@ -50,11 +23,11 @@ export const RegistrationCompleteScreen = () => {
           <Ionicons name="checkmark-circle" size={64} color="white" />
         </View>
 
-        <Text style={styles.title}>INSCRIPTION COMPLÉTÉE</Text>
+        <Text style={styles.title}>INSCRIPTION EN ATTENTE DE VALIDATION</Text>
         <View style={styles.separator} />
 
         <Text style={styles.message}>
-          Félicitations ! Votre compte a été créé avec succès. Vous allez être redirigé vers votre espace personnel dans quelques secondes.
+          Merci ! Votre inscription est terminée. Votre profil est maintenant en attente de validation par notre équipe. Vous recevrez un email dès que votre profil sera validé ou refusé.
         </Text>
 
       </View>
