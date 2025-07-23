@@ -37,7 +37,7 @@ export const ValidateInscriptionScreen = () => {
     <View style={styles.container}>
       <View style={styles.card}>
         <Image source={require('../../assets/ekanwe-logo.png')} style={styles.logo} />
-        <Text style={styles.title}>TA DEMANDE DE CANDIDATURE A ÉTÉ ENVOYÉE !</Text>
+        <Text style={styles.title}>TA DEMANDE DE CREATION DE COMPTE A ÉTÉ ENVOYÉE !</Text>
         <Image source={require('../../assets/validatepagelogo.png')} style={styles.icon} />
 
         <Text style={styles.section}>Vérifications</Text>

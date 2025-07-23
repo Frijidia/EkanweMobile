@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +29,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 16px;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
             overflow: hidden;
         }
 
@@ -76,7 +77,7 @@
             padding: 10px 0 10px 0;
             margin: 0 0 10px 0;
             border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
         }
 
         .filter-tabs {
@@ -89,6 +90,7 @@
             justify-content: space-evenly;
             width: 100%;
         }
+
         .tab {
             flex: 1 1 120px;
             text-align: center;
@@ -133,7 +135,8 @@
             min-width: 0;
         }
 
-        .profile-type, .profile-status {
+        .profile-type,
+        .profile-status {
             margin-top: 4px;
             margin-right: 4px;
             font-size: 0.7rem;
@@ -335,7 +338,7 @@
             border-radius: 10px;
             flex-wrap: wrap;
             gap: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
         }
 
         .stat-item {
@@ -355,7 +358,7 @@
 
         .stat-item.active {
             background: rgba(246, 112, 17, 0.2);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .stat-number {
@@ -373,12 +376,16 @@
             .main-content {
                 flex-direction: column;
             }
-            .profiles-list, .profile-details {
+
+            .profiles-list,
+            .profile-details {
                 width: 100%;
             }
+
             .profile-details {
                 padding: 10px 5px 5px 10px;
             }
+
             .info-grid {
                 grid-template-columns: 1fr;
             }
@@ -388,26 +395,33 @@
             .header h1 {
                 font-size: 1.3rem;
             }
+
             .stat-number {
                 font-size: 1.1rem;
             }
+
             .stat-label {
                 font-size: 0.8rem;
             }
+
             .tab {
                 font-size: 0.8rem;
                 min-width: 70px;
                 padding: 5px 0;
             }
-            .profile-header, .profile-name {
+
+            .profile-header,
+            .profile-name {
                 font-size: 0.9rem;
             }
+
             .info-card {
                 padding: 8px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -507,8 +521,8 @@
                 <div class="profile-item ${selectedProfile?.id === profile.id ? 'selected' : ''}" 
                      onclick="selectProfile('${profile.id}')">
                     <div class="profile-status status-${profile.status}">
-                        ${profile.status === 'en attente' ? 'En attente' : 
-                          profile.status === 'valide' ? 'Validé' : 'Refusé'}
+                        ${profile.status === 'en attente' ? 'En attente' :
+                    profile.status === 'valide' ? 'Validé' : 'Refusé'}
                     </div>
                     <div class="profile-header">
                         <div class="profile-name">${profile.prenoms || profile.prenom || ''} ${profile.nom || ''}</div>
@@ -516,7 +530,7 @@
                     </div>
                     <div class="profile-info">
                         📞 ${profile.phone || profile.telephone || ''}<br>
-                        📅 Inscrit le ${profile.dateCreation ? new Date(profile.dateCreation.seconds*1000).toLocaleDateString('fr-FR') : ''}
+                        📅 Inscrit le ${profile.dateCreation ? new Date(profile.dateCreation.seconds * 1000).toLocaleDateString('fr-FR') : ''}
                     </div>
                 </div>
             `).join('');
@@ -524,11 +538,11 @@
         }
 
         function updateStats() {
-            document.getElementById('pendingCount').textContent = 
+            document.getElementById('pendingCount').textContent =
                 profiles.filter(p => p.status === 'en attente').length;
-            document.getElementById('validatedCount').textContent = 
+            document.getElementById('validatedCount').textContent =
                 profiles.filter(p => p.status === 'valide').length;
-            document.getElementById('rejectedCount').textContent = 
+            document.getElementById('rejectedCount').textContent =
                 profiles.filter(p => p.status === 'refuse').length;
         }
 
@@ -607,16 +621,16 @@
                             <strong>Nom complet:</strong> ${selectedProfile.prenoms || selectedProfile.prenom || ''} ${selectedProfile.nom || ''}<br>
                             <strong>Téléphone:</strong> ${selectedProfile.phone || selectedProfile.telephone || ''}<br>
                             <strong>Date de naissance:</strong> ${selectedProfile.dateNaissance ? new Date(selectedProfile.dateNaissance).toLocaleDateString('fr-FR') : ''}<br>
-                            <strong>Date d'inscription:</strong> ${selectedProfile.dateCreation ? new Date(selectedProfile.dateCreation.seconds*1000).toLocaleDateString('fr-FR') : ''}
+                            <strong>Date d'inscription:</strong> ${selectedProfile.dateCreation ? new Date(selectedProfile.dateCreation.seconds * 1000).toLocaleDateString('fr-FR') : ''}
                         </div>
                     </div>
                     <div class="info-card">
                         <div class="info-label">Réseaux sociaux</div>
                         <div class="social-links">
-                            <a href="${selectedProfile.instagram || '#'}" target="_blank" class="btn btn-link">
+                            <a href="${selectedProfile.instagram ? `https://instagram.com/${selectedProfile.instagram}` : '#'}" target="_blank" class="btn btn-link">
                                 📸 Instagram
                             </a>
-                            <a href="${selectedProfile.tiktok || '#'}" target="_blank" class="btn btn-link">
+                            <a href="${selectedProfile.tiktok ? `https://tiktok.com/@${selectedProfile.tiktok}` : '#'}" target="_blank" class="btn btn-link">
                                 🎵 TikTok
                             </a>
                             <a href="${selectedProfile.portfolioLink || selectedProfile.portfolio || '#'}" target="_blank" class="btn btn-link">
@@ -627,9 +641,9 @@
                     <div class="info-card">
                         <div class="info-label">Centres d'intérêt</div>
                         <div class="interest-tags">
-                            ${(selectedProfile.interets || []).map(interest => 
-                                `<span class="interest-tag">${interest}</span>`
-                            ).join('')}
+                            ${(selectedProfile.interets || []).map(interest =>
+                `<span class="interest-tag">${interest}</span>`
+            ).join('')}
                         </div>
                     </div>
                     <div class="info-card">
@@ -639,9 +653,9 @@
                                 ${selectedProfile.role ? selectedProfile.role.charAt(0).toUpperCase() + selectedProfile.role.slice(1) : ''}
                             </span>
                             <p style="margin-top: 10px; font-size: 0.9rem; color: #6c757d;">
-                                ${selectedProfile.role === 'influenceur' ? 
-                                    'Créateur de contenu et influenceur sur les réseaux sociaux' : 
-                                    'Commerçant proposant des produits ou services'}
+                                ${selectedProfile.role === 'influenceur' ?
+                    'Créateur de contenu et influenceur sur les réseaux sociaux' :
+                    'Commerçant proposant des produits ou services'}
                             </p>
                         </div>
                     </div>
@@ -690,4 +704,5 @@
         fetchProfiles();
     </script>
 </body>
+
 </html>

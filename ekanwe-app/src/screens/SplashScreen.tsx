@@ -20,7 +20,7 @@ export const SplashScreen = () => {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          const { role, inscription } = userSnap.data();
+          const { role, inscription, status } = userSnap.data();
 
           if (inscription === "1") {
             navigation.navigate("RegistrationStepOne");
@@ -30,12 +30,14 @@ export const SplashScreen = () => {
             navigation.navigate("SocialConnect");
           } else if (inscription === "4") {
             navigation.navigate("PortfolioStep");
-          } else if (inscription === "Terminé") {
+          } else if (inscription === "Terminé" && status === "valide") {
             if (role === "commerçant") {
               navigation.navigate("DealsCommercant");
             } else if (role === "influenceur") {
               navigation.navigate("DealsInfluenceur");
             }
+          } else if (inscription === "Terminé" && status === "en attente") {
+            navigation.navigate("RegistrationComplete");
           }
         } else {
           navigation.navigate("Connection");
