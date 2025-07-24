@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Console de Validation - Ekanwe</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <!-- EmailJS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -430,15 +430,15 @@
         </div>
 
         <div class="stats">
-            <div class="stat-item" onclick="filterByStatus('pending')" id="stat-pending">
+            <div class="stat-item" onclick="filterByStatus('en attente')" id="stat-pending">
                 <span class="stat-number" id="pendingCount">0</span>
                 <span class="stat-label">En attente</span>
             </div>
-            <div class="stat-item" onclick="filterByStatus('validated')" id="stat-validated">
+            <div class="stat-item" onclick="filterByStatus('valide')" id="stat-validated">
                 <span class="stat-number" id="validatedCount">0</span>
                 <span class="stat-label">Validés</span>
             </div>
-            <div class="stat-item" onclick="filterByStatus('rejected')" id="stat-rejected">
+            <div class="stat-item" onclick="filterByStatus('refuse')" id="stat-rejected">
                 <span class="stat-number" id="rejectedCount">0</span>
                 <span class="stat-label">Refusés</span>
             </div>
@@ -449,9 +449,9 @@
                 <button class="tab active" onclick="filterProfiles('all')">Tous</button>
                 <button class="tab" onclick="filterProfiles('influenceur')">Influenceurs</button>
                 <button class="tab" onclick="filterProfiles('commercant')">Commerçants</button>
-                <button class="tab" onclick="filterProfiles('pending')">En attente</button>
-                <button class="tab" onclick="filterProfiles('validated')">Validés</button>
-                <button class="tab" onclick="filterProfiles('rejected')">Refusés</button>
+                <button class="tab" onclick="filterProfiles('en attente')">En attente</button>
+                <button class="tab" onclick="filterProfiles('valide')">Validés</button>
+                <button class="tab" onclick="filterProfiles('refuse')">Refusés</button>
             </div>
         </div>
 
@@ -489,11 +489,12 @@
             appId: "1:177322625777:web:3e8a67a4d99cf388b13750",
             measurementId: "G-17MSPHGKVV"
         };
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
 
         // Initialisation EmailJS
-        emailjs.init('service_9022822');
+        emailjs.init('EhtwBF15OAVJWU874');
 
         let profiles = [];
         let currentFilter = 'all';
@@ -512,9 +513,9 @@
                 if (currentFilter === 'all') return true;
                 if (currentFilter === 'influenceur') return profile.role === 'influenceur';
                 if (currentFilter === 'commercant') return profile.role === 'commercant';
-                if (currentFilter === 'pending') return profile.status === 'en attente';
-                if (currentFilter === 'validated') return profile.status === 'valide';
-                if (currentFilter === 'rejected') return profile.status === 'refuse';
+                if (currentFilter === 'en attente') return profile.status === 'en attente';
+                if (currentFilter === 'valide') return profile.status === 'valide';
+                if (currentFilter === 'refuse') return profile.status === 'refuse';
                 return true;
             });
             profilesList.innerHTML = filteredProfiles.map(profile => `
@@ -666,13 +667,18 @@
         async function validateProfile(profileId) {
             const profileRef = db.collection('users').doc(profileId);
             await profileRef.update({ status: 'valide' });
-            // Envoi du mail de félicitations
             const profile = profiles.find(p => p.id === profileId);
             if (profile && profile.email) {
-                emailjs.send('service_9022822', 'template_9022822', {
+                emailjs.send('service_lgeueup', 'template_5fawhmo', {
                     to_email: profile.email,
                     to_name: profile.prenoms || profile.prenom || '',
-                });
+                })
+                    .then(() => {
+                        console.log('Email envoyé avec succès');
+                    })
+                    .catch((error) => {
+                        console.error('Erreur lors de l\'envoi du mail:', error);
+                    });
             }
             await fetchProfiles();
             selectedProfile = null;
@@ -684,11 +690,11 @@
             const reason = prompt('Raison du refus (obligatoire) :');
             if (!reason) return alert('Vous devez indiquer une raison.');
             const profileRef = db.collection('users').doc(profileId);
-            await profileRef.update({ status: 'refuse', reasonRefus: reason });
+            await profileRef.update({ status: 'refuse', inscription: "1"});
             // Envoi du mail de refus
             const profile = profiles.find(p => p.id === profileId);
             if (profile && profile.email) {
-                emailjs.send('service_9022822', 'template_9022822', {
+                emailjs.send('service_lgeueup', 'template_0pfqjzw', {
                     to_email: profile.email,
                     to_name: profile.prenoms || profile.prenom || '',
                     reason: reason
@@ -702,6 +708,7 @@
 
         // Initialisation
         fetchProfiles();
+        setInterval(fetchProfiles, 5000);
     </script>
 </body>
 
