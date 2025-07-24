@@ -33,6 +33,24 @@
             overflow: hidden;
         }
 
+        #logoutBtn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        #logoutBtn:hover {
+            background-color: #c82333;
+        }
+
         .header {
             background: linear-gradient(135deg, #f67011, #C4B6AB);
             color: white;
@@ -424,6 +442,7 @@
 
 <body>
     <div class="container">
+        <button id="logoutBtn">Se déconnecter</button>
         <div class="header">
             <h1>🎯 Console de Validation</h1>
             <p>Gestion des profils en attente - Ekanwe</p>
@@ -493,8 +512,19 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        auth.onAuthStateChanged(async user => {
+            if (!user) {
+                window.location.href = "login.html";
+            } else {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists || userDoc.data().role !== 'admin') {
+                    window.location.href = "login.html";
+                }
+            }
+        });
+
         // Initialisation EmailJS
-        emailjs.init('EhtwBF15OAVJWU874');
+        emailjs.init('ooTz83MAUGPDSCL-D');
 
         let profiles = [];
         let currentFilter = 'all';
@@ -669,16 +699,10 @@
             await profileRef.update({ status: 'valide' });
             const profile = profiles.find(p => p.id === profileId);
             if (profile && profile.email) {
-                emailjs.send('service_lgeueup', 'template_5fawhmo', {
+                emailjs.send('service_alsr7jt', 'template_2jnwdyw', {
                     to_email: profile.email,
                     to_name: profile.prenoms || profile.prenom || '',
                 })
-                    .then(() => {
-                        console.log('Email envoyé avec succès');
-                    })
-                    .catch((error) => {
-                        console.error('Erreur lors de l\'envoi du mail:', error);
-                    });
             }
             await fetchProfiles();
             selectedProfile = null;
@@ -690,11 +714,11 @@
             const reason = prompt('Raison du refus (obligatoire) :');
             if (!reason) return alert('Vous devez indiquer une raison.');
             const profileRef = db.collection('users').doc(profileId);
-            await profileRef.update({ status: 'refuse', inscription: "1"});
+            await profileRef.update({ status: 'refuse', inscription: "1" });
             // Envoi du mail de refus
             const profile = profiles.find(p => p.id === profileId);
             if (profile && profile.email) {
-                emailjs.send('service_lgeueup', 'template_0pfqjzw', {
+                emailjs.send('service_alsr7jt', 'template_0qffe9o', {
                     to_email: profile.email,
                     to_name: profile.prenoms || profile.prenom || '',
                     reason: reason
@@ -709,6 +733,15 @@
         // Initialisation
         fetchProfiles();
         setInterval(fetchProfiles, 5000);
+    </script>
+    <script>
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            firebase.auth().signOut().then(() => {
+                window.location.href = "login.html"; // Redirige vers la page de login
+            }).catch((error) => {
+                alert("Erreur lors de la déconnexion : " + error.message);
+            });
+        });
     </script>
 </body>
 
