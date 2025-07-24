@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  Image, 
-  ActivityIndicator, 
-  Alert, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+  Alert,
   StyleSheet,
-  Platform 
+  Platform
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -21,6 +21,7 @@ import { signOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import storage, { getDownloadURL, uploadBytes } from '@react-native-firebase/storage'
 
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -40,7 +41,6 @@ export const ProfileCommercantScreen = () => {
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState<any>(false);
   const [message, setMessage] = useState<any>(null);
-  const MAX_BASE64_SIZE = 1024 * 1024;
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -68,16 +68,6 @@ export const ProfileCommercantScreen = () => {
     fetchUserInfo();
   }, []);
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 1 });
-    if (!result.canceled) {
-      const base64Image = result.assets[0].base64!;
-      const mimeType = result.assets[0].type || 'image/jpeg';
-      const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-      setProfileImage(fullBase64);
-    }
-  };
-
   const handleSave = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -86,10 +76,21 @@ export const ProfileCommercantScreen = () => {
     setMessage(null);
 
     try {
-      // Utiliser directement l'image en base64
-      const photoURLToSave = profileImage || '';
-      
-      // S'assurer que la date est au format correct (DD/MM/YYYY)
+      let photoURLToSave = null;
+
+      if (profileImage && !profileImage.startsWith('https')) {
+        // Upload image to Firebase Storage
+        const response = await fetch(profileImage);
+        const blob = await response.blob();
+
+        const fileRef = storage().ref(`profilePictures/${user.uid}_${Date.now()}`);
+        await uploadBytes(fileRef, blob);
+        photoURLToSave = await getDownloadURL(fileRef);
+      } else {
+        photoURLToSave = profileImage; // Déjà une URL
+      }
+
+      // Format date
       let formattedDate = dateNaissance;
       if (dateNaissance && !dateNaissance.includes('/')) {
         try {
@@ -98,15 +99,14 @@ export const ProfileCommercantScreen = () => {
             formattedDate = date.toLocaleDateString('fr-FR', {
               day: '2-digit',
               month: '2-digit',
-              year: 'numeric'
+              year: 'numeric',
             });
           }
         } catch {
-          // En cas d'erreur, garder la valeur originale
           formattedDate = dateNaissance;
         }
       }
-      
+
       const userRef = doc(db, 'users', user.uid);
       await updateDoc(userRef, {
         pseudonyme,
@@ -118,9 +118,9 @@ export const ProfileCommercantScreen = () => {
         tiktok,
         portfolioLink,
         bio,
-        photoURL: photoURLToSave,
+        photoURL: photoURLToSave || '',
       });
-      
+
       // Récupérer les données mises à jour immédiatement
       const updatedSnap = await getDoc(userRef);
       if (updatedSnap.exists()) {
@@ -136,7 +136,7 @@ export const ProfileCommercantScreen = () => {
         setBio(data.bio || '');
         setProfileImage(data.photoURL || null);
       }
-      
+
       setMessage('Profil mis à jour avec succès !');
     } catch (error) {
       console.error('Erreur de mise à jour du profil :', error);
@@ -184,75 +184,58 @@ export const ProfileCommercantScreen = () => {
     );
   };
 
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setProfileImage(uri);
+    }
+  };
+
   const handleImageClick = async () => {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
-        return;
-      }
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
+      return;
+    }
 
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.3,
-        base64: true,
-      });
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
 
-      if (!result.canceled) {
-        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
-          Alert.alert(
-            "Image trop lourde",
-            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-          );
-        } else {
-          const base64Image = result.assets[0].base64!;
-          const mimeType = result.assets[0].type || 'image/jpeg';
-          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-          setProfileImage(fullBase64);
-        }
-      }
-    } catch (error) {
-      console.error("Erreur lors de la prise de photo:", error);
-      setMessage("Erreur lors de la prise de photo");
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
     }
   };
 
   const handleGalleryClick = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
-        return;
-      }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
+      return;
+    }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.3,
-        base64: true,
-      });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
 
-      if (!result.canceled) {
-        if (result.assets?.[0].base64!.length * 0.75 > MAX_BASE64_SIZE) {
-          Alert.alert(
-            "Image trop lourde",
-            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-          );
-        } else {
-          const base64Image = result.assets[0].base64!;
-          const mimeType = result.assets[0].type || 'image/jpeg';
-          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-          setProfileImage(fullBase64);
-        }
-      }
-    } catch (error) {
-      console.error("Erreur lors de la sélection de l'image:", error);
-      setMessage("Erreur lors de la sélection de l'image");
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
     }
   };
+
 
   return (
     <ScrollView style={styles.container}>
@@ -419,8 +402,8 @@ const InputField: React.FC<InputFieldProps> = ({ label, value, onChange, type = 
       <Text style={styles.inputLabel}>{label}</Text>
       <View style={styles.inputWrapper}>
         {icon && (
-          <Image 
-            source={{ uri: icon }} 
+          <Image
+            source={{ uri: icon }}
             style={styles.inputIcon}
           />
         )}

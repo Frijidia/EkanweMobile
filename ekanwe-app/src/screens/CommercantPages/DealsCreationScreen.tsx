@@ -16,12 +16,12 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { sendNotificationToToken } from '../../hooks/sendNotifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
+import storage from '@react-native-firebase/storage'
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsCreation'>;
 
 
 export const DealsCreationScreen = () => {
-  const MAX_BASE64_SIZE = 1024 * 1024;
   const navigation = useNavigation<NavigationProp>();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -94,33 +94,29 @@ export const DealsCreationScreen = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.3,
-        base64: true
+        quality: 0.5,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        if (!asset.base64) {
-          Alert.alert("Erreur", "Impossible de récupérer l'image en base64");
-          return;
-        }
-
-        if (asset.base64.length * 0.75 > MAX_BASE64_SIZE) {
-          Alert.alert(
-            "Image trop lourde",
-            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-          );
-          setImageUri('');
-          return;
-        }
-
-        const mimeType = asset.mimeType || 'image/jpeg';
-        const fullBase64 = `data:${mimeType};base64,${asset.base64}`;
-        setImageUri(fullBase64);
+      if (!result.canceled && result.assets.length > 0) {
+        const uri = result.assets[0].uri;
+        setImageUri(uri);
       }
     } catch (error) {
-      console.error('Erreur lors de la sélection de l\'image:', error);
+      console.error("Erreur lors de la sélection de l'image:", error);
       Alert.alert("Erreur", "Une erreur est survenue lors de la sélection de l'image");
+    }
+  };
+
+  const uploadDealImageToFirebase = async (uri: string): Promise<string | null> => {
+    try {
+      const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
+      const ref = storage().ref(`dealImages/${filename}`);
+      await ref.putFile(uri);
+      const downloadURL = await ref.getDownloadURL();
+      return downloadURL;
+    } catch (error) {
+      console.error("Erreur lors de l’upload de l’image du deal:", error);
+      return null;
     }
   };
 
@@ -133,6 +129,12 @@ export const DealsCreationScreen = () => {
     try {
       setLoading(true);
 
+      const uploadedImageUrl = await uploadDealImageToFirebase(imageUri);
+      if (!uploadedImageUrl) {
+        Alert.alert('Erreur', 'L’image n’a pas pu être uploadée.');
+        return;
+      }
+
       const docRef = await addDoc(collection(db, 'deals'), {
         title,
         description,
@@ -140,7 +142,7 @@ export const DealsCreationScreen = () => {
         conditions,
         interests: selectedInterests,
         typeOfContent: selectedTypes,
-        imageUrl: imageUri,
+        imageUrl: uploadedImageUrl,
         locationCoords: { lat: position.lat, lng: position.lng },
         locationName,
         merchantId: auth.currentUser?.uid,
@@ -217,7 +219,7 @@ export const DealsCreationScreen = () => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
-    
+
     if (date) {
       try {
         setSelectedDate(date);
@@ -320,8 +322,8 @@ export const DealsCreationScreen = () => {
       </View>
 
       <Text style={styles.label}>Date de validité</Text>
-      <TouchableOpacity 
-        style={styles.dateInput} 
+      <TouchableOpacity
+        style={styles.dateInput}
         onPress={() => setShowDatePicker(true)}
       >
         <Text style={validUntil ? styles.dateText : styles.datePlaceholder}>

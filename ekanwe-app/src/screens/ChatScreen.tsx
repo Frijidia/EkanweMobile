@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import storage from '@react-native-firebase/storage';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
@@ -42,8 +43,6 @@ interface Message {
   img?: string;
 }
 
-const MAX_BASE64_SIZE = 1024 * 1024;
-
 export const ChatScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ChatScreenRouteProp>();
@@ -56,6 +55,19 @@ export const ChatScreen = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const uploadImageToFirebase = async (uri: string): Promise<string | null> => {
+    try {
+      const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
+      const ref = storage().ref(`chatImages/${filename}`);
+      await ref.putFile(uri); // Upload du fichier local
+      const downloadURL = await ref.getDownloadURL();
+      return downloadURL;
+    } catch (error) {
+      console.error('Erreur lors de l’upload d’image dans Storage:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (!chatId) return;
@@ -86,118 +98,50 @@ export const ChatScreen = () => {
     if (!newMessage.trim() && !imagePreview) return;
     if (!chatId || !auth.currentUser) return;
 
-    const chatRef = doc(db, 'chats', chatId);
     const senderId = auth.currentUser.uid;
+    const chatRef = doc(db, 'chats', chatId);
+
+    let uploadedImageUrl: string | null = null;
+    if (imagePreview && imagePreview.startsWith('file://')) {
+      uploadedImageUrl = await uploadImageToFirebase(imagePreview);
+    }
 
     const newMsg = {
       senderId,
       text: newMessage,
       createdAt: new Date(),
-      ...(imagePreview && { img: imagePreview }),
+      ...(uploadedImageUrl && { img: uploadedImageUrl }),
     };
 
     try {
-      console.log("TOKEN RÉCUPÉRÉ:", receiverId);
       await updateDoc(chatRef, {
         messages: arrayUnion(newMsg),
       });
-
-      const userChatsRefSender = doc(db, 'userchats', senderId);
-      const userChatsRefReceiver = doc(db, 'userchats', receiverId);
-
-      const senderChatsSnap = await getDoc(userChatsRefSender);
-      const receiverChatsSnap = await getDoc(userChatsRefReceiver);
-
-      if (senderChatsSnap.exists() && receiverChatsSnap.exists()) {
-        const senderChats = senderChatsSnap.data().chats;
-        const receiverChats = receiverChatsSnap.data().chats;
-
-        const updateChatsList = (chatsList: any[]) => {
-          const index = chatsList.findIndex((c) => c.chatId === chatId);
-          if (index !== -1) {
-            chatsList[index].lastMessage = newMessage;
-            chatsList[index].updatedAt = Date.now();
-            chatsList[index].isSeen = true;
-          }
-          return chatsList;
-        };
-
-        await updateDoc(userChatsRefSender, {
-          chats: updateChatsList(senderChats),
-        });
-
-        await updateDoc(userChatsRefReceiver, {
-          chats: updateChatsList(receiverChats),
-        });
-      }
-
-      await sendNotification({
-        toUserId: receiverId,
-        fromUserId: senderId,
-        message: 'Vous avez un nouveau message.',
-        relatedDealId: '',
-        targetRoute: 'Chat',
-        receiverId: receiverId,
-        chatId: chatId,
-        type: 'new_message',
-      });
     } catch (err) {
-      console.error('Erreur d\'envoi de message:', err);
+      console.error('Erreur lors de l’envoi du message :', err);
     }
 
     setNewMessage('');
     setImagePreview(null);
-    let receiverToken = '';
-    try {
-      const receiverDoc = await getDoc(doc(db, 'users', receiverId));
-      if (receiverDoc.exists()) {
-        receiverToken = receiverDoc.data()?.expoPushToken || '';
-        console.log("TOKEN RÉCUPÉRÉ:", receiverToken);
-      }
-      if (typeof receiverToken === 'string' && receiverToken.length > 0) {
-        await sendNotificationToToken(receiverToken,
-          "Nouveau message",
-          `${pseudonyme} vous a envoyé un message.`,
-        );
-      }
-    } catch (error) {
-      console.error("Erreur lors de la récupération du token FCM :", error);
-    }
   };
 
   const handleImagePick = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("Permission refusée", "Tu dois autoriser l'accès à la galerie.");
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      base64: true,
-      quality: 0.3,
-      allowsEditing: true,
+    const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
     });
 
-    if (result.canceled || !result.assets || result.assets.length === 0) {
-      Alert.alert("Aucune image sélectionnée");
-      return;
+    if (!result.canceled && result.assets.length > 0) {
+      setImagePreview(result.assets[0].uri);
     }
-
-    const base64Image = result.assets[0].base64!;
-    const mimeType = result.assets[0].type || 'image/jpeg';
-    const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-
-    if (fullBase64.length * 0.75 > MAX_BASE64_SIZE) {
-      Alert.alert(
-        "Image trop lourde",
-        "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-      );
-      setImagePreview(null);
-      return;
-    }
-
-    setImagePreview(fullBase64);
   };
 
 

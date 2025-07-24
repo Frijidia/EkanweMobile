@@ -10,6 +10,8 @@ import { doc, getDoc, updateDoc, arrayUnion, setDoc, collection, getDocs } from 
 import { sendNotification } from '../../hooks/sendNotifications';
 import { Linking } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { getDownloadURL, getStorage, uploadBytes } from '@react-native-firebase/storage';
+import storage from '@react-native-firebase/storage';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DealDetailsRouteProp = RouteProp<RootStackParamList, 'DealsDetailsInfluenceur'>;
@@ -148,35 +150,32 @@ export const DealDetailsInfluenceurScreen = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.3,
-        base64: true,
       });
 
       if (!result.canceled) {
         const newUploads = [...uploads];
+
         for (const asset of result.assets) {
-          if (asset.base64!.length * 0.75 > 1024 * 1024) {
-            Alert.alert(
-              "Image trop lourde",
-              "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-            );
-          } else {
-            const base64Image = asset.base64!;
-            const mimeType = asset.type || 'image/jpeg';
-            const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-            newUploads.push({
-              image: fullBase64,
-              likes: 0,
-              shares: 0,
-              isValidated: true
-            });
-          }
+          const response = await fetch(asset.uri);
+          const filename = `proofs/${Date.now()}_${Math.floor(Math.random() * 100000)}.jpg`;
+          const reference = storage().ref(`profileImages/${filename}`);
+          await reference.putFile(asset.uri);
+          const url = await reference.getDownloadURL();
+
+          newUploads.push({
+            image: url,
+            likes: 0,
+            shares: 0,
+            isValidated: true,
+          });
         }
+
         setUploads(newUploads);
         await syncProofsToFirestore(newUploads);
       }
     } catch (error) {
       console.error("Erreur lors de l'upload:", error);
-      Alert.alert("Erreur", "Impossible d'uploader l'image");
+      Alert.alert("Erreur", "Impossible d'uploader l'image.");
     }
   };
 

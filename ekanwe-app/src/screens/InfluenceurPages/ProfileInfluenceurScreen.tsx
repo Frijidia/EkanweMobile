@@ -23,6 +23,7 @@ import * as FileSystem from 'expo-file-system';
 import { BottomNavbar } from './BottomNavbar';
 import { RootStackParamList } from '../../types/navigation';
 import { deleteDoc } from 'firebase/firestore';
+import storage from '@react-native-firebase/storage';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -149,7 +150,6 @@ export const ProfileInfluenceurScreen = () => {
   const [tiktok, setTiktok] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
   const [bio, setBio] = useState('');
-  const MAX_BASE64_SIZE = 1024 * 1024;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<null | string>(null);
 
@@ -207,77 +207,56 @@ export const ProfileInfluenceurScreen = () => {
     );
   };
 
-  const handleImageClick = async () => {
+  const generateUniqueId = () => Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
+
+  const uploadImageToFirebase = async (uri: string): Promise<string | null> => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.3,
-        base64: true,
-      });
-
-      if (!result.canceled && result.assets[0].base64) {
-        if (result.assets[0].base64.length * 0.75 > MAX_BASE64_SIZE) {
-          Alert.alert(
-            "Image trop lourde",
-            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-          );
-        } else {
-          const base64Image = result.assets[0].base64;
-          const mimeType = result.assets[0].type || 'image/jpeg';
-          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-          setProfileImage(fullBase64);
-        }
-      } else {
-        Alert.alert("Erreur", "Impossible de récupérer l'image. Veuillez réessayer.");
-      }
+      const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
+      const reference = storage().ref(`profileImages/${filename}`);
+      await reference.putFile(uri);
+      const url = await reference.getDownloadURL();
+      return url;
     } catch (error) {
-      console.error("Erreur lors de la prise de photo:", error);
-      setMessage("Erreur lors de la prise de photo");
+      console.error("Erreur upload Firebase Storage:", error);
+      return null;
+    }
+  };
+
+  const handleImageClick = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setProfileImage(result.assets[0].uri);
     }
   };
 
   const handleGalleryClick = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
-        return;
-      }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la galerie.');
+      return;
+    }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.3,
-        base64: true,
-      });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
 
-      if (!result.canceled && result.assets[0].base64) {
-        if (result.assets[0].base64.length * 0.75 > MAX_BASE64_SIZE) {
-          Alert.alert(
-            "Image trop lourde",
-            "L'image dépasse la taille maximale autorisée (1 Mo). Essaie une image plus légère ou compresse-la."
-          );
-        } else {
-          const base64Image = result.assets[0].base64;
-          const mimeType = result.assets[0].type || 'image/jpeg';
-          const fullBase64 = `data:${mimeType};base64,${base64Image}`;
-          setProfileImage(fullBase64);
-        }
-      } else {
-        Alert.alert("Erreur", "Impossible de récupérer l'image. Veuillez réessayer.");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la sélection de l'image:", error);
-      setMessage("Erreur lors de la sélection de l'image");
+    if (!result.canceled && result.assets.length > 0) {
+      setProfileImage(result.assets[0].uri);
     }
   };
 
@@ -289,9 +268,13 @@ export const ProfileInfluenceurScreen = () => {
     setMessage(null);
 
     try {
-      // Si l'image est déjà au format base64, on l'utilise directement
-      const photoURLToSave = profileImage || '';
-      
+      let photoURLToSave = profileImage;
+
+      if (profileImage && profileImage.startsWith('file://')) {
+        const url = await uploadImageToFirebase(profileImage);
+        if (url) photoURLToSave = url;
+      }
+
       // S'assurer que la date est au format correct (DD/MM/YYYY)
       let formattedDate = dateNaissance;
       if (dateNaissance && !dateNaissance.includes('/')) {
