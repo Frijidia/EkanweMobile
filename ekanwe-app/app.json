@@ -3,7 +3,7 @@
     "name": "Ekanwe",
     "slug": "EkanweMobile",
     "displayName": "Ekanwe",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icone_ekanwe.png",
     "userInterfaceStyle": "light",

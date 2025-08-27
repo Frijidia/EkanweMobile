@@ -29,7 +29,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const ProfileCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [profileImage, setProfileImage] = useState<any>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [pseudonyme, setPseudonyme] = useState('');
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
@@ -68,6 +68,19 @@ export const ProfileCommercantScreen = () => {
     fetchUserInfo();
   }, []);
 
+  const uploadImageToFirebase = async (uri: string): Promise<string | null> => {
+    try {
+      const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
+      const reference = storage().ref(`profileImages/${filename}`);
+      await reference.putFile(uri);
+      const url = await reference.getDownloadURL();
+      return url;
+    } catch (error) {
+      console.error("Erreur upload Firebase Storage:", error);
+      return null;
+    }
+  };
+
   const handleSave = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -76,18 +89,11 @@ export const ProfileCommercantScreen = () => {
     setMessage(null);
 
     try {
-      let photoURLToSave = null;
+      let photoURLToSave = profileImage;
 
-      if (profileImage && !profileImage.startsWith('https')) {
-        // Upload image to Firebase Storage
-        const response = await fetch(profileImage);
-        const blob = await response.blob();
-
-        const fileRef = storage().ref(`profilePictures/${user.uid}_${Date.now()}`);
-        await uploadBytes(fileRef, blob);
-        photoURLToSave = await getDownloadURL(fileRef);
-      } else {
-        photoURLToSave = profileImage; // Déjà une URL
+      if (profileImage && profileImage.startsWith('file://')) {
+        const url = await uploadImageToFirebase(profileImage);
+        if (url) photoURLToSave = url;
       }
 
       // Format date
@@ -212,7 +218,7 @@ export const ProfileCommercantScreen = () => {
       quality: 0.7,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets.length > 0) {
       setProfileImage(result.assets[0].uri);
     }
   };
@@ -231,7 +237,7 @@ export const ProfileCommercantScreen = () => {
       quality: 0.7,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets.length > 0) {
       setProfileImage(result.assets[0].uri);
     }
   };

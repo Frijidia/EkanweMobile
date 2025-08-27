@@ -29,7 +29,7 @@ export const DealsCreationScreen = () => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [validUntil, setValidUntil] = useState('');
   const [conditions, setConditions] = useState('');
-  const [imageUri, setImageUri] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -129,10 +129,11 @@ export const DealsCreationScreen = () => {
     try {
       setLoading(true);
 
-      const uploadedImageUrl = await uploadDealImageToFirebase(imageUri);
-      if (!uploadedImageUrl) {
-        Alert.alert('Erreur', 'L’image n’a pas pu être uploadée.');
-        return;
+      let uploadedImageUrl = imageUri;
+
+      if (imageUri && imageUri.startsWith('file://')) {
+        const url = await uploadDealImageToFirebase(imageUri);
+        if (url) uploadedImageUrl = url;
       }
 
       const docRef = await addDoc(collection(db, 'deals'), {
