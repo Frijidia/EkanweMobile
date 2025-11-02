@@ -8,7 +8,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsDetailsCommercant'>;
 
 export const DealsDetailsCommercantScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -155,7 +155,6 @@ export const DealsDetailsCommercantScreen = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        {/*<Image source={sign} style={styles.loadingImage} />*/}
         <Image source={require('../../assets/ekanwesign.png')} style={styles.icon} />
         <Text style={styles.loadingText}>Chargement en cours...</Text>
       </View>
@@ -172,7 +171,6 @@ export const DealsDetailsCommercantScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -190,14 +188,12 @@ export const DealsDetailsCommercantScreen = () => {
         </View>
       </View>
 
-      {/* Deal Image */}
       <Image
         source={deal.imageUrl ? { uri: deal.imageUrl } : require('../../assets/profile.png')}
         style={styles.dealImage}
         resizeMode="cover"
       />
 
-      {/* Deal Info */}
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{deal.title}</Text>
         <View style={styles.locationRow}>
@@ -238,16 +234,20 @@ export const DealsDetailsCommercantScreen = () => {
           </View>
         </View>
 
-        {/* Afficher les informations de candidature seulement si une candidature existe */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("DealsEdit", { dealId: deal.id })}
+          style={[styles.button, styles.primaryButton]}
+        >
+          <Text style={styles.buttonText}>Modifier</Text>
+        </TouchableOpacity>
+
         {candidature && (
           <>
-            {/* Progress Ribbon */}
             <Text style={styles.title}>Candidature de {influenceur.pseudonyme}</Text>
             <View style={{ marginBottom: 16 }}>
               <ProgressRibbon currentStatus={candidature.status} />
             </View>
 
-            {/* Proofs */}
             {["Accepté", "Approbation", "Terminé"].includes(candidature.status) &&
               candidature.proofs &&
               candidature.proofs.length > 0 && (
@@ -265,7 +265,6 @@ export const DealsDetailsCommercantScreen = () => {
                 </View>
               )}
 
-            {/* Review */}
             {candidature.status === "Terminé" && candidature.review && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Avis laissé :</Text>
@@ -273,7 +272,6 @@ export const DealsDetailsCommercantScreen = () => {
               </View>
             )}
 
-            {/* Buttons */}
             {candidature.status === "Terminé" && (
               <TouchableOpacity
                 onPress={() =>

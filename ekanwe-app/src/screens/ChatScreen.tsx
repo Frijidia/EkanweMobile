@@ -23,6 +23,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { sendNotification, sendNotificationToToken } from '../hooks/sendNotifications';
 import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ChatScreenRouteProp = RouteProp<RootStackParamList, 'ChatInfluenceur'>;
@@ -58,13 +59,22 @@ export const ChatScreen = () => {
 
   const uploadImageToFirebase = async (uri: string): Promise<string | null> => {
     try {
+      const storageInstance = getStorage();
       const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
-      const ref = storage().ref(`chatImages/${filename}`);
-      await ref.putFile(uri); // Upload du fichier local
-      const downloadURL = await ref.getDownloadURL();
-      return downloadURL;
+      const reference = ref(storageInstance, `profileImages/${filename}`);
+
+      // ✅ Convertir file:// en blob avec fetch (nouvelle méthode Expo)
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Upload
+      await uploadBytes(reference, blob);
+
+      // URL publique
+      const url = await getDownloadURL(reference);
+      return url;
     } catch (error) {
-      console.error('Erreur lors de l’upload d’image dans Storage:', error);
+      console.error("❌ Erreur upload Firebase Storage:", error);
       return null;
     }
   };
@@ -140,10 +150,17 @@ export const ChatScreen = () => {
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      setImagePreview(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      // ✅ On envoie directement au Storage
+      const downloadURL = await uploadImageToFirebase(uri);
+
+      if (downloadURL) {
+        // ✅ Mettre l’URL Firebase dans ton state
+        setImagePreview(downloadURL);
+      }
     }
   };
-
 
   const renderMessage = (message: Message, index: number) => {
     const isOwnMessage = message.senderId === auth.currentUser?.uid;

@@ -10,8 +10,8 @@ import { doc, getDoc, updateDoc, arrayUnion, setDoc, collection, getDocs } from 
 import { sendNotification } from '../../hooks/sendNotifications';
 import { Linking } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { getDownloadURL, getStorage, uploadBytes } from '@react-native-firebase/storage';
-import storage from '@react-native-firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import * as FileSystem from "expo-file-system";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DealDetailsRouteProp = RouteProp<RootStackParamList, 'DealsDetailsInfluenceur'>;
@@ -149,18 +149,24 @@ export const DealDetailsInfluenceurScreen = () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
-        quality: 0.3,
+        quality: 0.5,
       });
 
       if (!result.canceled) {
         const newUploads = [...uploads];
-
+        const storageInstance = getStorage();
         for (const asset of result.assets) {
-          const response = await fetch(asset.uri);
           const filename = `proofs/${Date.now()}_${Math.floor(Math.random() * 100000)}.jpg`;
-          const reference = storage().ref(`profileImages/${filename}`);
-          await reference.putFile(asset.uri);
-          const url = await reference.getDownloadURL();
+          const reference = ref(storageInstance, filename);
+          // ✅ Convertir file:// en blob avec fetch (nouvelle méthode Expo)
+          const response = await fetch(asset.uri);
+          const blob = await response.blob();
+
+          // Upload
+          await uploadBytes(reference, blob);
+
+          // URL publique
+          const url = await getDownloadURL(reference);
 
           newUploads.push({
             image: url,
@@ -174,7 +180,7 @@ export const DealDetailsInfluenceurScreen = () => {
         await syncProofsToFirestore(newUploads);
       }
     } catch (error) {
-      console.error("Erreur lors de l'upload:", error);
+      console.error("❌ Erreur lors de l'upload:", error);
       Alert.alert("Erreur", "Impossible d'uploader l'image.");
     }
   };

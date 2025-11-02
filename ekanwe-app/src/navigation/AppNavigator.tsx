@@ -43,6 +43,7 @@ import { ChatScreen } from '../screens/ChatScreen';
 import { ReviewCommercantScreen } from '../screens/CommercantPages/ReviewCommercantScreen';
 import { ReviewInfluenceurScreen } from '../screens/InfluenceurPages/ReviewInfluenceurScreen';
 import { ProfilPublicScreen } from '../screens/CommercantPages/ProfilPublicScreen';
+import { DealsEditScreen } from '../screens/CommercantPages/DealsEditScreen';
 
 // Navigation principale de l'application
 
@@ -95,6 +96,7 @@ export const AppNavigator = () => {
       <Stack.Screen name="ReviewCommercant" component={ReviewCommercantScreen} />
       <Stack.Screen name="ReviewInfluenceur" component={ReviewInfluenceurScreen} />
       <Stack.Screen name="ProfilPublic" component={ProfilPublicScreen} />
+      <Stack.Screen name="DealsEdit" component={DealsEditScreen} />
     </Stack.Navigator>
   );
 }; 

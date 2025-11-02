@@ -16,7 +16,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { sendNotificationToToken } from '../../hooks/sendNotifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
-import storage from '@react-native-firebase/storage'
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from 'firebase/auth';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'DealsCreation'>;
 
@@ -99,7 +100,14 @@ export const DealsCreationScreen = () => {
 
       if (!result.canceled && result.assets.length > 0) {
         const uri = result.assets[0].uri;
-        setImageUri(uri);
+
+        // ✅ On envoie directement au Storage
+        const downloadURL = await uploadDealImageToFirebase(uri);
+
+        if (downloadURL) {
+          // ✅ Mettre l’URL Firebase dans ton state
+          setImageUri(downloadURL);
+        }
       }
     } catch (error) {
       console.error("Erreur lors de la sélection de l'image:", error);
@@ -109,13 +117,22 @@ export const DealsCreationScreen = () => {
 
   const uploadDealImageToFirebase = async (uri: string): Promise<string | null> => {
     try {
+      const storageInstance = getStorage();
       const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
-      const ref = storage().ref(`dealImages/${filename}`);
-      await ref.putFile(uri);
-      const downloadURL = await ref.getDownloadURL();
-      return downloadURL;
+      const reference = ref(storageInstance, `profileImages/${filename}`);
+
+      // ✅ Convertir file:// en blob avec fetch (nouvelle méthode Expo)
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Upload
+      await uploadBytes(reference, blob);
+
+      // URL publique
+      const url = await getDownloadURL(reference);
+      return url;
     } catch (error) {
-      console.error("Erreur lors de l’upload de l’image du deal:", error);
+      console.error("❌ Erreur upload Firebase Storage:", error);
       return null;
     }
   };

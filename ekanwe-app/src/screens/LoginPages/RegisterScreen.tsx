@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,26 +6,25 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  // Alert,
   ActivityIndicator,
-  // Platform,
+  Alert,
 } from 'react-native';
-// import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import {
   createUserWithEmailAndPassword,
-  sendEmailVerification,
-  // signInWithCredential,
-  // GoogleAuthProvider,
+  GoogleAuthProvider,
+  OAuthProvider,
+  signInWithCredential,
 } from 'firebase/auth';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
 import { useUserData } from '../../context/UserContext';
-// import { GoogleSignin } from '@react-native-google-signin/google-signin';
-// import { appleAuth } from '@invertase/react-native-apple-authentication';
-// import { AppleAuthProvider } from '@react-native-firebase/auth';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Register'>;
 
@@ -34,113 +33,53 @@ export const RegisterScreen = () => {
   const [formData, setFormData] = useState({ email: '', password: '', confirmation: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // const [showDatePicker, setShowDatePicker] = useState(false);
-  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthDate] = useState(new Date());
   const { userData } = useUserData();
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const available = await AppleAuthentication.isAvailableAsync();
+        if (mounted) setAppleAvailable(available);
+      } catch (e) {
+        console.error('Erreur while checking Apple availability', e);
+        if (mounted) setAppleAvailable(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // ------- CONFIGURE GOOGLE SIGNIN (replace the placeholder) -------
+  useEffect(() => {
+    GoogleSignin.configure({
+      // Get this value from Firebase Console (see instructions in the companion guide).
+      webClientId: '177322625777-o67l5o62gcau4h8074q0b9q781shpcla.apps.googleusercontent.com',
+      offlineAccess: true,
+    });
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  // const onDateChange = (event: any, selectedDate?: Date) => {
-  //   const currentDate = selectedDate || birthDate;
-  //   setShowDatePicker(Platform.OS === 'ios');
-  //   setBirthDate(currentDate);
-  // };
+  // Helper: create user doc in Firestore if it doesn't exist
+  const createOrUpdateUserDoc = async (uid: string, userInfo: any) => {
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        email: userInfo.email || null,
+        displayName: userInfo.displayName || null,
+        role: userData?.role || null,
+        dateCreation: new Date(),
+        inscription: '1',
+      });
+    }
+  };
 
-  // const showDatePickerModal = () => {
-  //   setShowDatePicker(true);
-  // };
-
-  // const handleGoogleSignUp = async () => {
-  //   try {
-  //     setLoading(true);
-  //     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-  //     const signInResult = await GoogleSignin.signIn();
-
-  //     const idToken = signInResult.data?.idToken;
-  //     if (!idToken) {
-  //       throw new Error('No ID token found');
-  //     }
-
-  //     const googleCredential = GoogleAuthProvider.credential(signInResult.data?.idToken);
-
-  //     const result = await signInWithCredential(auth, googleCredential);
-  //     const user = result.user;
-
-  //     const userRef = doc(db, 'users', user.uid);
-  //     const userSnap = await getDoc(userRef);
-
-  //     if (!userSnap.exists()) {
-  //       const fullName = user.displayName || '';
-  //       const [firstName, ...rest] = fullName.split(' ');
-  //       const lastName = rest.join(' ');
-
-  //       await setDoc(userRef, {
-  //         email: user.email,
-  //         nom: lastName || null,
-  //         prenoms: firstName || null,
-  //         photoURL: user.photoURL || null,
-  //         role: userData?.role || null,
-  //         dateCreation: new Date(),
-  //         inscription: '1',
-  //       });
-  //     }
-  //     navigation.replace('RegistrationStepOne');
-  //   } catch (err) {
-  //     console.error('Erreur Google Sign In :', err);
-  //     setError('Erreur lors de la connexion avec Google.');
-  //     Alert.alert('Erreur', 'Échec de la connexion Google');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const handleAppleSignUp = async () => {
-  //   try {
-  //     const appleAuthRequestResponse = await appleAuth.performRequest({
-  //       requestedOperation: appleAuth.Operation.LOGIN,
-  //       requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
-  //     });
-
-  //     if (!appleAuthRequestResponse.identityToken) {
-  //       throw new Error('Apple Sign-In failed - no identify token returned');
-  //     }
-
-  //     const { identityToken, nonce } = appleAuthRequestResponse;
-  //     const appleCredential = AppleAuthProvider.credential(identityToken, nonce);
-
-  //     const result = await signInWithCredential(auth, appleCredential);
-  //     const user = result.user;
-
-  //     const userRef = doc(db, 'users', user.uid);
-  //     const userSnap = await getDoc(userRef);
-
-  //     if (!userSnap.exists()) {
-  //       const fullName = user.displayName || '';
-  //       const [firstName, ...rest] = fullName.split(' ');
-  //       const lastName = rest.join(' ');
-
-  //       await setDoc(userRef, {
-  //         email: user.email,
-  //         nom: lastName || null,
-  //         prenoms: firstName || null,
-  //         photoURL: user.photoURL || null,
-  //         role: userData?.role || null,
-  //         dateCreation: new Date(),
-  //         inscription: '1',
-  //       });
-  //     }
-  //     navigation.replace('RegistrationStepOne');
-  //   } catch (err) {
-  //     console.error('Erreur Google Sign In :', err);
-  //     setError('Erreur lors de la connexion avec Google.');
-  //     Alert.alert('Erreur', 'Échec de la connexion Google');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }
-
+  // ----------------- Email/Password registration (no email verification) -----------------
   const handleRegister = async () => {
     const { email, password, confirmation } = formData;
     if (!email || !password || !confirmation) {
@@ -149,60 +88,121 @@ export const RegisterScreen = () => {
     if (password !== confirmation) {
       return setError('Les mots de passe ne correspondent pas.');
     }
-
     try {
       setLoading(true);
-      let cred = null;
-      try {
-        cred = await createUserWithEmailAndPassword(auth, email, password);
-      } catch (errr) {
-        setError('Une erreur est survenue lors de l\'inscription. Cet adresse est déjà utilisée. Veuillez vous connecter.');
-        return;
-      }
-      await sendEmailVerification(cred.user);
-
-      const userRef = doc(db, 'users', cred.user.uid);
-      await setDoc(userRef, {
-        email,
-        role: userData?.role || null,
-        dateCreation: new Date(),
-        // dateNaissance: birthDate,
-        inscription: '1',
-      });
-
-      navigation.replace('ValidateInscription');
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      // NOTE: we intentionally DO NOT call sendEmailVerification here (no verification required)
+      await createOrUpdateUserDoc(cred.user.uid, { email: cred.user.email });
+      navigation.replace('RegistrationStepOne');
     } catch (err: any) {
-      console.error('Erreur d\'inscription :', err);
-      setError('Une erreur est survenue lors de l\'inscription. Veuillez essayer à nouveau');
+      console.error("Erreur d'inscription :", err);
+      setError("Une erreur est survenue lors de l'inscription. Vérifiez l'email ou réessayez.");
     } finally {
       setLoading(false);
     }
   };
+
+  // ----------------- Google Sign-In -----------------
+  const handleGoogleSignUp = async () => {
+    try {
+      setLoading(true);
+      // make sure device has play services (android) — the lib will handle it
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const { data } = await GoogleSignin.signIn();
+      const idToken = data?.idToken;
+      if (!idToken) throw new Error('No idToken from Google Signin');
+
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, googleCredential);
+
+      const firebaseUser = userCredential.user;
+      await createOrUpdateUserDoc(firebaseUser.uid, {
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+      });
+
+      navigation.replace('RegistrationStepOne');
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      setError('Impossible de se connecter avec Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ----------------- Apple Sign-In -----------------
+  // NOTE: On iOS you *must* enable Sign in with Apple in your Apple Dev account & in Xcode.
+  // The library `@invertase/react-native-apple-authentication` auto-SHA256-hashes the nonce for you.
+  const generateNonce = (length = 32) => {
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
+  };
+
+  const handleAppleSignUp = async () => {
+    try {
+      setLoading(true);
+      const appleRes = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        ],
+      });
+
+      if (!appleRes.identityToken) throw new Error('Pas de token Apple');
+
+      const provider = new OAuthProvider('apple.com');
+      const appleCredential = provider.credential({
+        idToken: appleRes.identityToken,
+      } as any);
+
+      const userCredential = await signInWithCredential(auth, appleCredential);
+      const firebaseUser = userCredential.user;
+
+      await createOrUpdateUserDoc(firebaseUser.uid, {
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+      });
+
+      navigation.replace('RegistrationStepOne');
+    } catch (err: any) {
+      if (err.code === 'ERR_CANCELED') {
+        console.log('Connexion annulée par l’utilisateur');
+      } else {
+        console.error('Apple sign-in error:', err);
+        setError("Impossible de se connecter avec Apple. " + err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
       <Image source={require('../../assets/ekanwe-logo.png')} style={styles.logo} />
       <Text style={styles.title}>Créer un compte</Text>
 
-      {/* <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleSignUp} disabled={loading}>
+      <TouchableOpacity style={styles.socialBtnGoogle} onPress={handleGoogleSignUp} disabled={loading}>
         <Image
-          source={{ uri: 'https://www.google.com/favicon.ico' }}
-          style={styles.googleIcon}
+          source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }}
+          style={styles.socialIcon}
         />
-        <Text style={styles.googleText}>
-          {loading ? 'Connexion...' : 'Continuer avec Google'}
-        </Text>
+        <Text style={styles.socialText}>{loading ? 'Connexion...' : 'Continuer avec Google'}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.googleBtn} onPress={handleAppleSignUp} disabled={loading}>
-        <Image
-          source={{ uri: 'https://www.apple.com/favicon.ico' }}
-          style={styles.googleIcon}
-        />
-        <Text style={styles.googleText}>
-          {loading ? 'Connexion...' : 'Continuer avec Apple'}
-        </Text>
-      </TouchableOpacity> */}
+      {appleAvailable && (
+        <TouchableOpacity style={styles.socialBtnApple} onPress={() => { if (loading) return; handleAppleSignUp(); }}
+          disabled={loading}>
+          <Image
+            source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg' }}
+            style={styles.socialIcon}
+          />
+          <Text style={styles.socialText}>{loading ? 'Connexion...' : 'Continuer avec Apple'}</Text>
+        </TouchableOpacity>)}
 
       <View style={styles.separatorContainer}>
         <View style={styles.separatorLine} />
@@ -216,6 +216,8 @@ export const RegisterScreen = () => {
         placeholderTextColor="#ccc"
         value={formData.email}
         onChangeText={(text) => handleInputChange('email', text)}
+        autoCapitalize="none"
+        keyboardType="email-address"
       />
       <TextInput
         placeholder="Créer un mot de passe"
@@ -233,23 +235,6 @@ export const RegisterScreen = () => {
         value={formData.confirmation}
         onChangeText={(text) => handleInputChange('confirmation', text)}
       />
-
-      {/* <TouchableOpacity onPress={showDatePickerModal} style={styles.datePickerBtn}>
-        <Text style={styles.datePickerText}>
-          Date de naissance : {birthDate.toLocaleDateString('fr-FR')}
-        </Text>
-      </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={birthDate}
-          mode="date"
-          is24Hour={true}
-          display="default"
-          onChange={onDateChange}
-          style={styles.datePicker}
-        />
-      )} */}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -272,6 +257,8 @@ export const RegisterScreen = () => {
   );
 };
 
+export default RegisterScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -292,6 +279,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 32,
   },
+  appleBtn: { padding: 12, borderRadius: 8, backgroundColor: '#111', marginTop: 12, borderWidth: 1, borderColor: '#333' },
+  appleText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
   input: {
     width: '100%',
     borderColor: '#fff',
@@ -315,6 +304,47 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     marginRight: 10,
+  },
+  socialBtnGoogle: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  socialBtnApple: {
+    flexDirection: 'row',
+    backgroundColor: '#000',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  socialIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+    resizeMode: 'contain',
+  },
+  socialText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#1A2C24', // Texte Google sombre
   },
   googleText: {
     color: '#333',

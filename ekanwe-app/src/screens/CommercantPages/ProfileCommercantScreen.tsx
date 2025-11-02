@@ -21,8 +21,7 @@ import { signOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
-import storage, { getDownloadURL, uploadBytes } from '@react-native-firebase/storage'
-
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -70,13 +69,22 @@ export const ProfileCommercantScreen = () => {
 
   const uploadImageToFirebase = async (uri: string): Promise<string | null> => {
     try {
+      const storageInstance = getStorage();
       const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
-      const reference = storage().ref(`profileImages/${filename}`);
-      await reference.putFile(uri);
-      const url = await reference.getDownloadURL();
+      const reference = ref(storageInstance, `profileImages/${filename}`);
+
+      // ✅ Convertir file:// en blob avec fetch (nouvelle méthode Expo)
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Upload
+      await uploadBytes(reference, blob);
+
+      // URL publique
+      const url = await getDownloadURL(reference);
       return url;
     } catch (error) {
-      console.error("Erreur upload Firebase Storage:", error);
+      console.error("❌ Erreur upload Firebase Storage:", error);
       return null;
     }
   };
@@ -215,11 +223,21 @@ export const ProfileCommercantScreen = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.7,
+      quality: 0.8,
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      setProfileImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      const downloadURL = await uploadImageToFirebase(uri);
+      if (downloadURL) {
+        setProfileImage(downloadURL);
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          await updateDoc(userRef, { photoURL: downloadURL });
+        }
+      }
     }
   };
 
@@ -234,14 +252,23 @@ export const ProfileCommercantScreen = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.7,
+      quality: 0.8,
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      setProfileImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      const downloadURL = await uploadImageToFirebase(uri);
+      if (downloadURL) {
+        setProfileImage(downloadURL);
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          await updateDoc(userRef, { photoURL: downloadURL });
+        }
+      }
     }
   };
-
 
   return (
     <ScrollView style={styles.container}>

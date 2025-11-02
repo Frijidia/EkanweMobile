@@ -26,9 +26,10 @@ export type RootStackParamList = {
     photoURL?: string;
     role: string;
   };
+  DealsEdit: { dealId: string };
   DealsDetailsInfluenceur: { dealId: string, influenceurId: string };
   DealsSeeMoreInfluenceur: { dealId: string };
-  ReviewCommercant: {dealId: string, influenceurId: string}
+  ReviewCommercant: { dealId: string, influenceurId: string }
   ReviewInfluenceur: { dealId: string };
   ConceptCommercant: undefined;
   CreatorCommercant: undefined;

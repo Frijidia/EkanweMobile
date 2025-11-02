@@ -16,14 +16,14 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, updateProfile } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { BottomNavbar } from './BottomNavbar';
 import { RootStackParamList } from '../../types/navigation';
 import { deleteDoc } from 'firebase/firestore';
-import storage from '@react-native-firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -211,13 +211,22 @@ export const ProfileInfluenceurScreen = () => {
 
   const uploadImageToFirebase = async (uri: string): Promise<string | null> => {
     try {
+      const storageInstance = getStorage();
       const filename = `${auth.currentUser?.uid}_${Date.now()}.jpg`;
-      const reference = storage().ref(`profileImages/${filename}`);
-      await reference.putFile(uri);
-      const url = await reference.getDownloadURL();
+      const reference = ref(storageInstance, `profileImages/${filename}`);
+
+      // ✅ Convertir file:// en blob avec fetch (nouvelle méthode Expo)
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Upload
+      await uploadBytes(reference, blob);
+
+      // URL publique
+      const url = await getDownloadURL(reference);
       return url;
     } catch (error) {
-      console.error("Erreur upload Firebase Storage:", error);
+      console.error("❌ Erreur upload Firebase Storage:", error);
       return null;
     }
   };
@@ -228,7 +237,6 @@ export const ProfileInfluenceurScreen = () => {
       Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à la caméra.');
       return;
     }
-
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -237,7 +245,17 @@ export const ProfileInfluenceurScreen = () => {
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      setProfileImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      const downloadURL = await uploadImageToFirebase(uri);
+      if (downloadURL) {
+        setProfileImage(downloadURL);
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          await updateDoc(userRef, { photoURL: downloadURL });
+        }
+      }
     }
   };
 
@@ -256,9 +274,20 @@ export const ProfileInfluenceurScreen = () => {
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      setProfileImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      const downloadURL = await uploadImageToFirebase(uri);
+      if (downloadURL) {
+        setProfileImage(downloadURL);
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          await updateDoc(userRef, { photoURL: downloadURL });
+        }
+      }
     }
   };
+
 
   const handleSave = async () => {
     const user = auth.currentUser;
@@ -272,7 +301,10 @@ export const ProfileInfluenceurScreen = () => {
 
       if (profileImage && profileImage.startsWith('file://')) {
         const url = await uploadImageToFirebase(profileImage);
-        if (url) photoURLToSave = url;
+        if (url) {
+          await updateProfile(user, { photoURL: url });
+          photoURLToSave = url;
+        }
       }
 
       // S'assurer que la date est au format correct (DD/MM/YYYY)

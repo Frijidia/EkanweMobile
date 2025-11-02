@@ -3,7 +3,7 @@
     "name": "Ekanwe",
     "slug": "EkanweMobile",
     "displayName": "Ekanwe",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icone_ekanwe.png",
     "userInterfaceStyle": "light",
@@ -16,6 +16,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "bundleIdentifier": "com.ekanwe.ekanwe",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
@@ -26,6 +27,11 @@
         "UIBackgroundModes": [
           "remote-notification"
         ]
+      },
+      "config": {
+        "googleSignIn": {
+          "reservedClientId": "com.googleusercontent.apps.177322625777-9009mhm9l91t0c981c54d4jogsm7tc48"
+        }
       }
     },
     "android": {
@@ -33,6 +39,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "versionCode": 1,
       "edgeToEdgeEnabled": true,
       "package": "com.ekanwe.ekanwe",
       "googleServicesFile": "./google-services.json"
@@ -43,16 +50,19 @@
     "plugins": [
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin",
       [
         "expo-build-properties",
         {
           "ios": {
             "useFrameworks": "static",
-            "iosUrlScheme": "177322625777-eh52hote181cnjkls0enpltjh2rtfu8j.apps.googleusercontent.com"
+            "iosUrlScheme": "177322625777-o67l5o62gcau4h8074q0b9q781shpcla.apps.googleusercontent.com"
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-asset",
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {
